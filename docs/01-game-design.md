@@ -1,0 +1,228 @@
+# Game Design: Ang Huling Tanod
+
+*Source of truth for what the game is. If the code and this file disagree, discuss it as a team, then fix one of them.*
+
+## Overview
+
+Ang Huling Tanod is a 2D tower defense and survival game where you defend the last free island of a fictional invasion
+until the world hears that someone is still there. It is built with Java Swing and AWT and fits the class genre
+**Tower Defense**, with survival and management on top.
+
+What makes it different:
+
+- **A lighthouse beam you steer.** At night you only see what the beam lights.
+- **Resources that double as weapons.** Overharvesting the island weakens your defenses.
+- **Philippine folklore in the mix:** Bakunawa, the babaylan, the tikbalang, and the engkanto.
+- **A radio you must keep alive** to broadcast "May natitira pa tayo" every night.
+
+## Story and setting
+
+The Philippines has fallen to a fictional naval empire, the **Kordan Dominion**. **Isla Dulo**, a resource-rich island at
+the far end of the archipelago, is the last place still free.
+
+You are the last tanod. The Dominion wants the island's fish, timber, and ore. The rest of the map has gone silent, so
+your radio is the only link to the outside.
+
+When the Dominion's guns shook the seabed, the island's old guardians woke up. That is why a modern fleet can meet
+Bakunawa and the babaylan in the same game.
+
+The Dominion, its flag, its language, and its ships are invented, and no real country is shown. Combat is stylized, and
+blood effects stay off by default.
+
+## The loop
+
+One night is one pass through the loop. Surviving night 7 and sending the final broadcast brings the relief fleet.
+
+1. **Day: harvest and build.** Send villagers to gather fish, bamboo, and ore, and spend resources on defenses.
+2. **Dusk: preview and prepare.** A preview shows what the next wave looks like, so you can adjust.
+3. **Night: defend and broadcast.** Steer the beam, identify targets, fire, and keep the radio alive.
+4. **Dawn: report and repair.** Count the damage and repair. Then ask: is night 7 done? If yes, the relief fleet arrives
+   and the final broadcast wins. If no, the next night begins.
+
+The big decision in every loop is how much to harvest, because overharvesting weakens the island.
+
+## Resources, defenses, and the post
+
+The island's wealth is your arsenal: harvest by day, build before dusk, and don't strip the island bare.
+
+| Resource | Source | Used for |
+|---|---|---|
+| Fish | Reef and fishing spots | Food and crew morale |
+| Bamboo | Groves | Nets, watchtowers, decoys |
+| Ore | The old mine | Mines, coastal guns, repairs |
+
+**Island health** drops when you overharvest. A low value weakens every defense and lowers the engkanto's favor.
+
+| Defense | Cost | What it does |
+|---|---|---|
+| Net barrier | Bamboo | Slows ships in a lane |
+| Watchtower | Bamboo | Extends what you can see at night |
+| Decoy light | Bamboo | Pulls ships off course |
+| Mine buoy | Ore | Damages barges before they land |
+| Coastal gun | Ore | Main damage against ships |
+
+**The post** is a grounded ship on the reef. It holds the radio and carries a deck gun that you aim with the mouse. If
+its integrity reaches zero, you lose.
+
+### Philippine minerals to showcase
+
+The island's ore can show real Philippine strengths. In 2024 the country ranked second in nickel production, and gold
+made up half of its metallic mineral value.
+
+| Mineral | Philippine fact (2024) | In-game use (proposal) |
+|---|---|---|
+| Nickel | Second-ranked producer, 9.5% of world output; 36 of 58 operating metal mines | Heavy defenses: mine buoys and reinforced nets |
+| Gold | 28,870 kg mined; 50% of metallic mineral value | Rare drop that pays for radio upgrades; raiders target it |
+| Copper | 53,182 t of copper content mined; 3 operating mines | Power and wiring: lighthouse lamp and radio repairs |
+| Chromite | 127,613 t mined; 4 operating mines | Armor plating for the post and the coastal gun |
+| Cobalt and scandium | Produced alongside nickel; the Philippines ranked 7th in cobalt | Small bonus drops when nickel is processed |
+
+For flavor, villagers can work a *Minahang Bayan*, a declared small-scale mining area; 50 of the 63 declared areas are
+for gold. To keep scope small, **ship Ore as one resource** and show these as named ore types in the interface.
+
+Sources: [USGS, The Philippines (2024 report)](https://www.usgs.gov/centers/national-minerals-information-center/philippines)
+and [MGB, Minerals Industry at a Glance (April 2025)](https://mgb.gov.ph/images/Mineral_Statistics/2024/MINERALS_INDUSTRY_AT_A_GLANCE_Updated_11_April_2025.pdf).
+
+## Enemies
+
+The Kordan fleet comes through the fog in five ship classes. The stats are placeholders to tune during playtesting
+(stats will live in text files so they can be changed without touching code).
+
+| Enemy | Role | What it does | Counter |
+|---|---|---|---|
+| Skiff | Fast scout | Arrives first and marks the island; an unlit skiff makes the next wave bigger | Beam and quick shots |
+| Cutter | Gunboat | Stops at short range and fires at defenses | Heavier defenses and nets |
+| Landing barge | Troop carrier | Beaches and spawns raiders | Mine buoys before it lands |
+| Signal frigate | Priority target | Jams the radio while in range | Decoys, then focused fire |
+| Dreadnought | Boss, night 7 | Outranges defenses and shells them from afar | Decoys, then hit its weak points |
+
+Ground and stealth units:
+
+- **Raiders** land and walk inland toward the resource sites.
+- **Saboteur divers** stay invisible to the beam until they are close and cut your nets.
+- **Infiltrators** look like fishing bangkas. Identify them with the beam before firing; shooting a real fisher costs
+  morale.
+- **Recon drone (optional)** marks targets and is countered by a flak tower. Add it only after the core works.
+
+Every ship has weak points: hitting the engine makes it drift, and hitting the bridge ruins its aim.
+
+**Wave pacing over 7 nights:**
+
+| Night | What happens |
+|---|---|
+| 1 to 2 | Skiffs only |
+| 3 | Cutters, and the first infiltrator |
+| 4 | The Bakunawa eclipse |
+| 5 | Landing barges and raiders |
+| 6 | The signal frigate |
+| 7 | The dreadnought boss and the final broadcast |
+
+## Folklore layer
+
+The island's guardians wake up as the invasion deepens. Each one adds a tactical choice and is portrayed with respect.
+
+| Guardian | When | Effect |
+|---|---|---|
+| Bakunawa | Eclipse night (night 4) | Rises from the sea and attacks everything, including the Kordan fleet. Drive it off with noise (gongs and pots, as in the myth) or bait ships into its path. |
+| Babaylan | Always available | A healer who restores crew and defenses, blesses one tower per night, calms the sea to slow ships, and reads omens at dusk to preview the next wave. |
+| Tikbalang | Forest zone | Raiders that enter the forest are misdirected and walk in circles. |
+| Engkanto | Tied to island health | Overharvesting angers them, and they withdraw their blessing, which weakens your towers. |
+
+Bakunawa and the babaylan are **should-haves**. The tikbalang zone and the engkanto favor are **nice-to-haves**.
+
+## Heroes and cameos
+
+**Lapulapu**, the Mactan datu who resisted Magellan in 1521, joins as the island's stone guardian and your
+**once-per-run hero call**. ("Lapulapu" is the official spelling under Executive Order No. 152 of 2021; "Lapu-Lapu" is
+also common.) Very little is reliably known about his life, and nobody knows what he looked like.
+
+- **Legend fit:** local legend says he never died and was turned to stone, guarding the seas of Mactan. On Isla Dulo he is
+  a stone figure on the shore that wakes with the other guardians.
+- **Hero call:** once per run, call on him to raise a reef wall for one night. Ships stop and anchor offshore instead of
+  landing, as at Mactan, where rocks and coral reefs kept Magellan's ships from reaching the beach. Raiders cannot land
+  that night.
+- **Portrayal:** a stone silhouette, not a realistic portrait, and no invented words in his mouth.
+
+**Classmate cameos (nice-to-have):**
+
+- **As heroes:** named villager companions, each with a cartoon avatar loaded from an images folder, a name from a text
+  file, and one small ability.
+- **As enemies:** only as a clearly marked comedy cameo, such as a Kordan captain skin. Keep the invaders themselves
+  serious.
+- Ask each classmate before using their name or face.
+
+Sources: [Wikipedia, Lapulapu](https://en.wikipedia.org/wiki/Lapulapu) and
+[Culture Trip, The Story of Lapu-Lapu](https://theculturetrip.com/asia/philippines/articles/the-story-of-lapu-lapu-the-legendary-filipino-hero).
+
+## Controls and HUD
+
+Controls are mouse-first, so anyone can learn them in a minute.
+
+| Input | Action |
+|---|---|
+| Mouse click | Place a defense, or send villagers to harvest by day |
+| Mouse move | Aim the lighthouse beam at night |
+| Left click | Fire the deck gun at the beam's target |
+| Space | Sound the horn and gongs (noise) |
+| 1 to 5 | Choose a defense |
+| P | Pause |
+| Esc | Back to the menu |
+
+> The current skeleton also uses **Enter** (start), **P or Esc** (pause), and **M** (menu from pause). We'll reconcile
+> these with the table above when the Play state is built.
+
+The HUD shows only what the player needs: night counter, island health, post integrity, radio signal, resources, the
+defense bar, and a dusk preview of the next wave.
+
+## Win, lose, and scoring
+
+You **win** by surviving 7 nights and sending the final broadcast, which brings the relief fleet.
+
+You **lose** when any of these happens:
+
+- Post integrity reaches zero.
+- The radio signal stays at zero for too long.
+- Island health reaches zero.
+
+Score comes from nights survived, enemies stopped, infiltrators correctly identified, and island health left at the
+end. The best scores are saved to a file.
+
+## Art direction
+
+3/4 top-down pixel art with more detail than a low-resolution look: the game draws on an internal 640x360 screen and
+scales it up (see the code guide). 16x16 tiles. Free CC0 asset packs plus AI-assisted reference art for custom pieces;
+every source is listed in [CREDITS.md](../CREDITS.md). The art stays inspiration-only: we do not copy any existing
+game's art.
+
+## Features by priority
+
+Build the must-haves first, and cut from the bottom if time runs short.
+
+| Tier | Features |
+|---|---|
+| Must-have | Island tile map loaded from a file, harvesting by day, day and night cycle with a dusk preview, lighthouse beam and fog, net barrier, mine buoy, coastal gun, deck gun, skiff, cutter, and landing barge, post integrity, radio signal, and island health bars, Menu, Play, Pause, Victory, and Game Over screens, sound, high-score file |
+| Should-have | Infiltrators and the identify mechanic, signal frigate and dreadnought boss, babaylan, Bakunawa eclipse event, watchtower, decoy light, overharvesting effects, relief fleet ending |
+| Nice-to-have | Raiders and saboteur divers, recon drone and flak tower, tikbalang zone, engkanto favor, optional blood effects setting |
+
+## Java notes and open decisions
+
+Everything uses basic Java, Swing, and AWT, with no external libraries. The full class diagram comes with the proposal.
+
+- **Window and drawing:** a `JFrame` with a `JPanel` that draws everything in `paintComponent` using `Graphics2D`.
+- **Game loop:** a `javax.swing.Timer`.
+- **Game states:** an enum (`GameState`): MENU, PLAY, PAUSE, GAME_OVER, VICTORY. Day and night are phases *inside* PLAY.
+- **Core classes (planned):** `Island` (tile map from a text file), an abstract `Warship` with subclasses and
+  `WeakPoint`, a `Defense` interface, `Beam` (a rotating cone that lights ships), `Radio`, `Post`, `ResourceNode`, and a
+  `NightEvent` interface for the Bakunawa eclipse.
+- **Pathing:** BFS along sea lanes for ships and along land tiles for raiders.
+- **Files:** high scores and settings in plain text, with try-catch around every read and write.
+- **Sound:** `javax.sound.sampled` with royalty-free WAV files.
+
+Open decisions for the team:
+
+- [ ] Ship stats and how many defenses per night
+- [ ] Length of day and night
+- [ ] Whether to include the drone
+- [ ] Final art style and who draws what
+- [ ] Whether blood effects ship at all (default off)
+- [ ] Professor's confirmation of the gameplay changes, and our own Play Store check

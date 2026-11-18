@@ -1,0 +1,108 @@
+# Pitch and Demo Script
+
+**Slot:** live demo on **Dec 1, 2026**, **5 to 7 minutes**, all members speak.
+Target **6 minutes** so there is room for a slow moment or a question.
+
+> Items marked **[UPDATE]** depend on features not built yet. Fill them in after the final build.
+
+## Who says what
+
+| Time | Speaker | Part |
+|---|---|---|
+| 0:00 to 1:00 | **Gio** | Hook and the story |
+| 1:00 to 3:30 | **Gabriel** | Live demo of gameplay, narrated |
+| 3:30 to 4:30 | **Jaron** | Art, assets, and how we made it |
+| 4:30 to 5:30 | **Gabriel** | Code: OOP, data structures, file I/O |
+| 5:30 to 6:15 | **Gio** | Playtesting results and what we changed |
+| 6:15 to 6:30 | **All** | Close |
+
+Gio hosts the intro and the close because he has the slides. Gabriel drives the keyboard during the demo, so he
+narrates while he plays and nobody swaps seats mid-demo.
+
+## Script
+
+### 1. Hook and story (Gio, 1 minute)
+
+> "Imagine the whole Philippines has gone silent. A fictional empire, the Kordan Dominion, has taken every island but
+> one. Isla Dulo, the last free island at the end of the archipelago. You are its last tanod.
+>
+> By day you harvest fish, bamboo, and ore, and build defenses. By night it is pitch dark. The only thing you can see is
+> what your lighthouse beam touches. And you have one more job: keep the radio alive so the world hears three words,
+> *May natitira pa tayo*. Survive seven nights, and a relief fleet comes."
+
+Slide: title, the island, one line of the pitch. Say that the empire is fictional, and no real country is shown.
+
+### 2. Live gameplay (Gabriel, 2.5 minutes)
+
+Run from the JAR, not from the IDE. Narrate what you do and *why*.
+
+1. **Menu.** Press Enter. *(Mention: the window is resizable, drag it once.)*
+2. **Day.** Harvest a resource. Place a defense. **[UPDATE]**
+   "Resources are also my weapons. If I take too much, island health drops and my defenses get weaker."
+3. **Night.** Move the mouse to sweep the beam. **[UPDATE]**
+   "Only lit things are visible. I have to decide where to look."
+4. **A ship appears in the beam.** Shoot it. Show a defense working.
+5. **Folklore moment.** Show the babaylan heal, or the Bakunawa eclipse. **[UPDATE]**
+6. **Pause** with P to show the pause state, then resume.
+7. **HUD.** Point at the three bars: post integrity, radio signal, island health, and say how you lose.
+
+If time is short, skip to night 4 using a prepared save or debug key. **[UPDATE: add a debug skip key]**
+
+### 3. Art and assets (Jaron, 1 minute)
+
+> "Our art is 3/4 top-down pixel art. We used free CC0 asset packs for tiles and water, and AI-assisted references for
+> custom pieces. Everything is credited in the repository."
+
+Show: one tile sheet or sprite, and how Gemini prompts produced the reference art. **[UPDATE]**
+Be honest about what was made by hand, what came from packs, and what was AI-assisted.
+
+### 4. How the code is built (Gabriel, 1 minute)
+
+Show the UML and **two** short code moments. Do not scroll through code.
+
+- **OOP:** "`Warship` is an abstract class. `Skiff`, `Cutter`, and `Barge` extend it and change how they move and attack.
+  `Defense` is an interface, so nets, mines, and guns all work the same from the game's point of view." **[UPDATE]**
+- **Data structures and file I/O:** "The island map is a 2D array loaded from a text file. Wave plans, ship stats, and
+  high scores are text files too, with try-catch around every read, so a missing file never crashes the game."
+- **Game loop:** "A Swing Timer calls `update()` then `repaint()` sixty times a second. The game draws on a small
+  640x360 screen and scales it, so the window can be any size."
+
+### 5. Playtesting (Gio, 45 seconds)
+
+> "We had [N] classmates play. They found [problem 1] and [problem 2]. Because of that, we changed [change 1] and
+> [change 2]."
+
+Use real numbers from [06-playtest-log.md](06-playtest-log.md). **[UPDATE]**
+
+### 6. Close (all)
+
+One sentence each, for example:
+
+- Gio: "Every night is a decision about what to risk."
+- Jaron: "The island's look is meant to feel like home."
+- Gabriel: "May natitira pa tayo. Thank you."
+
+## Likely questions
+
+| Question | Short answer |
+|---|---|
+| Is this original? Is there a similar game? | The concept was approved by our professor, who found no similar game on the Play Store. The empire, ships, and mechanics are our own. |
+| Which genre is it? | Tower defense with survival and resource management. |
+| Where is inheritance? | `Warship` and its subclasses. **[UPDATE]** |
+| Where is an interface? | `Defense` and `NightEvent`. **[UPDATE]** |
+| Where is file I/O? | Map, waves, and stats are read from text files. High scores are read and written. **[UPDATE]** |
+| What if the file is missing? | We catch the exception and fall back to defaults or show a message. The game does not crash. |
+| Why Swing Timer, not a thread? | It was taught in class, and it runs on the Swing thread, so drawing is safe. |
+| Who did what? | Gabriel: code. Gio: slides, demo, playtesting. Jaron: art, README, UML. See the README. |
+| Did you use AI? | Yes, for code help and art references. We understand and can explain the code, and the art is credited in CREDITS.md. |
+| What would you add next? | The nice-to-haves: raiders, the drone, the tikbalang zone. |
+
+## Rehearsal and backup plan
+
+- [ ] Rehearse **twice** with a timer. Cut, don't rush, if you go over 7 minutes.
+- [ ] Use the JAR on the **same computer** used for the demo. Test it there before Dec 1.
+- [ ] Record a 2-minute **backup video** of a full run, in case the game crashes live.
+- [ ] Keep a **second copy** of the JAR on a flash drive and in the repo.
+- [ ] Check sound before starting (volume on, speakers connected).
+- [ ] Know the **fastest way to restart** the game if it breaks.
+- [ ] Everyone reads the code guide, so anyone can answer a code question.
