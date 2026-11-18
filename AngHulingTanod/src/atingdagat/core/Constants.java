@@ -24,6 +24,14 @@ public final class Constants {
     // Size of one map tile (in internal pixels). The island map will be a grid of these.
     public static final int TILE_SIZE = 16;
 
+    // The map covers the whole internal screen: 40 columns x 23 rows of tiles
+    // (22.5 rows fit, so the last row is cut in half and that is fine).
+    public static final int MAP_COLS = INTERNAL_WIDTH / TILE_SIZE;
+    public static final int MAP_ROWS = (INTERNAL_HEIGHT + TILE_SIZE - 1) / TILE_SIZE;
+
+    // The map file, stored inside the project so it also works from the JAR.
+    public static final String MAP_FILE = "/atingdagat/data/island.txt";
+
     // How many times per second the game updates and redraws.
     public static final int TARGET_FPS = 60;
 

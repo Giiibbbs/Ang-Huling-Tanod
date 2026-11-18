@@ -1,5 +1,6 @@
 package atingdagat.core;
 
+import atingdagat.map.TileMap;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -35,6 +36,9 @@ public class GamePanel extends JPanel {
 
     private final Timer timer;
     private GameState state = GameState.MENU;
+
+    // The island and the sea.
+    private final TileMap map = new TileMap(Constants.MAP_FILE);
 
     // Where the internal screen is placed inside the window (set every frame).
     private int drawX, drawY, drawW, drawH;
@@ -176,12 +180,12 @@ public class GamePanel extends JPanel {
 
     /** Draws one frame in internal 640x360 coordinates. */
     private void drawGame(Graphics2D g) {
-        // Sea background (placeholder)
-        g.setColor(new Color(20, 60, 110));
-        g.fillRect(0, 0, Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT);
+        // The island and sea are drawn first, behind everything else.
+        map.draw(g, frameCount);
 
         switch (state) {
             case MENU:
+                dim(g, 140);
                 drawMenu(g);
                 break;
             case PLAY:
@@ -189,18 +193,27 @@ public class GamePanel extends JPanel {
                 break;
             case PAUSE:
                 drawPlay(g);
+                dim(g, 120);
                 drawCenteredText(g, "PAUSED", 150, 32, Color.WHITE);
                 drawCenteredText(g, "P - resume     M - main menu", 185, 14, Color.LIGHT_GRAY);
                 break;
             case GAME_OVER:
+                dim(g, 170);
                 drawCenteredText(g, "GAME OVER", 160, 32, Color.RED);
                 drawCenteredText(g, "Press ENTER", 195, 14, Color.LIGHT_GRAY);
                 break;
             case VICTORY:
+                dim(g, 150);
                 drawCenteredText(g, "MAY NATITIRA PA TAYO", 160, 28, Color.YELLOW);
                 drawCenteredText(g, "Press ENTER", 195, 14, Color.LIGHT_GRAY);
                 break;
         }
+    }
+
+    /** Darkens the whole screen so text on top is easy to read. */
+    private void dim(Graphics2D g, int alpha) {
+        g.setColor(new Color(0, 0, 0, alpha));
+        g.fillRect(0, 0, Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT);
     }
 
     private void drawMenu(Graphics2D g) {
@@ -209,10 +222,7 @@ public class GamePanel extends JPanel {
     }
 
     private void drawPlay(Graphics2D g) {
-        // Placeholder island (a green rectangle) and moving box.
-        g.setColor(new Color(60, 140, 70));
-        g.fillRect(260, 140, 120, 80);
-
+        // Placeholder for a ship: a moving box (the skiff will replace it).
         g.setColor(Color.ORANGE);
         g.fillRect((int) boxX, 60, 20, 20);
 
