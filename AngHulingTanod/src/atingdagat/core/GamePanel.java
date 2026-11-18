@@ -1,6 +1,11 @@
 package atingdagat.core;
 
+import atingdagat.entities.Beam;
+import atingdagat.entities.Lighthouse;
+import atingdagat.entities.Skiff;
+import atingdagat.entities.Warship;
 import atingdagat.map.TileMap;
+import atingdagat.ui.NightOverlay;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -12,6 +17,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Random;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -24,9 +31,8 @@ import javax.swing.Timer;
  *     fit the window (so resizing the window works).
  *  3. Keeps track of the current GameState (menu, play, pause, ...).
  *
- * Right now it only draws placeholder shapes so you can see the loop works.
- * Later, other classes (TileMap, Beam, Warship...) will be called from
- * update() and draw().
+ * Other classes (TileMap, Beam, Warship...) are created here and called from
+ * update() and drawGame().
  */
 public class GamePanel extends JPanel {
 
@@ -37,15 +43,29 @@ public class GamePanel extends JPanel {
     private final Timer timer;
     private GameState state = GameState.MENU;
 
-    // The island and the sea.
+    // The world.
     private final TileMap map = new TileMap(Constants.MAP_FILE);
+    private final Lighthouse lighthouse = new Lighthouse(Constants.LIGHTHOUSE_COL, Constants.LIGHTHOUSE_ROW);
+    private final Beam beam = new Beam(lighthouse.getLampX(), lighthouse.getLampY());
+    private final NightOverlay overlay = new NightOverlay();
+    private final ArrayList<Warship> ships = new ArrayList<>();
+    private final Random random = new Random();
+
+    // TEMPORARY test switch: press N to flip between day and night.
+    // The real day/night cycle replaces this on Nov 21.
+    private boolean night = true;
+
+    // Skiffs appear one at a time at night.
+    private static final int SPAWN_INTERVAL = 240; // frames (about 4 seconds)
+    private static final int MAX_SHIPS = 6;
+    private int spawnTimer = SPAWN_INTERVAL - 60;  // the first one comes after about a second
+
+    // Where the mouse is, in game (640x360) coordinates.
+    private int mouseX = Constants.INTERNAL_WIDTH / 2;
+    private int mouseY = 40;
 
     // Where the internal screen is placed inside the window (set every frame).
     private int drawX, drawY, drawW, drawH;
-
-    // Placeholder: a square that moves so we can see the loop running.
-    private double boxX = 100;
-    private double boxSpeed = 2;
 
     // Keys currently held down (arrays are covered in class).
     private final boolean[] keys = new boolean[256];
@@ -76,15 +96,22 @@ public class GamePanel extends JPanel {
             }
         });
 
-        // Mouse: example of converting window coordinates to game coordinates.
-        addMouseListener(new MouseAdapter() {
+        // Mouse: moving it aims the beam. We convert window coordinates to game coordinates.
+        MouseAdapter mouse = new MouseAdapter() {
             @Override
-            public void mousePressed(MouseEvent e) {
-                int gx = toGameX(e.getX());
-                int gy = toGameY(e.getY());
-                System.out.println("Clicked game position: " + gx + ", " + gy);
+            public void mouseMoved(MouseEvent e) {
+                mouseX = toGameX(e.getX());
+                mouseY = toGameY(e.getY());
             }
-        });
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                mouseX = toGameX(e.getX());
+                mouseY = toGameY(e.getY());
+            }
+        };
+        addMouseListener(mouse);
+        addMouseMotionListener(mouse);
 
         // The game loop: runs about 60 times per second.
         int delay = 1000 / Constants.TARGET_FPS;
@@ -113,6 +140,10 @@ public class GamePanel extends JPanel {
             case PLAY:
                 if (code == KeyEvent.VK_P || code == KeyEvent.VK_ESCAPE) {
                     state = GameState.PAUSE;
+                } else if (code == KeyEvent.VK_N) {
+                    night = !night;
+                    ships.clear(); // ships only come at night
+                    spawnTimer = SPAWN_INTERVAL - 60;
                 }
                 break;
             case PAUSE:
@@ -141,11 +172,52 @@ public class GamePanel extends JPanel {
             return; // nothing moves in the menu or while paused
         }
 
-        // Placeholder movement: bounce a square left and right.
-        boxX += boxSpeed;
-        if (boxX < 20 || boxX > Constants.INTERNAL_WIDTH - 40) {
-            boxSpeed = -boxSpeed;
+        // The beam turns toward the mouse.
+        beam.aimAt(mouseX, mouseY);
+        beam.update();
+
+        // At night, send in a skiff every few seconds.
+        if (night) {
+            spawnTimer++;
+            if (spawnTimer >= SPAWN_INTERVAL && ships.size() < MAX_SHIPS) {
+                spawnTimer = 0;
+                spawnSkiff();
+            }
         }
+
+        // Move every ship. Go backwards so removing one does not skip the next.
+        for (int i = ships.size() - 1; i >= 0; i--) {
+            Warship ship = ships.get(i);
+            ship.update(map, beam);
+            if (ship.hasArrived()) {
+                ships.remove(i); // later this will damage the post
+            }
+        }
+    }
+
+    /** Creates a skiff just outside a random edge of the screen, heading for the lighthouse. */
+    private void spawnSkiff() {
+        double x;
+        double y;
+        switch (random.nextInt(4)) {
+            case 0:  // left
+                x = -12;
+                y = 20 + random.nextInt(Constants.INTERNAL_HEIGHT - 40);
+                break;
+            case 1:  // right
+                x = Constants.INTERNAL_WIDTH + 12;
+                y = 20 + random.nextInt(Constants.INTERNAL_HEIGHT - 40);
+                break;
+            case 2:  // top
+                x = 20 + random.nextInt(Constants.INTERNAL_WIDTH - 40);
+                y = -12;
+                break;
+            default: // bottom
+                x = 20 + random.nextInt(Constants.INTERNAL_WIDTH - 40);
+                y = Constants.INTERNAL_HEIGHT + 12;
+                break;
+        }
+        ships.add(new Skiff(x, y, lighthouse.getBaseX(), lighthouse.getBaseY()));
     }
 
     // ------------------------------------------------------------------
@@ -222,13 +294,27 @@ public class GamePanel extends JPanel {
     }
 
     private void drawPlay(Graphics2D g) {
-        // Placeholder for a ship: a moving box (the skiff will replace it).
-        g.setColor(Color.ORANGE);
-        g.fillRect((int) boxX, 60, 20, 20);
+        lighthouse.draw(g, night);
 
+        // Ships are drawn BEFORE the darkness. At night they only show if the beam lit them.
+        int litCount = 0;
+        for (Warship ship : ships) {
+            ship.draw(g, night);
+            if (ship.isLit()) {
+                litCount++;
+            }
+        }
+
+        if (night) {
+            overlay.draw(g, beam);   // darkness with a hole for the beam
+            beam.drawLight(g);       // warm glow inside the hole
+        }
+
+        // HUD (a simple version for now)
         g.setColor(Color.WHITE);
         g.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        g.drawString("Night 1 / " + Constants.TOTAL_NIGHTS + "   (P = pause)   frame " + frameCount, 8, 14);
+        g.drawString((night ? "Night" : "Day") + " 1 / " + Constants.TOTAL_NIGHTS
+                + "   P = pause   N = day/night (test)   ships lit: " + litCount + "/" + ships.size(), 8, 14);
     }
 
     private void drawCenteredText(Graphics2D g, String text, int y, int size, Color color) {
@@ -244,10 +330,16 @@ public class GamePanel extends JPanel {
     // ------------------------------------------------------------------
 
     public int toGameX(int windowX) {
+        if (drawW == 0) {
+            return 0; // nothing has been drawn yet
+        }
         return (int) ((windowX - drawX) * (double) Constants.INTERNAL_WIDTH / drawW);
     }
 
     public int toGameY(int windowY) {
+        if (drawH == 0) {
+            return 0;
+        }
         return (int) ((windowY - drawY) * (double) Constants.INTERNAL_HEIGHT / drawH);
     }
 

@@ -29,6 +29,10 @@ public final class Constants {
     public static final int MAP_COLS = INTERNAL_WIDTH / TILE_SIZE;
     public static final int MAP_ROWS = (INTERNAL_HEIGHT + TILE_SIZE - 1) / TILE_SIZE;
 
+    // Where the lighthouse stands on the island (tile column and row).
+    public static final int LIGHTHOUSE_COL = 19;
+    public static final int LIGHTHOUSE_ROW = 10;
+
     // The map file, stored inside the project so it also works from the JAR.
     public static final String MAP_FILE = "/atingdagat/data/island.txt";
 
