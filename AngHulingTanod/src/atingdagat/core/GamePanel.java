@@ -145,6 +145,8 @@ public class GamePanel extends JPanel {
                     world.toggleTool(GameWorld.Tool.NET);
                 } else if (code == KeyEvent.VK_2) {
                     world.toggleTool(GameWorld.Tool.MINE);
+                } else if (code == KeyEvent.VK_3) {
+                    world.toggleTool(GameWorld.Tool.TORCH);
                 } else if (code == KeyEvent.VK_R) {
                     world.repair();
                 } else if (code == KeyEvent.VK_C) {
@@ -181,6 +183,12 @@ public class GamePanel extends JPanel {
             return; // nothing moves in the menu or while paused
         }
 
+        // The walking keys: WASD or the arrow keys.
+        int moveX = (keys[KeyEvent.VK_D] || keys[KeyEvent.VK_RIGHT] ? 1 : 0)
+                - (keys[KeyEvent.VK_A] || keys[KeyEvent.VK_LEFT] ? 1 : 0);
+        int moveY = (keys[KeyEvent.VK_S] || keys[KeyEvent.VK_DOWN] ? 1 : 0)
+                - (keys[KeyEvent.VK_W] || keys[KeyEvent.VK_UP] ? 1 : 0);
+        world.setInput(moveX, moveY, keys[KeyEvent.VK_SPACE]);
         world.update(mouseX, mouseY);
 
         // Did the run end?

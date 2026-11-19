@@ -3,6 +3,7 @@ package atingdagat.core;
 import atingdagat.defense.Defense;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
+import atingdagat.defense.Torch;
 import atingdagat.economy.FishKind;
 import atingdagat.economy.FishSchool;
 import atingdagat.economy.Harvestable;
@@ -12,7 +13,11 @@ import atingdagat.economy.ResourceType;
 import atingdagat.entities.Barge;
 import atingdagat.entities.Beam;
 import atingdagat.entities.Cutter;
+import atingdagat.entities.GlowSource;
+import atingdagat.entities.Lantern;
+import atingdagat.entities.Light;
 import atingdagat.entities.Lighthouse;
+import atingdagat.entities.Player;
 import atingdagat.entities.Post;
 import atingdagat.entities.Radio;
 import atingdagat.entities.Skiff;
@@ -46,7 +51,7 @@ public class GameWorld {
     public enum Outcome { PLAYING, WON, LOST }
 
     /** What a click does in the day. */
-    public enum Tool { HARVEST, NET, MINE }
+    public enum Tool { HARVEST, NET, MINE, TORCH }
 
     private static final int BANNER_FRAMES = 150;
     private static final int GUN_DAMAGE = 1;
@@ -58,6 +63,13 @@ public class GameWorld {
     private final Radio radio = new Radio();
     private final Beam beam = new Beam(lighthouse.getLampX(), lighthouse.getLampY());
     private final NightOverlay overlay = new NightOverlay();
+
+    // The walking tanod, and the lights that make ships visible at night
+    private final Player player = new Player(
+            Constants.PLAYER_START_COL * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0,
+            Constants.PLAYER_START_ROW * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0 + 4);
+    private final Lantern lantern = new Lantern(player);
+    private final Light anyLight = this::isLit;   // "is this spot lit by ANY light?" (see isLit)
 
     // Things that come and go
     private final ArrayList<Warship> ships = new ArrayList<>();
@@ -80,6 +92,9 @@ public class GameWorld {
     private int frame = 0;
     private int mouseX = Constants.INTERNAL_WIDTH / 2;
     private int mouseY = 40;
+    private int moveX = 0;               // the walking keys, set by GamePanel every frame
+    private int moveY = 0;
+    private boolean steering = false;   // SPACE held
 
     private Tool tool = Tool.HARVEST;
     private int spawned = 0;             // ships sent so far tonight
@@ -119,8 +134,14 @@ public class GameWorld {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
 
-        beam.aimAt(mouseX, mouseY);
-        beam.update();
+        player.update(map, moveX, moveY);
+
+        // Near the lighthouse, holding SPACE steers the beam by hand. Otherwise it sweeps by itself.
+        boolean manual = steering && isNearLighthouse();
+        if (manual) {
+            beam.aimAt(mouseX, mouseY);
+        }
+        beam.update(manual);
 
         Phase changed = cycle.update();
         if (changed != null) {
@@ -236,7 +257,7 @@ public class GameWorld {
     private void updateShips() {
         for (int i = ships.size() - 1; i >= 0; i--) {
             Warship ship = ships.get(i);
-            ship.update(map, beam, defenses);
+            ship.update(map, anyLight, defenses);
             if (ship.isDead()) {
                 ships.remove(i);
             } else if (ship.hasArrived()) {
@@ -327,6 +348,53 @@ public class GameWorld {
     }
 
     // ------------------------------------------------------------------
+    // MOVING AND LIGHT
+    // ------------------------------------------------------------------
+
+    /** Called by GamePanel every frame: which way the walking keys point (-1, 0 or 1) and whether SPACE is held. */
+    public void setInput(int moveX, int moveY, boolean steering) {
+        this.moveX = moveX;
+        this.moveY = moveY;
+        this.steering = steering;
+    }
+
+    /** True if the tanod stands close enough to the lamp to turn it. */
+    public boolean isNearLighthouse() {
+        return Math.hypot(player.getX() - lighthouse.getBaseX(), player.getY() - lighthouse.getBaseY())
+                <= Constants.STEER_RANGE;
+    }
+
+    /** Is this point lit by the beam, the lantern or any torch? Ships ask this every frame. */
+    private boolean isLit(double x, double y) {
+        if (beam.lights(x, y) || lantern.lights(x, y)) {
+            return true;
+        }
+        for (Defense d : defenses) {
+            if (d instanceof Torch && ((Torch) d).lights(x, y)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The lantern and all torches, for the night drawing. */
+    private ArrayList<GlowSource> glowSources() {
+        ArrayList<GlowSource> list = new ArrayList<>();
+        list.add(lantern);
+        for (Defense d : defenses) {
+            if (d instanceof Torch) {
+                list.add((Torch) d);
+            }
+        }
+        return list;
+    }
+
+    /** Is the point (x, y) within "radius" pixels of the tanod's feet? */
+    private boolean inReach(double x, double y, double radius) {
+        return Math.hypot(x - player.getX(), y - player.getY()) <= radius;
+    }
+
+    // ------------------------------------------------------------------
     // PLAYER ACTIONS
     // ------------------------------------------------------------------
 
@@ -345,6 +413,8 @@ public class GameWorld {
             placeNet(x, y);
         } else if (tool == Tool.MINE) {
             placeMine(x, y);
+        } else if (tool == Tool.TORCH) {
+            placeTorch(x, y);
         } else {
             holding = true;   // harvesting is HOLDING the button (see updateHolding)
         }
@@ -385,6 +455,19 @@ public class GameWorld {
     private void updateHolding() {
         boolean canHarvest = holding && tool == Tool.HARVEST && !cycle.isNight();
         Harvestable under = canHarvest ? findHarvestable(mouseX, mouseY) : null;
+
+        // The tanod must be close enough. Fish can be reached further (a cast line) than things on land.
+        if (under != null) {
+            double reach = (under instanceof FishSchool) ? Constants.FISH_REACH : Constants.LAND_REACH;
+            if (!inReach(under.getX(), under.getY(), reach)) {
+                if (holdTarget != under) {   // one reminder per spot, not one every frame
+                    popups.add(new Popup(under.getX(), under.getY() - 12, "Too far - walk closer", Color.LIGHT_GRAY));
+                }
+                holdTarget = under;
+                holdProgress = 0;
+                return;
+            }
+        }
 
         if (under != null && !under.isAvailable()) {
             if (holdTarget != under) {   // one reminder per spot, not one every frame
@@ -519,6 +602,10 @@ public class GameWorld {
             popups.add(new Popup(x, y - 6, "Shallow water only", Color.LIGHT_GRAY));
             return;
         }
+        if (!tileInBuildReach(col, row)) {
+            popups.add(new Popup(x, y - 6, "Too far - walk closer", Color.LIGHT_GRAY));
+            return;
+        }
         if (!inventory.spend(ResourceType.BAMBOO, Net.COST_BAMBOO)) {
             popups.add(new Popup(x, y - 6, "Need " + Net.COST_BAMBOO + " bamboo", new Color(255, 150, 120)));
             return;
@@ -533,11 +620,69 @@ public class GameWorld {
             popups.add(new Popup(x, y - 6, "Water near the island only", Color.LIGHT_GRAY));
             return;
         }
+        if (!tileInBuildReach(col, row)) {
+            popups.add(new Popup(x, y - 6, "Too far - walk closer", Color.LIGHT_GRAY));
+            return;
+        }
         if (!inventory.spend(ResourceType.NICKEL, Mine.COST_NICKEL)) {
             popups.add(new Popup(x, y - 6, "Need " + Mine.COST_NICKEL + " nickel", new Color(255, 150, 120)));
             return;
         }
         defenses.add(new Mine(col, row));
+    }
+
+    private boolean tileInBuildReach(int col, int row) {
+        return inReach(col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0,
+                row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0, Constants.BUILD_REACH);
+    }
+
+    /** Can a torch go on this tile? (land only, not under the post or lighthouse, and not too many) */
+    public boolean canPlaceTorch(int col, int row) {
+        if (col < 0 || row < 0 || col >= Constants.MAP_COLS || row >= Constants.MAP_ROWS || map.isWater(row, col)) {
+            return false;
+        }
+        if ((col == Constants.POST_COL && row == Constants.POST_ROW)
+                || (col == Constants.LIGHTHOUSE_COL && row == Constants.LIGHTHOUSE_ROW)) {
+            return false;
+        }
+        for (Defense d : defenses) {
+            if (d.occupies(col, row)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int torchCount() {
+        int n = 0;
+        for (Defense d : defenses) {
+            if (d instanceof Torch) {
+                n++;
+            }
+        }
+        return n;
+    }
+
+    private void placeTorch(int x, int y) {
+        int col = x / Constants.TILE_SIZE;
+        int row = y / Constants.TILE_SIZE;
+        if (x < 0 || y < 0 || !canPlaceTorch(col, row)) {
+            popups.add(new Popup(x, y - 6, "Free land only", Color.LIGHT_GRAY));
+            return;
+        }
+        if (torchCount() >= Constants.TORCH_MAX) {
+            popups.add(new Popup(x, y - 6, "Only " + Constants.TORCH_MAX + " torches", Color.LIGHT_GRAY));
+            return;
+        }
+        if (!tileInBuildReach(col, row)) {
+            popups.add(new Popup(x, y - 6, "Too far - walk closer", Color.LIGHT_GRAY));
+            return;
+        }
+        if (!inventory.spend(ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO)) {
+            popups.add(new Popup(x, y - 6, "Need " + Constants.TORCH_COST_BAMBOO + " bamboo", new Color(255, 150, 120)));
+            return;
+        }
+        defenses.add(new Torch(col, row));
     }
 
     /** Click a LIT ship to shoot it. You cannot hit what the beam has not found. */
@@ -552,6 +697,10 @@ public class GameWorld {
             }
         }
         if (target == null) {
+            return;
+        }
+        if (!inReach(target.getX(), target.getY(), Constants.FIRE_RANGE)) {
+            popups.add(new Popup(target.getX(), target.getY() - 10, "Out of range", Color.LIGHT_GRAY));
             return;
         }
         gunCooldown = Constants.GUN_COOLDOWN;
@@ -652,6 +801,7 @@ public class GameWorld {
         }
         post.draw(g, frameCount, !radio.isSilent());
         lighthouse.draw(g, darkness > 0.5);
+        player.draw(g, frameCount);
         for (Warship ship : ships) {
             ship.draw(g, darkness);
         }
@@ -662,11 +812,15 @@ public class GameWorld {
         }
 
         // The darkness and the light inside it
-        overlay.draw(g, beam, darkness);
+        ArrayList<GlowSource> glows = glowSources();
+        overlay.draw(g, beam, darkness, glows);
         if (darkness > 0.01) {
             Composite old = g.getComposite();
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) darkness));
             beam.drawLight(g);
+            for (GlowSource glow : glows) {
+                NightOverlay.drawWarmth(g, glow);
+            }
             g.setComposite(old);
         }
 
@@ -674,7 +828,7 @@ public class GameWorld {
         if (shotTimer > 0) {
             g.setColor(new Color(255, 235, 150, 60 + shotTimer * 25));
             g.setStroke(new BasicStroke(1.5f));
-            g.drawLine((int) lighthouse.getLampX(), (int) lighthouse.getLampY(), (int) shotX, (int) shotY);
+            g.drawLine((int) player.getX(), (int) player.getY() - 6, (int) shotX, (int) shotY);
             g.setStroke(new BasicStroke(1f));
         }
 
@@ -693,6 +847,10 @@ public class GameWorld {
             return;
         }
         double fraction = holdProgress / (double) holdTarget.getType().getHoldFrames();
+        if (holdTarget instanceof FishSchool) {   // the fishing line
+            g.setColor(new Color(255, 255, 255, 120));
+            g.drawLine((int) player.getX(), (int) player.getY() - 8, (int) holdTarget.getX(), (int) holdTarget.getY());
+        }
         int r = 11;
         int x = (int) holdTarget.getX() - r;
         int y = (int) holdTarget.getY() - r;
@@ -710,9 +868,20 @@ public class GameWorld {
         if (mouseX < 0 || mouseY < 0) {
             return;
         }
-        boolean ok = tool == Tool.NET
-                ? canPlaceNet(col, row) && inventory.has(ResourceType.BAMBOO, Net.COST_BAMBOO)
-                : canPlaceMine(col, row) && inventory.has(ResourceType.NICKEL, Mine.COST_NICKEL);
+        boolean ok;
+        if (tool == Tool.NET) {
+            ok = canPlaceNet(col, row) && inventory.has(ResourceType.BAMBOO, Net.COST_BAMBOO);
+        } else if (tool == Tool.MINE) {
+            ok = canPlaceMine(col, row) && inventory.has(ResourceType.NICKEL, Mine.COST_NICKEL);
+        } else {
+            ok = canPlaceTorch(col, row) && torchCount() < Constants.TORCH_MAX
+                    && inventory.has(ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO);
+        }
+        ok = ok && tileInBuildReach(col, row);
+        // A faint circle shows how far the tanod can build.
+        g.setColor(new Color(255, 255, 255, 40));
+        int r = (int) Constants.BUILD_REACH;
+        g.drawOval((int) player.getX() - r, (int) player.getY() - r, r * 2, r * 2);
         g.setColor(ok ? new Color(120, 255, 140, 90) : new Color(255, 90, 80, 90));
         g.fillRect(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE, Constants.TILE_SIZE, Constants.TILE_SIZE);
     }
@@ -774,6 +943,14 @@ public class GameWorld {
             }
         }
         return n;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public Beam getBeam() {
+        return beam;
     }
 
     public int getGunCooldown() {

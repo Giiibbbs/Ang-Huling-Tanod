@@ -19,10 +19,11 @@ import java.awt.geom.Point2D;
  * The beam does not snap to the mouse. It turns at a fixed speed, so the player
  * has to plan where to look. That is the core decision of the game.
  */
-public class Beam {
+public class Beam implements Light {
 
     // Tuning numbers. Change these while playtesting.
-    private static final double TURN_SPEED = 0.045;                  // radians per frame (about 155 degrees a second)
+    private static final double TURN_SPEED = 0.045;                  // steering by hand: radians per frame (about 155 degrees a second)
+    private static final double SWEEP_SPEED = 0.02;                  // turning by itself: one full circle in about 5 seconds
     private static final double BASE_HALF_ANGLE = Math.toRadians(16);     // half the width of the cone
     private static final double BASE_LENGTH = 240;                       // how far the beam reaches (pixels)
     private static final double LAMP_GLOW = 44;                      // always-lit circle around the lamp
@@ -62,8 +63,19 @@ public class Beam {
         targetAngle = Math.atan2(y - originY, x - originX);
     }
 
-    /** Turn toward the target, but no faster than TURN_SPEED. */
-    public void update() {
+    /**
+     * One frame. When nobody is steering, the beam sweeps around by itself.
+     * When the tanod steers it (manual), it turns toward the mouse, but no faster than TURN_SPEED.
+     */
+    public void update(boolean manual) {
+        if (!manual) {
+            angle += SWEEP_SPEED;
+            if (angle > Math.PI) {
+                angle -= 2 * Math.PI;
+            }
+            targetAngle = angle;   // so a hand-over to the player is smooth
+            return;
+        }
         double diff = angleDiff(targetAngle, angle);
         if (Math.abs(diff) <= TURN_SPEED) {
             angle = targetAngle;
@@ -73,6 +85,7 @@ public class Beam {
     }
 
     /** True if this point is inside the beam or inside the lamp's glow. */
+    @Override
     public boolean lights(double x, double y) {
         double dx = x - originX;
         double dy = y - originY;

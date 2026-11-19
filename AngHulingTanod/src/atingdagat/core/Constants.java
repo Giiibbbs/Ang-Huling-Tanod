@@ -81,4 +81,20 @@ public final class Constants {
 
     // true = smooth scaling, false = crisp pixels. Try both and keep what looks better.
     public static final boolean SMOOTH_SCALING = false;
+
+    // The walking tanod
+    public static final int PLAYER_START_COL = 21;
+    public static final int PLAYER_START_ROW = 12;
+    public static final double PLAYER_SPEED = 1.5;          // pixels per frame
+    public static final double LAND_REACH = 40;             // how far the tanod can harvest on land
+    public static final double FISH_REACH = 120;            // how far a line can be cast for fish
+    public static final double BUILD_REACH = 80;            // how far nets, mines and torches can be placed
+    public static final double FIRE_RANGE = 200;            // how far the gun shoots
+    public static final double STEER_RANGE = 30;            // stand this close to the lighthouse to steer the beam
+
+    // Light at night
+    public static final double LANTERN_RADIUS = 38;
+    public static final double TORCH_RADIUS = 34;
+    public static final int TORCH_COST_BAMBOO = 2;
+    public static final int TORCH_MAX = 8;
 }

@@ -2,6 +2,7 @@ package atingdagat.ui;
 
 import atingdagat.core.Constants;
 import atingdagat.entities.Beam;
+import atingdagat.entities.GlowSource;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -9,6 +10,7 @@ import java.awt.RadialGradientPaint;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 /**
  * NightOverlay.java
@@ -28,7 +30,7 @@ public class NightOverlay {
             new BufferedImage(Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT, BufferedImage.TYPE_INT_ARGB);
 
     /** darkness: 0 = full day (nothing drawn), 1 = full night. Dusk and dawn are in between. */
-    public void draw(Graphics2D g, Beam beam, double darkness) {
+    public void draw(Graphics2D g, Beam beam, double darkness, List<? extends GlowSource> glows) {
         if (darkness <= 0.01) {
             return;
         }
@@ -50,6 +52,10 @@ public class NightOverlay {
 
         // The lamp always lights a circle around itself.
         eraseGlow(d, beam);
+        // The lantern and every torch light a round pool too.
+        for (GlowSource glow : glows) {
+            erasePool(d, glow.getGlowX(), glow.getGlowY(), glow.getGlowRadius());
+        }
         d.dispose();
 
         // 3. Put the darkness on top of the game.
@@ -82,5 +88,19 @@ public class NightOverlay {
                 (float) r, new float[]{0f, 0.6f, 1f},
                 new Color[]{new Color(0, 0, 0, 255), new Color(0, 0, 0, 200), new Color(0, 0, 0, 0)}));
         d.fillOval((int) (beam.getOriginX() - r), (int) (beam.getOriginY() - r), (int) (r * 2), (int) (r * 2));
+    }
+
+    private void erasePool(Graphics2D d, double x, double y, double r) {
+        d.setPaint(new RadialGradientPaint(new Point2D.Double(x, y), (float) r, new float[]{0f, 0.55f, 1f},
+                new Color[]{new Color(0, 0, 0, 255), new Color(0, 0, 0, 210), new Color(0, 0, 0, 0)}));
+        d.fillOval((int) (x - r), (int) (y - r), (int) (r * 2), (int) (r * 2));
+    }
+
+    /** A warm tint over a pool of light, so it looks like firelight and not just "less dark". */
+    public static void drawWarmth(Graphics2D g, GlowSource glow) {
+        double r = glow.getGlowRadius();
+        g.setPaint(new RadialGradientPaint(new Point2D.Double(glow.getGlowX(), glow.getGlowY()), (float) r,
+                new float[]{0f, 1f}, new Color[]{new Color(255, 190, 100, 70), new Color(255, 190, 100, 0)}));
+        g.fillOval((int) (glow.getGlowX() - r), (int) (glow.getGlowY() - r), (int) (r * 2), (int) (r * 2));
     }
 }

@@ -63,9 +63,9 @@ public abstract class Warship {
 
     // Shared behaviour:
 
-    public void update(TileMap map, Beam beam, List<Defense> defenses) {
+    public void update(TileMap map, Light light, List<Defense> defenses) {
         move(map, defenses);
-        updateLight(beam);
+        updateLight(light);
         updateWake();
     }
 
@@ -122,9 +122,9 @@ public abstract class Warship {
         return null;
     }
 
-    /** Lit quickly when the beam touches it, then fades slowly: an afterglow of about a second. */
-    private void updateLight(Beam beam) {
-        if (beam.lights(x, y)) {
+    /** Lit quickly when any light touches it, then fades slowly: an afterglow of about a second. */
+    private void updateLight(Light light) {
+        if (light.lights(x, y)) {
             lit = Math.min(1.0, lit + 0.3);
         } else {
             lit = Math.max(0.0, lit - 0.02);

@@ -104,13 +104,15 @@ public class Hud {
     private void drawHint(Graphics2D g, GameWorld world) {
         String hint;
         if (world.getCycle().isNight()) {
-            hint = "Move the mouse to aim the beam.  Click a LIT ship to fire.";
+            hint = "WASD walk.  Click a LIT ship to fire.  Hold SPACE next to the lighthouse to steer the beam.";
         } else if (world.getTool() == GameWorld.Tool.NET) {
             hint = "NET: click shallow water (" + Net.COST_BAMBOO + " bamboo).  Right-click or 1 = stop.";
         } else if (world.getTool() == GameWorld.Tool.MINE) {
             hint = "MINE: click water near the island (" + Mine.COST_NICKEL + " nickel). It blows up ships that come close.  Right-click or 2 = stop.";
+        } else if (world.getTool() == GameWorld.Tool.TORCH) {
+            hint = "TORCH: click free land (" + Constants.TORCH_COST_BAMBOO + " bamboo). It lights the shore all night.  Right-click or 3 = stop.";
         } else {
-            hint = "HOLD the mouse on bamboo, ore or fish.  1 net  2 mine  R repair  C rewire  V armor  G lamp";
+            hint = "WASD walk, HOLD the mouse on bamboo/ore/fish.  1 net 2 mine 3 torch  R repair C rewire V armor G lamp";
         }
         g.setFont(SMALL);
         g.setColor(new Color(0, 0, 0, 150));
