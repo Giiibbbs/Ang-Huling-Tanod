@@ -10,6 +10,7 @@ import atingdagat.economy.Harvestable;
 import atingdagat.economy.Inventory;
 import atingdagat.economy.ResourceNode;
 import atingdagat.economy.ResourceType;
+import atingdagat.economy.SupplyCrate;
 import atingdagat.entities.Bakunawa;
 import atingdagat.entities.Barge;
 import atingdagat.entities.Beam;
@@ -79,6 +80,7 @@ public class GameWorld {
     private final ArrayList<Defense> defenses = new ArrayList<>();
     private final ArrayList<ResourceNode> nodes;
     private final ArrayList<FishSchool> fish = new ArrayList<>();
+    private final ArrayList<SupplyCrate> crates = new ArrayList<>();
     private final ArrayList<Popup> popups = new ArrayList<>();
     private final ArrayList<Explosion> explosions = new ArrayList<>();
     private final ArrayList<WavePlan.Kind> queue = new ArrayList<>();   // tonight's ships, in the order they come
@@ -111,6 +113,7 @@ public class GameWorld {
     private Harvestable holdTarget = null;
     private int holdProgress = 0;
     private int fishTimer = 0;
+    private int crateTimer = Constants.CRATE_INTERVAL - 6 * Constants.TARGET_FPS;   // the first crate comes after about 6 seconds
 
     private String bannerText = "";
     private int bannerTimer = 0;
@@ -163,6 +166,7 @@ public class GameWorld {
             node.update();
         }
         updateFish();
+        updateCrates();
         updateHolding();
         for (int i = explosions.size() - 1; i >= 0; i--) {
             explosions.get(i).update();
@@ -319,6 +323,7 @@ public class GameWorld {
                 break;
             case NIGHT:
                 fish.clear();            // the fish go deep in the dark
+                crates.clear();          // and any crate left floating drifts away
                 holding = false;
                 holdTarget = null;
                 holdProgress = 0;
@@ -500,6 +505,11 @@ public class GameWorld {
                 return school;
             }
         }
+        for (SupplyCrate crate : crates) {
+            if (crate.isAvailable() && crate.isNear(x, y)) {
+                return crate;
+            }
+        }
         for (ResourceNode node : nodes) {
             if (node.isNear(x, y)) {
                 return node;
@@ -518,7 +528,7 @@ public class GameWorld {
 
         // The tanod must be close enough. Fish can be reached further (a cast line) than things on land.
         if (under != null) {
-            double reach = (under instanceof FishSchool) ? Constants.FISH_REACH : Constants.LAND_REACH;
+            double reach = (under instanceof FishSchool || under instanceof SupplyCrate) ? Constants.FISH_REACH : Constants.LAND_REACH;
             if (!inReach(under.getX(), under.getY(), reach)) {
                 if (holdTarget != under) {   // one reminder per spot, not one every frame
                     popups.add(new Popup(under.getX(), under.getY() - 12, "Too far - walk closer", Color.LIGHT_GRAY));
@@ -543,7 +553,7 @@ public class GameWorld {
                 holdProgress = 0;
             }
             holdProgress++;
-            if (holdProgress >= under.getType().getHoldFrames()) {
+            if (holdProgress >= under.getHoldFrames()) {
                 collect(under);
                 holdProgress = 0;
             }
@@ -592,6 +602,97 @@ public class GameWorld {
                 fish.remove(i);
             }
         }
+    }
+
+    // ------------------------------------------------------------------
+    // SUPPLY CRATES: ore that floats in, so the island never runs completely dry
+    // ------------------------------------------------------------------
+
+    private void updateCrates() {
+        if (cycle.isNight()) {
+            return;
+        }
+        crateTimer++;
+        int interval = radio.getSignal() >= Constants.CRATE_RADIO_STRONG
+                ? Constants.CRATE_INTERVAL_STRONG : Constants.CRATE_INTERVAL;
+        if (crateTimer >= interval && crates.size() < Constants.MAX_CRATES) {
+            crateTimer = 0;
+            spawnCrate();
+        }
+        for (int i = crates.size() - 1; i >= 0; i--) {
+            crates.get(i).update(map);
+            if (crates.get(i).isGone()) {
+                if (crates.get(i) == holdTarget) {
+                    holdTarget = null;
+                    holdProgress = 0;
+                }
+                crates.remove(i);
+            }
+        }
+    }
+
+    /** A crate appears at sea. What is inside favors the ores that have run out on the island. */
+    private void spawnCrate() {
+        ResourceType contents = pickCrateContents();
+        int units = (contents == ResourceType.GOLD) ? 1 : 2;
+        for (int attempt = 0; attempt < 80; attempt++) {
+            int col = random.nextInt(Constants.MAP_COLS);
+            int row = 2 + random.nextInt(Constants.MAP_ROWS - 4);
+            if (!map.isWater(row, col) || map.getDepth(row, col) < 3 || map.getDepth(row, col) > 6) {
+                continue;
+            }
+            double x = col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
+            double y = row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
+            if (y < 40 || y > Constants.INTERNAL_HEIGHT - 24) {
+                continue;
+            }
+            crates.add(new SupplyCrate(contents, units, x, y));
+            popups.add(new Popup(x, y - 14, "Supply crate!", new Color(255, 225, 120)));
+            return;
+        }
+    }
+
+    /** Nickel and copper are common, gold is rare. An ore that is gone from the map is 3 times as likely, so you are never stuck. */
+    private ResourceType pickCrateContents() {
+        ResourceType[] ores = {ResourceType.NICKEL, ResourceType.COPPER, ResourceType.CHROMITE, ResourceType.GOLD};
+        double[] weight = {4, 4, 2, 1};
+        double total = 0;
+        for (int i = 0; i < ores.length; i++) {
+            if (oreLeftOnMap(ores[i]) == 0) {
+                weight[i] *= 3;
+            }
+            total += weight[i];
+        }
+        double roll = random.nextDouble() * total;
+        for (int i = 0; i < ores.length; i++) {
+            roll -= weight[i];
+            if (roll <= 0) {
+                return ores[i];
+            }
+        }
+        return ResourceType.NICKEL;
+    }
+
+    /** How many units of this ore are still in the ground on the island. */
+    private int oreLeftOnMap(ResourceType type) {
+        int left = 0;
+        for (ResourceNode node : nodes) {
+            if (node.getType() == type) {
+                left += node.getRemaining();
+            }
+        }
+        return left;
+    }
+
+    /** Test key: drop a crate near the shore now. */
+    public void testCrate() {
+        if (!cycle.isNight()) {
+            spawnCrate();
+        }
+    }
+
+    public int getCrateCount() {
+        return crates.size();
     }
 
     /** Picks a kind (rare ones less often), then looks for a spot at the right depth. */
@@ -864,6 +965,9 @@ public class GameWorld {
         for (FishSchool school : fish) {
             school.draw(g, frameCount);
         }
+        for (SupplyCrate crate : crates) {
+            crate.draw(g, frameCount);
+        }
         for (Defense d : defenses) {
             d.draw(g, frameCount);
         }
@@ -916,8 +1020,8 @@ public class GameWorld {
         if (holdTarget == null || holdProgress <= 0) {
             return;
         }
-        double fraction = holdProgress / (double) holdTarget.getType().getHoldFrames();
-        if (holdTarget instanceof FishSchool) {   // the fishing line
+        double fraction = holdProgress / (double) holdTarget.getHoldFrames();
+        if (holdTarget instanceof FishSchool || holdTarget instanceof SupplyCrate) {   // the fishing line
             g.setColor(new Color(255, 255, 255, 120));
             g.drawLine((int) player.getX(), (int) player.getY() - 8, (int) holdTarget.getX(), (int) holdTarget.getY());
         }

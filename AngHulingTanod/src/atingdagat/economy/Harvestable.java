@@ -17,6 +17,11 @@ public interface Harvestable {
     /** False when there is nothing left to take right now. */
     boolean isAvailable();
 
+    /** How long the mouse must be held on it (in frames). Most things use the number in their ResourceType. */
+    default int getHoldFrames() {
+        return getType().getHoldFrames();
+    }
+
     /** Takes one portion and returns how many items the player gets. */
     int harvest();
 

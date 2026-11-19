@@ -82,6 +82,12 @@ public final class Constants {
     // true = smooth scaling, false = crisp pixels. Try both and keep what looks better.
     public static final boolean SMOOTH_SCALING = false;
 
+    // Supply crates (they float in from the sea and hold ore)
+    public static final int CRATE_INTERVAL = 24 * TARGET_FPS;          // a new crate about every 24 seconds
+    public static final int CRATE_INTERVAL_STRONG = 14 * TARGET_FPS;   // faster when the radio is strong
+    public static final int CRATE_RADIO_STRONG = 70;
+    public static final int MAX_CRATES = 2;
+
     // The walking tanod
     public static final int PLAYER_START_COL = 21;
     public static final int PLAYER_START_ROW = 12;

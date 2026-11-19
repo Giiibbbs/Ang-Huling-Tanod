@@ -152,6 +152,8 @@ public class GamePanel extends JPanel {
                     world.jumpToLastNight();   // test key
                 } else if (code == KeyEvent.VK_E) {
                     world.testEclipse();       // test key
+                } else if (code == KeyEvent.VK_K) {
+                    world.testCrate();         // test key
                 } else if (code == KeyEvent.VK_SPACE) {
                     world.gong();
                 } else if (code == KeyEvent.VK_1) {
