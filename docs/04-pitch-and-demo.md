@@ -3,7 +3,8 @@
 **Slot:** live demo on **Dec 1, 2026**, **5 to 7 minutes**, all members speak.
 Target **6 minutes** so there is room for a slow moment or a question.
 
-> Items marked **[UPDATE]** depend on features not built yet. Fill them in after the final build.
+> Last checked against the build of **Nov 19** (day cycle, harvesting, nets, mines, skiff, cutter, barge, post and radio).
+> Items marked **[UPDATE]** depend on things not built yet (sound, folklore events, art, playtest numbers). Fill them in after the final build.
 
 ## Who says what
 
@@ -37,23 +38,25 @@ Slide: title, the island, one line of the pitch. Say that the empire is fictiona
 Run from the JAR, not from the IDE. Narrate what you do and *why*.
 
 1. **Menu.** Press Enter. *(Mention: the window is resizable, drag it once.)*
-2. **Day.** Harvest a resource. Place a defense. **[UPDATE]**
-   "Resources are also my weapons. If I take too much, island health drops and my defenses get weaker."
-3. **Night.** Move the mouse to sweep the beam. **[UPDATE]**
-   "Only lit things are visible. I have to decide where to look."
-4. **A ship appears in the beam.** Shoot it. Show a defense working.
-5. **Folklore moment.** Show the babaylan heal, or the Bakunawa eclipse. **[UPDATE]**
+2. **Day.** Click fish, bamboo and ore to harvest (point at the popups). Press **1** and place a net on shallow water. Press **2** and place a mine.
+   "Every resource has a job: fish repairs, bamboo builds nets, ore makes mines. I only have so much day, so I have to choose."
+3. **Dusk, then night.** Let the screen fade, or press **N** to skip. Move the mouse to sweep the beam.
+   "Only lit things are visible. The beam turns slowly, so I have to decide where to look."
+4. **A ship appears in the beam.** Click it to shoot. Show a net stopping a ship, and a mine going off.
+   "I can only shoot what the beam has found."
+5. **Folklore moment.** Show the babaylan heal, or the Bakunawa eclipse. **[UPDATE: not built yet]**
 6. **Pause** with P to show the pause state, then resume.
-7. **HUD.** Point at the three bars: post integrity, radio signal, island health, and say how you lose.
+7. **HUD.** Point at the two bars: **Post** health and **Radio** signal. Say how you lose (either hits zero) and how you win (survive night 7).
+   Show that the three ship types need different answers: the fast cutter, the tough barge, the common skiff.
 
-If time is short, skip to night 4 using a prepared save or debug key. **[UPDATE: add a debug skip key]**
+If time is short, press **N** to skip phases (it also ends the night early). It is the demo's debug key.
 
 ### 3. Art and assets (Jaron, 1 minute)
 
 > "Our art is 3/4 top-down pixel art. We used free CC0 asset packs for tiles and water, and AI-assisted references for
 > custom pieces. Everything is credited in the repository."
 
-Show: one tile sheet or sprite, and how Gemini prompts produced the reference art. **[UPDATE]**
+Show: one sprite, and how a Gemini prompt produced it (`docs/07-art-prompts.md`). **[UPDATE: after Jaron's art is in]**
 Be honest about what was made by hand, what came from packs, and what was AI-assisted.
 
 ### 4. How the code is built (Gabriel, 1 minute)
@@ -61,9 +64,9 @@ Be honest about what was made by hand, what came from packs, and what was AI-ass
 Show the UML and **two** short code moments. Do not scroll through code.
 
 - **OOP:** "`Warship` is an abstract class. `Skiff`, `Cutter`, and `Barge` extend it and change how they move and attack.
-  `Defense` is an interface, so nets, mines, and guns all work the same from the game's point of view." **[UPDATE]**
-- **Data structures and file I/O:** "The island map is a 2D array loaded from a text file. Wave plans, ship stats, and
-  high scores are text files too, with try-catch around every read, so a missing file never crashes the game."
+  `Defense` is an interface, so a net and a mine are kept in one list and treated the same by the game, even though a net waits and a mine acts by itself."
+- **Data structures and file I/O:** "The island map is a 2D array loaded from a text file. The wave plan and the harvest spots are text files too,
+  with try-catch around every read, so a missing file never crashes the game. High scores will be a file too." **[UPDATE: high-score file]**
 - **Game loop:** "A Swing Timer calls `update()` then `repaint()` sixty times a second. The game draws on a small
   640x360 screen and scales it, so the window can be any size."
 
@@ -88,9 +91,9 @@ One sentence each, for example:
 |---|---|
 | Is this original? Is there a similar game? | The concept was approved by our professor, who found no similar game on the Play Store. The empire, ships, and mechanics are our own. |
 | Which genre is it? | Tower defense with survival and resource management. |
-| Where is inheritance? | `Warship` and its subclasses. **[UPDATE]** |
-| Where is an interface? | `Defense` and `NightEvent`. **[UPDATE]** |
-| Where is file I/O? | Map, waves, and stats are read from text files. High scores are read and written. **[UPDATE]** |
+| Where is inheritance? | `Warship` is abstract. `Skiff`, `Cutter` and `Barge` extend it and only set speed, health, landing damage and looks. |
+| Where is an interface? | `Defense`, with `Net` and `Mine`. `NightEvent` is planned for the folklore events. |
+| Where is file I/O? | The map (`island.txt`), waves (`waves.txt`) and harvest spots (`nodes.txt`) are read from text files. High scores will be read and written. **[UPDATE]** |
 | What if the file is missing? | We catch the exception and fall back to defaults or show a message. The game does not crash. |
 | Why Swing Timer, not a thread? | It was taught in class, and it runs on the Swing thread, so drawing is safe. |
 | Who did what? | Gabriel: code. Gio: slides, demo, playtesting. Jaron: art, README, UML. See the README. |

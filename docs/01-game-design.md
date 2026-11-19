@@ -226,3 +226,26 @@ Open decisions for the team:
 - [ ] Final art style and who draws what
 - [ ] Whether blood effects ship at all (default off)
 - [ ] Professor's confirmation of the gameplay changes, and our own Play Store check
+
+
+---
+
+## Build status (what is in the game now)
+
+This document is the full vision. The list below is what the playable build contains as of **Nov 19**. The rest follows the
+schedule in [02-project-plan.md](02-project-plan.md).
+
+| Design item | In the build? | Note |
+|---|---|---|
+| Island map from a text file, depth shading | Yes | `data/island.txt` |
+| Day, dusk, night, dawn cycle | Yes | Dusk fades the light in. It is not yet a "preview of the night" |
+| Harvesting (fish, bamboo, ore) | Yes | Click the spots. Each holds 4 and refills at dawn |
+| Lighthouse beam and darkness | Yes | |
+| Net barrier | Yes | 3 bamboo, shallow water. Ships stop and cut it |
+| Mine buoy | Yes | 2 ore. Explodes when a ship comes near |
+| Skiff, cutter, landing barge | Yes | Waves in `data/waves.txt` |
+| Post and radio, win and lose | Yes | Post health and radio signal. There is no separate "island health" bar yet |
+| Gun | Simplified | Click a lit ship to fire. The aimed deck gun and the coastal gun are planned |
+| Repair | Simplified | Press R in the day (2 fish). No resource-depletion penalty yet |
+| Sound, high-score file | Not yet | Never-cut items |
+| Infiltrators, babaylan, Bakunawa, frigate, dreadnought | Not yet | See the cut order in the plan |
