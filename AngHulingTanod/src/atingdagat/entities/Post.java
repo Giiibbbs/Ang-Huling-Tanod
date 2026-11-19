@@ -16,7 +16,7 @@ import atingdagat.util.Assets;
  */
 public class Post {
 
-    public static final int MAX_HEALTH = 20;
+    public static final int START_HEALTH = 20;
 
     private static final String SPRITE_PATH = "/atingdagat/res/buildings/post.png";
     private static final int SPRITE_W = 40;
@@ -25,7 +25,9 @@ public class Post {
 
     private final int col;
     private final int row;
-    private int health = MAX_HEALTH;
+    private int maxHealth = START_HEALTH;   // grows with chromite armor
+    private int armorLevel = 0;
+    private int health = START_HEALTH;
 
     public Post(int col, int row) {
         this.col = col;
@@ -37,7 +39,22 @@ public class Post {
     }
 
     public void repair(int amount) {
-        health = Math.min(MAX_HEALTH, health + amount);
+        health = Math.min(maxHealth, health + amount);
+    }
+
+    /** Chromite armor: more health, and it is mended by the same amount. */
+    public void armor(int extraHealth) {
+        maxHealth += extraHealth;
+        health += extraHealth;
+        armorLevel++;
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public int getArmorLevel() {
+        return armorLevel;
     }
 
     public int getHealth() {
@@ -67,7 +84,7 @@ public class Post {
             g.drawImage(sprite, x - SPRITE_W / 2, y + 8 - SPRITE_H, null);
             boolean on = radioAlive && (frame / 30) % 2 == 0;
             if (on) {   // the blinking light still shows the post's health
-                g.setColor(health > MAX_HEALTH / 3 ? new Color(120, 255, 140) : new Color(255, 80, 70));
+                g.setColor(health > maxHealth / 3 ? new Color(120, 255, 140) : new Color(255, 80, 70));
                 g.fillOval(x + 1, y - 27, 4, 4);
             }
             return;
@@ -93,7 +110,7 @@ public class Post {
         g.drawLine(x - 1, y - 20, x + 5, y - 20);
         boolean blink = (frame / 30) % 2 == 0;
         if (radioAlive && blink) {
-            g.setColor(health > MAX_HEALTH / 3 ? new Color(120, 255, 140) : new Color(255, 80, 70));
+            g.setColor(health > maxHealth / 3 ? new Color(120, 255, 140) : new Color(255, 80, 70));
             g.fillOval(x, y - 27, 5, 5);
         }
     }

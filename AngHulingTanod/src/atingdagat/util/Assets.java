@@ -34,6 +34,31 @@ public final class Assets {
     private Assets() {
     }
 
+    /**
+     * Returns a recolored copy of an image: each pixel is blended toward the color by "amount" (0 to 1).
+     * We use it so ONE rock picture can make nickel, copper, chromite and gold.
+     */
+    public static BufferedImage tint(BufferedImage source, java.awt.Color color, double amount) {
+        if (source == null) {
+            return null;
+        }
+        BufferedImage out = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                int argb = source.getRGB(x, y);
+                int alpha = (argb >>> 24) & 0xFF;
+                if (alpha == 0) {
+                    continue;
+                }
+                int r = (int) (((argb >> 16) & 0xFF) * (1 - amount) + color.getRed() * amount);
+                int g = (int) (((argb >> 8) & 0xFF) * (1 - amount) + color.getGreen() * amount);
+                int b = (int) ((argb & 0xFF) * (1 - amount) + color.getBlue() * amount);
+                out.setRGB(x, y, (alpha << 24) | (r << 16) | (g << 8) | b);
+            }
+        }
+        return out;
+    }
+
     /** Returns the image scaled to width x height with a transparent background, or null if missing. */
     public static BufferedImage get(String path, int width, int height) {
         String key = path + "@" + width + "x" + height;

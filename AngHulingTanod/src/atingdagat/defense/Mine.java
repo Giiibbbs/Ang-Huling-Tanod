@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class Mine implements Defense {
 
-    public static final int COST_ORE = 2;
+    public static final int COST_NICKEL = Constants.MINE_COST_NICKEL;
     private static final double TRIGGER_RADIUS = 14;
     private static final double BLAST_RADIUS = 30;
     private static final int BLAST_DAMAGE = 3;

@@ -7,7 +7,6 @@ import atingdagat.core.Phase;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
 import atingdagat.economy.ResourceType;
-import atingdagat.entities.Post;
 import atingdagat.entities.Radio;
 import java.awt.Color;
 import java.awt.Font;
@@ -38,8 +37,8 @@ public class Hud {
 
         drawClock(g, cycle, world);
         drawResources(g, world);
-        drawBar(g, 330, "POST", world.getPost().getHealth(), Post.MAX_HEALTH, new Color(120, 220, 120), new Color(235, 90, 80));
-        drawBar(g, 470, "RADIO", world.getRadio().getSignal(), Radio.MAX_SIGNAL, new Color(110, 190, 245), new Color(235, 90, 80));
+        drawBar(g, 392, "POST", world.getPost().getHealth(), world.getPost().getMaxHealth(), new Color(120, 220, 120), new Color(235, 90, 80));
+        drawBar(g, 530, "RADIO", world.getRadio().getSignal(), Radio.MAX_SIGNAL, new Color(110, 190, 245), new Color(235, 90, 80));
 
         drawHint(g, world);
         drawBanner(g, world);
@@ -63,27 +62,33 @@ public class Hud {
         }
     }
 
+    /** Bamboo, fish (counted in meals), and the four ores. Each has an icon, or a colored dot if there is no art yet. */
     private void drawResources(Graphics2D g, GameWorld world) {
-        int x = 110;
-        for (ResourceType type : ResourceType.values()) {
-            BufferedImage icon = Assets.get(type.getIconPath(), 10, 10);
+        ResourceType[] shown = {ResourceType.BAMBOO, ResourceType.TAMBAN, ResourceType.NICKEL,
+            ResourceType.COPPER, ResourceType.CHROMITE, ResourceType.GOLD};
+        int x = 104;
+        for (ResourceType type : shown) {
+            boolean isFish = type.getCategory() == ResourceType.Category.FISH;
+            String iconPath = isFish ? "/atingdagat/res/ui/fish.png" : type.getIconPath();
+            BufferedImage icon = Assets.get(iconPath, 10, 10);
             if (icon != null) {
-                g.drawImage(icon, x, 6, null);
+                g.drawImage(icon, x, 7, null);
             } else {
-                g.setColor(type.getColor());
-                g.fillOval(x, 6, 10, 10);
+                g.setColor(isFish ? new Color(200, 215, 225) : type.getColor());
+                g.fillOval(x, 7, 10, 10);
                 g.setColor(new Color(0, 0, 0, 120));
-                g.drawOval(x, 6, 10, 10);
+                g.drawOval(x, 7, 10, 10);
             }
+            int count = isFish ? world.getInventory().getMeals() : world.getInventory().get(type);
             g.setFont(BOLD);
             g.setColor(Color.WHITE);
-            g.drawString(String.valueOf(world.getInventory().get(type)), x + 14, 15);
-            x += 58;
+            g.drawString(String.valueOf(count), x + 13, 16);
+            x += 46;
         }
     }
 
     private void drawBar(Graphics2D g, int x, String label, int value, int max, Color good, Color low) {
-        int w = 110;
+        int w = 90;
         double ratio = value / (double) max;
         g.setFont(SMALL);
         g.setColor(Color.WHITE);
@@ -103,9 +108,9 @@ public class Hud {
         } else if (world.getTool() == GameWorld.Tool.NET) {
             hint = "NET: click shallow water (" + Net.COST_BAMBOO + " bamboo).  Right-click or 1 = stop.";
         } else if (world.getTool() == GameWorld.Tool.MINE) {
-            hint = "MINE: click water near the island (" + Mine.COST_ORE + " ore). It blows up ships that come close.  Right-click or 2 = stop.";
+            hint = "MINE: click water near the island (" + Mine.COST_NICKEL + " nickel). It blows up ships that come close.  Right-click or 2 = stop.";
         } else {
-            hint = "Click fish, bamboo, ore to harvest.  1 = net  2 = mine  R = repair (" + Constants.REPAIR_FISH_COST + " fish)  N = skip";
+            hint = "HOLD the mouse on bamboo, ore or fish.  1 net  2 mine  R repair  C rewire  V armor  G lamp";
         }
         g.setFont(SMALL);
         g.setColor(new Color(0, 0, 0, 150));

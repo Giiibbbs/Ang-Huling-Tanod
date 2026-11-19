@@ -77,9 +77,12 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 
 | File | What it does | Depends on |
 |---|---|---|
-| `ResourceType.java` | FISH, BAMBOO, ORE with a name and a color | (none) |
-| `Inventory.java` | How much of each the player has. `spend()` refuses if too little | `ResourceType` |
-| `ResourceNode.java` | A harvest spot. Loads from `nodes.txt`, checks the tile is right | `TileMap`, `Constants` |
+| `ResourceType.java` | Every resource as one line of data: bamboo, 4 ores, 5 fish (name, color, hold time, yield, meals, regrow) | (none) |
+| `Harvestable.java` | The interface for anything you can hold the mouse on to collect | (none) |
+| `FishKind.java` | What makes each fish different: speed, depth, how common, school size | `ResourceType` |
+| `FishSchool.java` | A swimming school of fish. Wanders, stays at its depth, fades away | `FishKind`, `TileMap` |
+| `Inventory.java` | How much of each the player has. `spend()` refuses if too little. `spendMeals()` eats cheap fish first | `ResourceType` |
+| `ResourceNode.java` | A bamboo grove or ore vein on land. Has limited units. Loads from `nodes.txt` | `Harvestable`, `TileMap`, `Constants` |
 
 ### `ui/`
 
@@ -102,7 +105,7 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 |---|---|
 | `island.txt` | The island map, 40 columns by 23 rows. `~` water, `:` sand, `#` grass. Edit it in Notepad |
 | `waves.txt` | For each night: skiffs, cutters, barges, and seconds between ships |
-| `nodes.txt` | Where fish, bamboo and ore are: `TYPE column row` |
+| `nodes.txt` | Where bamboo and the ore veins are: `TYPE column row units`. Fish are not in the file |
 
 ## Where to change a number (tuning cheat sheet)
 
@@ -116,17 +119,22 @@ Gio: this is the "make it easier or harder" list. Ask Gabriel before changing, t
 | Change the always-lit circle around the lamp | `entities/Beam.java` | `LAMP_GLOW` | 44 pixels |
 | Make the night darker or brighter | `ui/NightOverlay.java` | `NIGHT` (last number = darkness) | 232 of 255 |
 | Make a night easier or harder | `data/waves.txt` | skiffs and seconds per night | see the file |
-| Move or add fish, bamboo, ore spots | `data/nodes.txt` | the rows | see the file |
+| Move or add bamboo and ore spots, or change how much a vein holds | `data/nodes.txt` | the rows (last number = units) | see the file |
+| How long a resource takes to harvest | `economy/ResourceType.java` | the "hold" number on its line | bamboo 90, ores 150 to 240, fish 40 to 140 (frames) |
+| How much you get per harvest, or how fast bamboo regrows | `economy/ResourceType.java` | "yield" and "regrow" | bamboo gives 2, regrows 1 unit per 25 s |
+| Fish speed, depth, how common, school size | `economy/FishKind.java` | the numbers on each line | see the file |
+| How many fish schools at once, how often they appear | `core/Constants.java` | `MAX_FISH_SCHOOLS`, `FISH_SPAWN_FRAMES` | 9, every 3 s |
+| What an ore buys | `core/Constants.java` | `MINE_COST_NICKEL`, `REWIRE_COST_COPPER`, `ARMOR_COST_CHROMITE`, `LAMP_COST_GOLD` and the nearby numbers | 2, 2, 3, 2 |
 | Make the day longer or shorter | `core/Constants.java` | `DAY_FRAMES`, `DUSK_FRAMES`, `DAWN_FRAMES` | 50 s, 8 s, 7 s |
 | Change the starting bamboo | `core/Constants.java` | `START_BAMBOO` | 6 |
 | Net price (bamboo) | `defense/Net.java` | `COST_BAMBOO` | 3 |
 | How deep a net can go | `core/Constants.java` | `NET_MAX_DEPTH` | 3 tiles |
 | How hard a landing hurts the post | `entities/Skiff.java`, `Cutter.java`, `Barge.java` | `landingDamage` (skiff keeps the default in `Warship`) | 3, 2, 6 |
 | How much a landing weakens the radio | `core/Constants.java` | `RADIO_PER_POST_DAMAGE` | 3 times the post damage |
-| Mine price and strength | `defense/Mine.java` | `COST_ORE`, `BLAST_RADIUS`, `BLAST_DAMAGE` | 2 ore, 30 px, 3 |
+| Mine strength | `defense/Mine.java` | `BLAST_RADIUS`, `BLAST_DAMAGE` | 30 px, 3 |
 | How far out mines can go | `core/Constants.java` | `MINE_MAX_DEPTH` | 5 tiles |
 | Cutter or barge speed and health | `entities/Cutter.java`, `Barge.java` | the numbers in `super(...)` | 1.0 / 2 and 0.3 / 8 |
-| Repair price and strength | `core/Constants.java` | `REPAIR_FISH_COST`, `REPAIR_POST_AMOUNT`, `REPAIR_RADIO_AMOUNT` | 2 fish, +4, +15 |
+| Repair price and strength | `core/Constants.java` | `REPAIR_FISH_COST`, `REPAIR_POST_AMOUNT`, `REPAIR_RADIO_AMOUNT` | 2 meals, +4, +15 |
 | How fast you can fire | `core/Constants.java` | `GUN_COOLDOWN` | 30 frames |
 | How long a ship takes to cut a net | `entities/Warship.java` | `ATTACK_INTERVAL` | 45 frames per hit, 4 hits |
 | Make skiffs faster | `entities/Skiff.java` | the speed in `super(...)` | 0.55 |

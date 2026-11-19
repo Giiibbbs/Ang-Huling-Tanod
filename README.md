@@ -26,9 +26,9 @@ Work in progress. Current build: **playable core**. Harvest by day, build nets, 
 | Day/night cycle, harvesting, nets, post and radio, HUD bars, win and lose | Done (first version, needs playtesting) |
 | Waves and resource spots read from text files | Done |
 | Cutter and barge ships, mine buoys (second defense) | Done (first version) |
+| Hold-to-harvest, 4 ores with different uses, 5 kinds of swimming fish, finite ore | Done (first version) |
 | Sprites: all file names wired, art arrives from Jaron | In progress (shapes shown until then) |
 | Sound, high-score file, infiltrators, babaylan, Bakunawa, bosses | Next |
-| Sound, high-score file | Planned |
 
 The full list lives in [docs/02-project-plan.md](docs/02-project-plan.md).
 
@@ -54,11 +54,14 @@ Current build:
 | Mouse | Aim the lighthouse beam (it turns toward the mouse) |
 | P or Esc | Pause and resume |
 | M | Back to the menu (while paused) |
-| Left click (day) | Harvest fish, bamboo, ore |
+| **Hold** left click on bamboo, ore or a fish school (day) | Harvest it. A ring fills. Let go early and it drains |
 | 1 | Net tool on or off (then click shallow water; 3 bamboo) |
-| 2 | Mine tool on or off (then click water near the island; 2 ore) |
+| 2 | Mine tool on or off (then click water near the island; 2 nickel) |
 | Right click | Put the tool away |
-| R | Repair the post and radio (2 fish, day only) |
+| R | Repair the post and radio (2 meals of fish, day only) |
+| C | Rewire the radio (2 copper, +25 signal) |
+| V | Armor the post (3 chromite, +4 max health, up to 3 times) |
+| G | Upgrade the lamp (2 gold, wider and longer beam, up to 2 times) |
 | Left click (night) | Fire at a ship the beam is lighting |
 | N | Skip to the next phase (test key) |
 
@@ -95,7 +98,7 @@ Ang-Huling-Tanod/
         ├── map/               TileMap (island and sea)
         ├── entities/          Lighthouse, Beam, Warship, Skiff, Cutter, Barge, Post, Radio
         ├── defense/           Defense (interface), Net, Mine
-        ├── economy/           ResourceType, ResourceNode, Inventory
+        ├── economy/           ResourceType, ResourceNode, FishSchool, FishKind, Harvestable, Inventory
         ├── ui/                NightOverlay, Hud, Popup, Explosion
         ├── util/              Assets (art loader)
         └── data/              island.txt, waves.txt, nodes.txt

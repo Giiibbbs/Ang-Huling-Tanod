@@ -284,6 +284,28 @@ player will land between those two. That is what Gio's playtest decides.
 
 ---
 
+## Step 17. Resources that take effort and run out (Nov 19)
+
+**The problem we noticed:** one click, one resource, always there. It made the day trivial.
+
+**What we did:**
+- **Hold the mouse** on a spot until a ring fills. Letting go early wastes the progress.
+- **Ore never grows back** and bamboo grows back slowly. Every vein is a choice.
+- **Fish swim** around the sea in 5 kinds. You must follow a school with the cursor.
+- **Four ores**, each with its own job: nickel (mines), copper (radio), chromite (armor), gold (lamp).
+
+**Why data and not if-else:** the ores differ only by numbers (time, yield, use). Numbers belong in a table (the `ResourceType` enum), one line each. Adding an ore is one line.
+Fish differ in *behavior* (they swim), so they got a class. The rule of thumb: **different numbers = data, different behavior = a class.**
+
+**Why `Harvestable`:** bamboo sits still, a school moves, but the player does the same thing to both. One interface means one harvesting method.
+
+**Why one ore picture is enough:** the game recolors a single grey rock into all four ores, so Jaron's art list stays short.
+
+**How we checked:** a test confirmed that early release gives nothing, that a followed fish is caught and an unfollowed one is not, that every school spawns at its kind's depth and stays there, and that each ore use works. A bot that harvested, built and repaired still won, so the
+waves are probably too easy for a perfect player. Gio's playtest decides what to tune.
+
+---
+
 ## The pattern behind all of it
 
 1. **One job per class.** (Easy to find, easy to change.)

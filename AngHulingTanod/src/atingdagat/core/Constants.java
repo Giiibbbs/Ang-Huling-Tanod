@@ -54,6 +54,16 @@ public final class Constants {
 
     // Starting stock, and the price of things.
     public static final int START_BAMBOO = 6;
+    public static final int MINE_COST_NICKEL = 2;
+    public static final int REWIRE_COST_COPPER = 2;       // key C: radio +25
+    public static final int REWIRE_RADIO_AMOUNT = 25;
+    public static final int ARMOR_COST_CHROMITE = 3;      // key V: post +4 max health
+    public static final int ARMOR_HEALTH = 4;
+    public static final int ARMOR_MAX_LEVEL = 3;
+    public static final int LAMP_COST_GOLD = 2;           // key G: wider, longer beam
+    public static final int LAMP_MAX_LEVEL = 2;
+    public static final int MAX_FISH_SCHOOLS = 9;
+    public static final int FISH_SPAWN_FRAMES = 3 * TARGET_FPS;
     public static final int NET_MAX_DEPTH = 3;      // nets only on shallow water (tiles from shore)
     public static final int MINE_MAX_DEPTH = 5;     // mines can go a little further out than nets
     public static final int REPAIR_FISH_COST = 2;

@@ -38,8 +38,8 @@ Slide: title, the island, one line of the pitch. Say that the empire is fictiona
 Run from the JAR, not from the IDE. Narrate what you do and *why*.
 
 1. **Menu.** Press Enter. *(Mention: the window is resizable, drag it once.)*
-2. **Day.** Click fish, bamboo and ore to harvest (point at the popups). Press **1** and place a net on shallow water. Press **2** and place a mine.
-   "Every resource has a job: fish repairs, bamboo builds nets, ore makes mines. I only have so much day, so I have to choose."
+2. **Day.** **Hold** the mouse on a bamboo grove until the ring fills. Chase a swimming fish school with the cursor. Press **1** and place a net, press **2** and place a mine.
+   "Harvesting takes time, ore never grows back, and fish swim away. Fish repair, bamboo makes nets, nickel makes mines, copper fixes the radio, chromite armors the post, gold upgrades the lamp. The day is short, so I have to choose."
 3. **Dusk, then night.** Let the screen fade, or press **N** to skip. Move the mouse to sweep the beam.
    "Only lit things are visible. The beam turns slowly, so I have to decide where to look."
 4. **A ship appears in the beam.** Click it to shoot. Show a net stopping a ship, and a mine going off.

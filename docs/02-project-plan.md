@@ -25,6 +25,7 @@ Dates up to Nov 21 are agreed. After that is a **proposed** plan to adjust as we
 | Nov 18 to 20 | Lighthouse beam, night overlay, a moving skiff | The beam lights the skiff, the rest is dark. **Done** |
 | Nov 19 to 21 | Day/night cycle, harvesting, a net, post and radio, HUD bars, waves from a file | **Playable core. Done (first version)**: Gio can start playtesting |
 | Nov 19 to 23 | Cutter and barge, mine buoys, waves from a text file. **Done (first version)** | Nights 1 to 7 are playable. Next: tune with Gio's playtests |
+| Nov 19 (done) | Hold-to-harvest, 4 ores, 5 fish kinds, ore uses | Harvesting takes effort and runs out |
 | Nov 24 | Post, radio, island health, win and lose, high-score file | A full run from night 1 to the end screen |
 | Nov 25 | Sound, menu polish, art integration begins | Sounds on every action |
 | Nov 26 | Should-haves: infiltrators, babaylan | The identify mechanic works |

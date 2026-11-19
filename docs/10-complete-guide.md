@@ -8,7 +8,7 @@ For the feature-by-feature code explanation see [03-code-guide.md](03-code-guide
 
 ## Part 1. The big picture in one minute
 
-**The game:** you are the last *tanod* (guardian) of Isla Dulo. By **day** you gather fish, bamboo and ore, and build nets and
+**The game:** you are the last *tanod* (guardian) of Isla Dulo. By **day** you gather bamboo, ore and fish (by **holding** the mouse, and fish swim away), and build nets and
 mines. By **night** the island is dark and only your **lighthouse beam** shows anything. Enemy ships sail in. You must sink or stall
 them so the **post** and the **radio** survive 7 nights. If the radio keeps broadcasting "May natitira pa tayo", you win.
 
@@ -85,7 +85,7 @@ A package is a folder of related classes. The first line of every `.java` file s
 | `map` | The ground | `TileMap` |
 | `entities` | The actors | `Lighthouse`, `Beam`, `Warship` (abstract), `Skiff`, `Cutter`, `Barge`, `Post`, `Radio` |
 | `defense` | What you build | `Defense` (interface), `Net`, `Mine` |
-| `economy` | What you collect | `ResourceType`, `ResourceNode`, `Inventory` |
+| `economy` | What you collect | `ResourceType`, `ResourceNode`, `FishSchool`, `FishKind`, `Harvestable`, `Inventory` |
 | `ui` | Screen layers | `NightOverlay`, `Hud`, `Popup`, `Explosion` |
 | `util` | The toolbox | `Assets` |
 
@@ -97,7 +97,7 @@ The per-file table (what each file does and what it depends on) is in [08-file-r
 |---|---|---|
 | `island.txt` | 40 columns x 23 rows of `~` water, `:` sand, `#` grass | Redraw the island |
 | `waves.txt` | `night skiffs cutters barges seconds` per line | Make nights easier or harder |
-| `nodes.txt` | `TYPE column row` per line (`FISH`, `BAMBOO`, `ORE`) | Move or add harvest spots |
+| `nodes.txt` | `TYPE column row units` per line (`BAMBOO`, `NICKEL`, `COPPER`, `CHROMITE`, `GOLD`) | Move or add spots, or change how much a vein holds |
 
 Lines starting with `#` are comments. A bad line is skipped with a message, and a missing file uses defaults. The game does not crash.
 
@@ -141,7 +141,9 @@ simple shape instead, so art can arrive piece by piece.
 | `Skiff`, `Cutter`, `Barge` | Each ship's speed, health, damage and looks | Subclasses, **polymorphism** |
 | `Defense` (interface) | The promise every defense keeps | **Interface** |
 | `Net`, `Mine` | Two different defenses | Same interface, different behavior |
-| `ResourceNode`, `Inventory`, `ResourceType` | Harvest spots, what you carry, the three kinds | Enum, array indexed by enum |
+| `ResourceType` and `FishKind` | Every resource as a line of data. What makes each fish different | Enum with fields: data, not if-else |
+| `ResourceNode`, `FishSchool` | A still bamboo or ore spot, and a swimming school of fish | **Interface** (`Harvestable`), a wandering movement rule |
+| `Inventory` | What you carry, and fish counted in meals | Array indexed by enum |
 | `Post`, `Radio` | What you protect | Encapsulation (private data, public methods) |
 | `Hud`, `Popup`, `Explosion` | Information and effects on top | Separation of concerns |
 | `Assets` | Loads art, shrinks it, removes the magenta background, remembers it | Caching, missing-file safety |
@@ -164,8 +166,8 @@ simple shape instead, so art can arrive piece by piece.
 ### Make it easier or harder
 Edit `data/waves.txt`. Fewer ships or longer gaps is easier. No recompiling is needed, but rerun the game.
 
-### Move a fish or bamboo spot
-Edit `data/nodes.txt`. Fish must be on water (`~`), bamboo and ore on land. Check the column and row against `island.txt`.
+### Move a bamboo or ore spot
+Edit `data/nodes.txt`. Bamboo and ore must be on land. Fish are not in this file because they swim by themselves. Check the column and row against `island.txt`.
 (Column = how far right, starting at 0. Row = how far down.)
 
 ### Change how long the day is
@@ -180,6 +182,10 @@ Edit `data/nodes.txt`. Fish must be on water (`~`), bamboo and ore on land. Chec
 ### Add a new defense
 1. Make a class that `implements Defense`. Fill in its five methods (and `update` if it should act on its own).
 2. Add a value to the `Tool` enum in `GameWorld`, a key in `GamePanel.handleKeyPress`, a `placeXxx` method, and a line in `Hud.drawHint`.
+
+### Add a new ore or a new fish
+- **Ore:** add one line to `ResourceType` (copy the `COPPER` line and change the name, color and numbers), put it in `nodes.txt`, and decide its use in `GameWorld` and `Constants`.
+- **Fish:** add one line to `ResourceType` and one line to `FishKind` (speed, depth range, how common). It will start swimming on its own.
 
 ### Add art
 Save the PNG with the exact name in `res/`. See `07-art-prompts.md`. No code changes.

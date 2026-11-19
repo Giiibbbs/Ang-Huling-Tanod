@@ -93,6 +93,13 @@ public class GamePanel extends JPanel {
             }
 
             @Override
+            public void mouseReleased(MouseEvent e) {
+                if (world != null) {
+                    world.release();
+                }
+            }
+
+            @Override
             public void mousePressed(MouseEvent e) {
                 requestFocusInWindow();
                 mouseX = toGameX(e.getX());
@@ -140,6 +147,12 @@ public class GamePanel extends JPanel {
                     world.toggleTool(GameWorld.Tool.MINE);
                 } else if (code == KeyEvent.VK_R) {
                     world.repair();
+                } else if (code == KeyEvent.VK_C) {
+                    world.rewire();
+                } else if (code == KeyEvent.VK_V) {
+                    world.armorPost();
+                } else if (code == KeyEvent.VK_G) {
+                    world.upgradeLamp();
                 }
                 break;
             case PAUSE:

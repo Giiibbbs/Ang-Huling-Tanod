@@ -2,8 +2,8 @@ package atingdagat.economy;
 
 import atingdagat.core.Constants;
 import atingdagat.map.TileMap;
-import java.awt.Color;
 import atingdagat.util.Assets;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -15,64 +15,87 @@ import java.util.ArrayList;
 /**
  * ResourceNode.java
  *
- * One spot on the map you can harvest: a fish shoal, a bamboo grove, or an
- * ore outcrop. Each spot holds a few units. They refill every dawn.
- * Spots are read from data/nodes.txt, one per line: TYPE column row.
+ * A spot on the LAND you can harvest: a bamboo grove or an ore vein. It holds a limited number of
+ * units. Bamboo grows back slowly. Ore NEVER grows back, so every vein is a choice.
+ * You collect by HOLDING the mouse on it (GameWorld counts the hold).
+ * Spots are read from data/nodes.txt, one per line: TYPE column row units.
+ *
+ * Implements Harvestable, the same promise a swimming FishSchool keeps.
  */
-public class ResourceNode {
+public class ResourceNode implements Harvestable {
 
-    public static final int CAPACITY = 4;
-    private static final int COOLDOWN = 18;       // frames between harvests, so you cannot spam
+    private static final int DEFAULT_UNITS = 4;
     private static final double CLICK_RADIUS = 13;
 
     private final ResourceType type;
     private final BufferedImage sprite;
     private final int col;
     private final int row;
-    private int remaining = CAPACITY;
-    private int cooldown = 0;
+    private final int maxUnits;
+    private int remaining;
+    private int regrowTimer = 0;
 
-    public ResourceNode(ResourceType type, int col, int row) {
+    public ResourceNode(ResourceType type, int col, int row, int units) {
         this.type = type;
-        this.sprite = Assets.get(type.getSpritePath(), 16, 16);
         this.col = col;
         this.row = row;
+        this.maxUnits = units;
+        this.remaining = units;
+        this.sprite = loadSprite(type);
+    }
+
+    /** The art for this spot. If there is no picture for this exact ore, we recolor the shared ore picture. */
+    private static BufferedImage loadSprite(ResourceType type) {
+        BufferedImage own = Assets.get(type.getSpritePath(), 16, 16);
+        if (own != null || type.getCategory() != ResourceType.Category.ORE) {
+            return own;
+        }
+        return Assets.tint(Assets.get("/atingdagat/res/nodes/ore.png", 16, 16), type.getColor(), 0.55);
     }
 
     public void update() {
-        if (cooldown > 0) {
-            cooldown--;
+        if (remaining < maxUnits && type.getRegrowFrames() > 0) {
+            regrowTimer++;
+            if (regrowTimer >= type.getRegrowFrames()) {
+                regrowTimer = 0;
+                remaining++;
+            }
         }
     }
 
+    @Override
     public boolean isNear(double px, double py) {
         double dx = px - getX();
         double dy = py - getY();
         return dx * dx + dy * dy <= CLICK_RADIUS * CLICK_RADIUS;
     }
 
-    /** Takes one unit. Returns true if the player got something. */
-    public boolean harvest() {
-        if (remaining <= 0 || cooldown > 0) {
-            return false;
+    @Override
+    public boolean isAvailable() {
+        return remaining > 0;
+    }
+
+    /** Takes one unit and returns how many items it gives. */
+    @Override
+    public int harvest() {
+        if (remaining <= 0) {
+            return 0;
         }
         remaining--;
-        cooldown = COOLDOWN;
-        return true;
+        return type.getYield();
     }
 
-    public void refill() {
-        remaining = CAPACITY;
-    }
-
+    @Override
     public double getX() {
         return col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
     }
 
+    @Override
     public double getY() {
         return row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
     }
 
+    @Override
     public ResourceType getType() {
         return type;
     }
@@ -82,7 +105,7 @@ public class ResourceNode {
     }
 
     // ------------------------------------------------------------------
-    // Drawing (simple shapes for now; Jaron's art can replace them)
+    // Drawing (simple shapes until Jaron's art arrives)
     // ------------------------------------------------------------------
 
     public void draw(Graphics2D g, int frame) {
@@ -91,68 +114,50 @@ public class ResourceNode {
         boolean empty = remaining <= 0;
 
         if (sprite != null) {
-            drawSprite(g, x, y, frame, empty);
-        } else switch (type) {
-            case FISH:
-                drawFish(g, x, y, frame, empty);
-                break;
-            case BAMBOO:
-                drawBamboo(g, x, y, empty);
-                break;
-            default:
-                drawOre(g, x, y, empty);
-                break;
+            java.awt.Composite old = g.getComposite();
+            if (empty) {
+                g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.35f));
+            }
+            g.drawImage(sprite, x - 8, y - 8, null);
+            g.setComposite(old);
+        } else if (type == ResourceType.BAMBOO) {
+            drawBamboo(g, x, y, empty);
+        } else {
+            drawOre(g, x, y, empty);
         }
 
-        // Little dots under the node show how much is left.
-        for (int i = 0; i < CAPACITY; i++) {
-            g.setColor(i < remaining ? Color.WHITE : new Color(0, 0, 0, 110));
-            g.fillRect(x - CAPACITY + i * 2 + i, y + 9, 2, 2);
-        }
-    }
-
-    private void drawSprite(Graphics2D g, int x, int y, int frame, boolean empty) {
-        int bob = type == ResourceType.FISH ? (int) Math.round(Math.sin(frame * 0.07 + col) * 1.5) : 0;
-        java.awt.Composite old = g.getComposite();
-        if (empty) {
-            g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.35f));
-        }
-        g.drawImage(sprite, x - 8, y - 8 + bob, null);
-        g.setComposite(old);
-    }
-
-    private void drawFish(Graphics2D g, int x, int y, int frame, boolean empty) {
-        double wave = Math.sin(frame * 0.07 + col) * 1.5;
-        g.setColor(new Color(255, 255, 255, empty ? 40 : 90));
-        g.drawOval(x - 8, y - 5 + (int) wave, 16, 10);
-        if (!empty) {
-            g.setColor(new Color(255, 190, 90));
-            g.fillOval(x - 5, y - 2 - (int) wave, 7, 4);
-            g.fillPolygon(new int[]{x + 2, x + 6, x + 6}, new int[]{y - (int) wave, y - 3 - (int) wave, y + 3 - (int) wave}, 3);
-            g.setColor(new Color(255, 190, 90));
-            g.fillOval(x - 1, y + 3 + (int) wave, 6, 3);
-        }
+        // A little bar under the spot shows how much is left.
+        int w = 14;
+        g.setColor(new Color(0, 0, 0, 120));
+        g.fillRect(x - w / 2, y + 9, w, 3);
+        g.setColor(empty ? new Color(255, 255, 255, 60) : Color.WHITE);
+        g.fillRect(x - w / 2, y + 9, w * remaining / maxUnits, 3);
     }
 
     private void drawBamboo(Graphics2D g, int x, int y, boolean empty) {
-        g.setColor(empty ? new Color(120, 120, 80) : new Color(96, 168, 70));
-        for (int i = -1; i <= 1; i++) {
-            int h = empty ? 3 : 12 - Math.abs(i) * 2;
-            g.fillRect(x + i * 4 - 1, y + 6 - h, 3, h);
-        }
-        g.setColor(new Color(50, 100, 40));
-        for (int i = -1; i <= 1; i++) {
-            g.drawRect(x + i * 4 - 1, y + 6 - (empty ? 3 : 12 - Math.abs(i) * 2), 2, empty ? 3 : 12 - Math.abs(i) * 2);
+        // The grove shows fewer stalks as it is cut, and they grow back.
+        int stalks = empty ? 0 : Math.max(1, Math.min(3, (remaining * 3 + maxUnits - 1) / maxUnits));
+        g.setColor(new Color(96, 168, 70));
+        for (int i = 0; i < 3; i++) {
+            int h = i < stalks ? 12 - Math.abs(i - 1) * 2 : 3;
+            g.setColor(i < stalks ? new Color(96, 168, 70) : new Color(130, 130, 90));
+            g.fillRect(x + (i - 1) * 4 - 1, y + 6 - h, 3, h);
+            g.setColor(new Color(50, 100, 40));
+            g.drawRect(x + (i - 1) * 4 - 1, y + 6 - h, 2, h);
         }
     }
 
     private void drawOre(Graphics2D g, int x, int y, boolean empty) {
-        g.setColor(empty ? new Color(100, 100, 106) : new Color(138, 138, 150));
-        g.fillPolygon(new int[]{x - 7, x - 3, x + 4, x + 8, x + 5, x - 5}, new int[]{y + 5, y - 5, y - 7, y, y + 6, y + 7}, 6);
-        g.setColor(new Color(60, 60, 70));
-        g.drawPolygon(new int[]{x - 7, x - 3, x + 4, x + 8, x + 5, x - 5}, new int[]{y + 5, y - 5, y - 7, y, y + 6, y + 7}, 6);
+        Color base = type.getColor();
+        Color fill = empty ? new Color(100, 100, 106) : base;
+        int[] px = {x - 7, x - 3, x + 4, x + 8, x + 5, x - 5};
+        int[] py = {y + 5, y - 5, y - 7, y, y + 6, y + 7};
+        g.setColor(fill);
+        g.fillPolygon(px, py, 6);
+        g.setColor(base.darker().darker());
+        g.drawPolygon(px, py, 6);
         if (!empty) {
-            g.setColor(new Color(255, 220, 120));   // glints of metal
+            g.setColor(base.brighter().brighter());   // glints
             g.fillRect(x - 2, y - 3, 2, 2);
             g.fillRect(x + 2, y + 1, 2, 2);
         }
@@ -162,13 +167,13 @@ public class ResourceNode {
     // Loading from data/nodes.txt
     // ------------------------------------------------------------------
 
-    /** Reads the file. Spots on the wrong kind of tile (fish on land, bamboo in the sea) are skipped with a warning. */
+    /** Reads the file. Spots on the wrong kind of tile, or of the wrong kind of resource, are skipped with a warning. */
     public static ArrayList<ResourceNode> load(String path, TileMap map) {
         ArrayList<ResourceNode> nodes = new ArrayList<>();
         InputStream in = ResourceNode.class.getResourceAsStream(path);
         if (in == null) {
             System.out.println("ResourceNode: file not found (" + path + "), using default spots.");
-            addDefaults(nodes, map);
+            addDefaults(nodes);
             return nodes;
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
@@ -184,7 +189,7 @@ public class ResourceNode {
             System.out.println("ResourceNode: could not read " + path + ": " + e.getMessage());
         }
         if (nodes.isEmpty()) {
-            addDefaults(nodes, map);
+            addDefaults(nodes);
         }
         return nodes;
     }
@@ -195,20 +200,24 @@ public class ResourceNode {
             ResourceType type = ResourceType.valueOf(parts[0].toUpperCase());
             int col = Integer.parseInt(parts[1]);
             int row = Integer.parseInt(parts[2]);
-            boolean ok = type == ResourceType.FISH ? map.isWater(row, col) : map.isLand(row, col);
-            if (ok) {
-                nodes.add(new ResourceNode(type, col, row));
+            int units = parts.length > 3 ? Integer.parseInt(parts[3]) : DEFAULT_UNITS;
+            if (type.getCategory() == ResourceType.Category.FISH) {
+                System.out.println("ResourceNode: fish swim in the sea by themselves, remove " + type + " from the file.");
+            } else if (!map.isLand(row, col)) {
+                System.out.println("ResourceNode: " + type + " must be on land, tile " + col + "," + row + " skipped.");
+            } else if (units < 1) {
+                System.out.println("ResourceNode: units must be at least 1: " + line);
             } else {
-                System.out.println("ResourceNode: " + type + " does not fit on tile " + col + "," + row + ", skipped.");
+                nodes.add(new ResourceNode(type, col, row, units));
             }
         } catch (RuntimeException e) {
             System.out.println("ResourceNode: skipped a bad line: " + line);
         }
     }
 
-    private static void addDefaults(ArrayList<ResourceNode> nodes, TileMap map) {
-        nodes.add(new ResourceNode(ResourceType.BAMBOO, 16, 9));
-        nodes.add(new ResourceNode(ResourceType.ORE, 25, 9));
-        nodes.add(new ResourceNode(ResourceType.FISH, 11, 10));
+    private static void addDefaults(ArrayList<ResourceNode> nodes) {
+        nodes.add(new ResourceNode(ResourceType.BAMBOO, 16, 9, 6));
+        nodes.add(new ResourceNode(ResourceType.NICKEL, 25, 9, 5));
+        nodes.add(new ResourceNode(ResourceType.COPPER, 21, 14, 4));
     }
 }

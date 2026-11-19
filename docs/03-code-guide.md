@@ -597,8 +597,8 @@ the professor in six sentences.
 
 ## 14. Waves and resource spots in text files (`WavePlan`, `ResourceNode.load`)
 
-**What it does:** reads `data/waves.txt` (how many skiffs each night, and how fast) and `data/nodes.txt` (where fish,
-bamboo and ore are).
+**What it does:** reads `data/waves.txt` (how many skiffs each night, and how fast) and `data/nodes.txt` (where bamboo
+and the ore veins are).
 
 **Why text files, again:** Gio can make the game harder by editing one number in Notepad, with no Java and no recompile.
 It also covers the rubric's **file I/O** (15%).
@@ -610,28 +610,62 @@ It also covers the rubric's **file I/O** (15%).
 4. **Every step can fail**, so each is inside `try/catch`. A bad line prints a warning and is skipped. A missing file
    uses defaults. The game never crashes because of a typo.
 5. `WavePlan` stores its numbers in two **arrays** (`count[night]`, `interval[night]`). The array index is the night number.
-6. `ResourceNode.load` also **checks the map**: fish must be on water, bamboo and ore on land. A spot on the wrong tile
+6. `ResourceNode.load` also **checks the map**: bamboo and ore must be on land (fish are not in the file: they swim by themselves). A spot on the wrong tile
    is skipped with a message. We trust the data less than we trust ourselves.
 
 **Try it:** open `waves.txt`, change night 1 from `4` skiffs to `1`, run, and play.
 
 ---
 
-## 15. Harvesting and the inventory (`ResourceNode`, `Inventory`, `ResourceType`)
+## 15. Harvesting: hold, follow, run out (`ResourceType`, `ResourceNode`, `FishSchool`, `Harvestable`, `Inventory`)
 
-**What it does:** click a fish shoal, bamboo grove or ore rock to collect it. Each spot holds 4 units, refills at dawn,
-and has a short cooldown so you cannot just hold the mouse.
+**What it does:** resources are no longer one click. You **hold** the mouse on a spot until a ring fills.
 
-**How it works:**
-- `ResourceType` is an enum (`FISH`, `BAMBOO`, `ORE`) with a label and a color.
-- `Inventory` is **one array with one slot per type**. `type.ordinal()` is the enum's position (0, 1, 2) and is used as the
-  array index. `spend()` returns `false` and takes nothing when you cannot afford it. That one rule protects every
-  purchase in the game.
-- `GameWorld.harvest(x, y)` loops over the nodes and asks each one, "Is the click near you?" (`isNear`, a distance check).
-- A **`Popup`** ("+2 Bamboo") floats up so the player knows it worked, even before we have sound.
+| Thing | Where | What makes it a decision |
+|---|---|---|
+| Bamboo | Groves on land (`data/nodes.txt`) | Takes 1.5 s per unit. Grows back slowly |
+| Nickel, copper, chromite, gold | Ore veins on land | Take 2.5 to 4 s per unit. **Never grow back**, so every vein is finite |
+| Fish (5 kinds) | Swim around the sea | Schools **move**. Keep the cursor on one or the ring drains. They vanish after about 28 seconds |
 
-**Why bamboo gives 2 and fish 1:** a net costs 3 bamboo, and a repair costs 2 fish. These numbers are first guesses.
-Gio's playtests will fix them (see `06-playtest-log.md`).
+**The old click-and-done was too easy** because resources were always there. Now time, the ring, and running out make the day matter.
+
+**How one frame of harvesting works (`GameWorld.updateHolding`):**
+1. Is the button held, the tool "harvest", and is it not night? If not, the ring drains.
+2. Ask `findHarvestable(mouse)`: "what is under the cursor?" Fish first, then land spots.
+3. If it is the same thing as last frame, `holdProgress++`. If it is a new thing, restart at 0.
+4. When `holdProgress` reaches that resource's `holdFrames`, `collect()` gives the player one portion, and the ring resets.
+5. If the cursor slips off, `holdProgress` drops by 3 each frame. Follow the fish and you keep your progress.
+
+**Why `ResourceType` has no if-else:** every resource is **one line of data** in the enum (name, group, color, hold time,
+yield, meals, regrow time). The code that harvests does not care which resource it is. To add a new ore, add one line.
+Behavior that is truly different (swimming) got its own class, `FishSchool`.
+
+**The `Harvestable` interface:** a bamboo grove sits still, and a fish school swims, but both can say "am I near this point?",
+"is there anything left?" and "give one portion". Because both promise that, `GameWorld` has **one** harvesting method for both.
+
+**Fish (`FishKind`, `FishSchool`):**
+- Each kind has a speed, a depth range (1 = beach, 6 = open sea), and a weight (how common). Tuna is fast and lives deep. Lapu-lapu is slow, rare and
+  deep, and is worth 8 meals. Tamban is common and shallow, worth 1.
+- `spawnFish()` picks a kind with a **weighted random roll**, then searches for a water tile at the right depth.
+- A school **wanders**: its turning speed drifts a little each frame, so it curves like a real swimmer. If its next step is land, too deep,
+  too shallow or off screen, it turns away.
+- Fish are counted in **meals** (`Inventory.getMeals`). Repairing eats the **cheapest** fish first (`spendMeals`), so you keep the big catches.
+
+**Ore uses (so the four ores matter):**
+
+| Ore | Use | Key | Cost | Effect |
+|---|---|---|---|---|
+| Nickel | Mine buoy | 2 | 2 | See section 19 |
+| Copper | Rewire the radio | C | 2 | Radio +25 |
+| Chromite | Armor the post | V | 3 | Post max health +4 (up to 3 times) |
+| Gold | Upgrade the lamp | G | 2 | Beam wider and longer (up to 2 times) |
+
+All the costs are in `Constants`. `Beam` and `Post` had fixed numbers before. To allow upgrades, those became ordinary fields that an
+upgrade method changes. That is why the old `static final` numbers were renamed `BASE_...`.
+
+**Art trick:** one grey `ore.png` can make all four ores. `Assets.tint` blends each pixel toward the ore's color, so Jaron needs one rock, not four.
+
+**Try it:** in `ResourceType`, change `TUNA`'s hold time from `100` to `20`, run, and see how much easier tuna becomes.
 
 ---
 
@@ -673,7 +707,7 @@ The same method colors the preview square green or red, so the rule is written o
 | A ship reaches the shore | Post loses its landing damage (skiff 3, cutter 2, barge 6). Radio loses 3 times that |
 | Post reaches 0, or Radio reaches 0 | You lose |
 | Night 7 ends with both alive | You win |
-| You press R in the day (costs 2 fish) | Post +4, Radio +15 |
+| You press R in the day (costs 2 meals of fish) | Post +4, Radio +15 |
 
 **`Hud` only reads, and never changes the game.** It draws from getters on `GameWorld`. If the HUD has a bug, the game
 rules still work. That separation is called **separation of concerns**, and it is how you keep a big program fixable.
@@ -715,7 +749,7 @@ The world asks `ship.getLandingDamage()` and does not care which ship it is. A b
 
 ## 19. A second defense: the mine (`Mine`)
 
-**What it does:** key 2, cost 2 ore, placed on water near the island. It floats there. When any ship gets within 14 pixels it
+**What it does:** key 2, cost 2 nickel, placed on water near the island. It floats there. When any ship gets within 14 pixels it
 explodes and hurts every ship within 30 pixels (3 damage), then it is gone.
 
 **Why it matters for the rubric:** `Net` waits to be attacked. `Mine` acts on its own. Both are `Defense`, so `GameWorld` still holds
@@ -731,8 +765,7 @@ behaviour can be added without breaking old classes.
 **Detail:** a mine "destroys itself" by exploding, so `isDestroyed()` returns true. When `GameWorld` removes it, it checks
 `d instanceof Mine` and starts an `Explosion` (an expanding ring) at that spot.
 
-**Why ore finally matters:** until now ore had no use. Now the three resources each do something: fish heals, bamboo makes nets,
-ore makes mines. That is the day's decision: **what do you spend your limited harvest time on?**
+**Why ore matters:** each resource has a job: fish heals, bamboo makes nets, nickel makes mines, copper fixes the radio, chromite armors the post, gold upgrades the lamp. That is the day's decision: **what do you spend your limited harvest time on?**
 
 ---
 

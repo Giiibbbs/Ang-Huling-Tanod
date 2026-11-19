@@ -23,9 +23,13 @@ public class Beam {
 
     // Tuning numbers. Change these while playtesting.
     private static final double TURN_SPEED = 0.045;                  // radians per frame (about 155 degrees a second)
-    private static final double HALF_ANGLE = Math.toRadians(16);     // half the width of the cone
-    private static final double LENGTH = 240;                        // how far the beam reaches (pixels)
+    private static final double BASE_HALF_ANGLE = Math.toRadians(16);     // half the width of the cone
+    private static final double BASE_LENGTH = 240;                       // how far the beam reaches (pixels)
     private static final double LAMP_GLOW = 44;                      // always-lit circle around the lamp
+
+    private double halfAngle = BASE_HALF_ANGLE;   // grows with lamp upgrades
+    private double length = BASE_LENGTH;
+    private int upgradeLevel = 0;
 
     private final double originX;
     private final double originY;
@@ -36,6 +40,21 @@ public class Beam {
     public Beam(double originX, double originY) {
         this.originX = originX;
         this.originY = originY;
+    }
+
+    /** A lamp upgrade: a wider and longer beam. Returns false once fully upgraded. */
+    public boolean upgrade(int maxLevel) {
+        if (upgradeLevel >= maxLevel) {
+            return false;
+        }
+        upgradeLevel++;
+        halfAngle = BASE_HALF_ANGLE * (1 + 0.18 * upgradeLevel);
+        length = BASE_LENGTH * (1 + 0.12 * upgradeLevel);
+        return true;
+    }
+
+    public int getUpgradeLevel() {
+        return upgradeLevel;
     }
 
     /** Tell the beam where the player is pointing (a position in the game). */
@@ -61,19 +80,19 @@ public class Beam {
         if (distance <= LAMP_GLOW) {
             return true;
         }
-        if (distance > LENGTH) {
+        if (distance > length) {
             return false;
         }
         double toPoint = Math.atan2(dy, dx);
-        return Math.abs(angleDiff(toPoint, angle)) <= HALF_ANGLE;
+        return Math.abs(angleDiff(toPoint, angle)) <= halfAngle;
     }
 
     /** Paints a soft warm tint inside the cone and around the lamp (drawn after the darkness). */
     public void drawLight(Graphics2D g) {
-        Arc2D cone = new Arc2D.Double(originX - LENGTH, originY - LENGTH, LENGTH * 2, LENGTH * 2,
-                -Math.toDegrees(angle) - Math.toDegrees(HALF_ANGLE),
-                2 * Math.toDegrees(HALF_ANGLE), Arc2D.PIE);
-        g.setPaint(new RadialGradientPaint(new Point2D.Double(originX, originY), (float) LENGTH,
+        Arc2D cone = new Arc2D.Double(originX - length, originY - length, length * 2, length * 2,
+                -Math.toDegrees(angle) - Math.toDegrees(halfAngle),
+                2 * Math.toDegrees(halfAngle), Arc2D.PIE);
+        g.setPaint(new RadialGradientPaint(new Point2D.Double(originX, originY), (float) length,
                 new float[]{0f, 0.5f, 0.9f, 1f},
                 new Color[]{new Color(255, 240, 170, 95), new Color(255, 235, 150, 50),
                     new Color(255, 230, 140, 6), new Color(255, 230, 140, 0)}));
@@ -116,11 +135,11 @@ public class Beam {
     }
 
     public double getHalfAngle() {
-        return HALF_ANGLE;
+        return halfAngle;
     }
 
     public double getLength() {
-        return LENGTH;
+        return length;
     }
 
     public double getLampGlow() {

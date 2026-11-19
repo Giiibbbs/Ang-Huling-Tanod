@@ -239,13 +239,14 @@ schedule in [02-project-plan.md](02-project-plan.md).
 |---|---|---|
 | Island map from a text file, depth shading | Yes | `data/island.txt` |
 | Day, dusk, night, dawn cycle | Yes | Dusk fades the light in. It is not yet a "preview of the night" |
-| Harvesting (fish, bamboo, ore) | Yes | Click the spots. Each holds 4 and refills at dawn |
+| Harvesting (bamboo, 4 ores, 5 fish) | Yes | You HOLD the mouse. Bamboo regrows slowly, ore never does, fish schools swim and must be followed |
+| Ore uses | Yes | Nickel: mines. Copper: radio rewire. Chromite: post armor. Gold: lamp upgrade |
 | Lighthouse beam and darkness | Yes | |
 | Net barrier | Yes | 3 bamboo, shallow water. Ships stop and cut it |
 | Mine buoy | Yes | 2 ore. Explodes when a ship comes near |
 | Skiff, cutter, landing barge | Yes | Waves in `data/waves.txt` |
 | Post and radio, win and lose | Yes | Post health and radio signal. There is no separate "island health" bar yet |
 | Gun | Simplified | Click a lit ship to fire. The aimed deck gun and the coastal gun are planned |
-| Repair | Simplified | Press R in the day (2 fish). No resource-depletion penalty yet |
+| Repair | Simplified | Press R in the day (2 meals of fish). No resource-depletion penalty yet |
 | Sound, high-score file | Not yet | Never-cut items |
 | Infiltrators, babaylan, Bakunawa, frigate, dreadnought | Not yet | See the cut order in the plan |

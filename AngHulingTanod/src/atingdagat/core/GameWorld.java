@@ -3,6 +3,9 @@ package atingdagat.core;
 import atingdagat.defense.Defense;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
+import atingdagat.economy.FishKind;
+import atingdagat.economy.FishSchool;
+import atingdagat.economy.Harvestable;
 import atingdagat.economy.Inventory;
 import atingdagat.economy.ResourceNode;
 import atingdagat.economy.ResourceType;
@@ -60,6 +63,7 @@ public class GameWorld {
     private final ArrayList<Warship> ships = new ArrayList<>();
     private final ArrayList<Defense> defenses = new ArrayList<>();
     private final ArrayList<ResourceNode> nodes;
+    private final ArrayList<FishSchool> fish = new ArrayList<>();
     private final ArrayList<Popup> popups = new ArrayList<>();
     private final ArrayList<Explosion> explosions = new ArrayList<>();
     private final ArrayList<WavePlan.Kind> queue = new ArrayList<>();   // tonight's ships, in the order they come
@@ -84,6 +88,12 @@ public class GameWorld {
     private int shotTimer = 0;           // draws the shot line for a few frames
     private double shotX, shotY;
 
+    // Holding the mouse on a spot or a fish fills a progress ring. Let go, and it drains.
+    private boolean holding = false;
+    private Harvestable holdTarget = null;
+    private int holdProgress = 0;
+    private int fishTimer = 0;
+
     private String bannerText = "";
     private int bannerTimer = 0;
 
@@ -91,6 +101,9 @@ public class GameWorld {
         this.map = map;
         this.nodes = ResourceNode.load(Constants.NODES_FILE, map);
         inventory.add(ResourceType.BAMBOO, Constants.START_BAMBOO);
+        for (int i = 0; i < 6; i++) {
+            spawnFish();
+        }
         showBanner("DAY 1");
     }
 
@@ -123,6 +136,8 @@ public class GameWorld {
         for (ResourceNode node : nodes) {
             node.update();
         }
+        updateFish();
+        updateHolding();
         for (int i = explosions.size() - 1; i >= 0; i--) {
             explosions.get(i).update();
             if (explosions.get(i).isDone()) {
@@ -276,16 +291,17 @@ public class GameWorld {
                 showBanner("DUSK - get ready");
                 break;
             case NIGHT:
+                fish.clear();            // the fish go deep in the dark
+                holding = false;
+                holdTarget = null;
+                holdProgress = 0;
                 buildQueue();
                 spawned = 0;
                 spawnTimer = plan.getInterval(cycle.getNight()) - 90;   // first skiff in about 1.5 seconds
                 showBanner("NIGHT " + cycle.getNight());
                 break;
             default: // DAWN
-                for (ResourceNode node : nodes) {
-                    node.refill();
-                }
-                showBanner("DAWN - R repairs");
+                showBanner("DAWN - repair and rebuild");
                 break;
         }
         if (cycle.isFinished() && outcome == Outcome.PLAYING) {
@@ -330,7 +346,7 @@ public class GameWorld {
         } else if (tool == Tool.MINE) {
             placeMine(x, y);
         } else {
-            harvest(x, y);
+            holding = true;   // harvesting is HOLDING the button (see updateHolding)
         }
     }
 
@@ -342,20 +358,133 @@ public class GameWorld {
         tool = (tool == wanted) ? Tool.HARVEST : wanted;
     }
 
-    private void harvest(int x, int y) {
+    /** The mouse button was let go. */
+    public void release() {
+        holding = false;
+    }
+
+    /** Finds the first thing under the mouse that can be harvested: fish first, then spots on land. */
+    private Harvestable findHarvestable(double x, double y) {
+        for (FishSchool school : fish) {
+            if (school.isAvailable() && school.isNear(x, y)) {
+                return school;
+            }
+        }
         for (ResourceNode node : nodes) {
-            if (!node.isNear(x, y)) {
-                continue;
+            if (node.isNear(x, y)) {
+                return node;
             }
-            if (node.harvest()) {
-                int gain = node.getType() == ResourceType.BAMBOO ? 2 : 1;
-                inventory.add(node.getType(), gain);
-                popups.add(new Popup(node.getX(), node.getY() - 12, "+" + gain + " " + node.getType().getLabel(), node.getType().getColor()));
-            } else if (node.getRemaining() <= 0) {
-                popups.add(new Popup(node.getX(), node.getY() - 12, "Empty until dawn", Color.LIGHT_GRAY));
+        }
+        return null;
+    }
+
+    /**
+     * Called every frame. While the button is held on something, the ring fills. When it is full the player
+     * gets one portion. If the mouse slips off (a fish swims away), the ring drains, so you must keep up.
+     */
+    private void updateHolding() {
+        boolean canHarvest = holding && tool == Tool.HARVEST && !cycle.isNight();
+        Harvestable under = canHarvest ? findHarvestable(mouseX, mouseY) : null;
+
+        if (under != null && !under.isAvailable()) {
+            if (holdTarget != under) {   // one reminder per spot, not one every frame
+                popups.add(new Popup(under.getX(), under.getY() - 12, "Nothing left", Color.LIGHT_GRAY));
             }
+            holdTarget = under;
+            holdProgress = 0;
             return;
         }
+        if (under != null) {
+            if (under != holdTarget) {
+                holdTarget = under;
+                holdProgress = 0;
+            }
+            holdProgress++;
+            if (holdProgress >= under.getType().getHoldFrames()) {
+                collect(under);
+                holdProgress = 0;
+            }
+        } else {
+            holdProgress = Math.max(0, holdProgress - 3);
+            if (holdProgress == 0) {
+                holdTarget = null;
+            }
+        }
+    }
+
+    private void collect(Harvestable target) {
+        int gained = target.harvest();
+        if (gained <= 0) {
+            return;
+        }
+        ResourceType type = target.getType();
+        inventory.add(type, gained);
+        String text = "+" + gained + " " + type.getLabel();
+        if (type.getMeals() > 1) {
+            text += " (" + type.getMeals() + " meals)";
+        }
+        popups.add(new Popup(target.getX(), target.getY() - 14, text, type.getColor()));
+    }
+
+    // ------------------------------------------------------------------
+    // FISH: schools swim around the sea in the day
+    // ------------------------------------------------------------------
+
+    private void updateFish() {
+        if (cycle.isNight()) {
+            return;
+        }
+        fishTimer++;
+        if (fishTimer >= Constants.FISH_SPAWN_FRAMES && fish.size() < Constants.MAX_FISH_SCHOOLS) {
+            fishTimer = 0;
+            spawnFish();
+        }
+        for (int i = fish.size() - 1; i >= 0; i--) {
+            fish.get(i).update(map);
+            if (fish.get(i).isGone()) {
+                if (fish.get(i) == holdTarget) {
+                    holdTarget = null;
+                    holdProgress = 0;
+                }
+                fish.remove(i);
+            }
+        }
+    }
+
+    /** Picks a kind (rare ones less often), then looks for a spot at the right depth. */
+    private void spawnFish() {
+        FishKind kind = pickFishKind();
+        for (int attempt = 0; attempt < 60; attempt++) {
+            int col = random.nextInt(Constants.MAP_COLS);
+            int row = 2 + random.nextInt(Constants.MAP_ROWS - 4);
+            if (!map.isWater(row, col)) {
+                continue;
+            }
+            int depth = map.getDepth(row, col);
+            if (depth < kind.getMinDepth() || depth > kind.getMaxDepth()) {
+                continue;
+            }
+            double x = col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
+            double y = row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
+            fish.add(new FishSchool(kind, x, y, random));
+            return;
+        }
+    }
+
+    /** A weighted random pick: tamban is common, lapu-lapu is rare. */
+    private FishKind pickFishKind() {
+        double total = 0;
+        for (FishKind kind : FishKind.values()) {
+            total += kind.getWeight();
+        }
+        double roll = random.nextDouble() * total;
+        for (FishKind kind : FishKind.values()) {
+            roll -= kind.getWeight();
+            if (roll <= 0) {
+                return kind;
+            }
+        }
+        return FishKind.TAMBAN;
     }
 
     /** Can a net go on this tile? (shallow water only) */
@@ -377,13 +506,6 @@ public class GameWorld {
         }
         for (Defense d : defenses) {
             if (d.occupies(col, row)) {
-                return false;
-            }
-        }
-        for (ResourceNode node : nodes) {   // do not bury a fish spot
-            if (node.getType() == ResourceType.FISH
-                    && (int) (node.getX() / Constants.TILE_SIZE) == col
-                    && (int) (node.getY() / Constants.TILE_SIZE) == row) {
                 return false;
             }
         }
@@ -411,8 +533,8 @@ public class GameWorld {
             popups.add(new Popup(x, y - 6, "Water near the island only", Color.LIGHT_GRAY));
             return;
         }
-        if (!inventory.spend(ResourceType.ORE, Mine.COST_ORE)) {
-            popups.add(new Popup(x, y - 6, "Need " + Mine.COST_ORE + " ore", new Color(255, 150, 120)));
+        if (!inventory.spend(ResourceType.NICKEL, Mine.COST_NICKEL)) {
+            popups.add(new Popup(x, y - 6, "Need " + Mine.COST_NICKEL + " nickel", new Color(255, 150, 120)));
             return;
         }
         defenses.add(new Mine(col, row));
@@ -442,22 +564,72 @@ public class GameWorld {
         }
     }
 
-    /** Key R: spend fish to mend the post and boost the radio. */
+    /** Key R: eat fish (2 meals) to mend the post and boost the radio a little. */
     public void repair() {
         if (cycle.isNight() || outcome != Outcome.PLAYING) {
             return;
         }
-        if (post.getHealth() >= Post.MAX_HEALTH && radio.getSignal() >= Radio.MAX_SIGNAL) {
-            popups.add(new Popup(post.getX(), post.getY() - 30, "Nothing to repair", Color.LIGHT_GRAY));
+        if (post.getHealth() >= post.getMaxHealth() && radio.getSignal() >= Radio.MAX_SIGNAL) {
+            say("Nothing to repair", Color.LIGHT_GRAY);
             return;
         }
-        if (!inventory.spend(ResourceType.FISH, Constants.REPAIR_FISH_COST)) {
-            popups.add(new Popup(post.getX(), post.getY() - 30, "Need " + Constants.REPAIR_FISH_COST + " fish", new Color(255, 150, 120)));
+        if (!inventory.spendMeals(Constants.REPAIR_FISH_COST)) {
+            say("Need " + Constants.REPAIR_FISH_COST + " meals of fish", new Color(255, 150, 120));
             return;
         }
         post.repair(Constants.REPAIR_POST_AMOUNT);
         radio.restore(Constants.REPAIR_RADIO_AMOUNT);
-        popups.add(new Popup(post.getX(), post.getY() - 30, "Repaired", new Color(140, 235, 150)));
+        say("Repaired", new Color(140, 235, 150));
+    }
+
+    /** Key C: spend copper to rewire the radio (a bigger boost than fish). */
+    public void rewire() {
+        if (cycle.isNight() || outcome != Outcome.PLAYING) {
+            return;
+        }
+        if (radio.getSignal() >= Radio.MAX_SIGNAL) {
+            say("Radio is already strong", Color.LIGHT_GRAY);
+        } else if (!inventory.spend(ResourceType.COPPER, Constants.REWIRE_COST_COPPER)) {
+            say("Need " + Constants.REWIRE_COST_COPPER + " copper", new Color(255, 150, 120));
+        } else {
+            radio.restore(Constants.REWIRE_RADIO_AMOUNT);
+            say("Radio rewired", ResourceType.COPPER.getColor());
+        }
+    }
+
+    /** Key V: spend chromite to armor the post (more maximum health). */
+    public void armorPost() {
+        if (cycle.isNight() || outcome != Outcome.PLAYING) {
+            return;
+        }
+        if (post.getArmorLevel() >= Constants.ARMOR_MAX_LEVEL) {
+            say("Post is fully armored", Color.LIGHT_GRAY);
+        } else if (!inventory.spend(ResourceType.CHROMITE, Constants.ARMOR_COST_CHROMITE)) {
+            say("Need " + Constants.ARMOR_COST_CHROMITE + " chromite", new Color(255, 150, 120));
+        } else {
+            post.armor(Constants.ARMOR_HEALTH);
+            say("Post armored +" + Constants.ARMOR_HEALTH, ResourceType.CHROMITE.getColor());
+        }
+    }
+
+    /** Key G: spend gold to upgrade the lamp (a wider and longer beam). */
+    public void upgradeLamp() {
+        if (cycle.isNight() || outcome != Outcome.PLAYING) {
+            return;
+        }
+        if (beam.getUpgradeLevel() >= Constants.LAMP_MAX_LEVEL) {
+            say("Lamp is fully upgraded", Color.LIGHT_GRAY);
+        } else if (!inventory.spend(ResourceType.GOLD, Constants.LAMP_COST_GOLD)) {
+            say("Need " + Constants.LAMP_COST_GOLD + " gold", new Color(255, 150, 120));
+        } else {
+            beam.upgrade(Constants.LAMP_MAX_LEVEL);
+            say("Lamp upgraded", ResourceType.GOLD.getColor());
+        }
+    }
+
+    /** A short message over the post. */
+    private void say(String text, Color color) {
+        popups.add(new Popup(post.getX(), post.getY() - 30, text, color));
     }
 
     // ------------------------------------------------------------------
@@ -471,6 +643,9 @@ public class GameWorld {
 
         for (ResourceNode node : nodes) {
             node.draw(g, frameCount);
+        }
+        for (FishSchool school : fish) {
+            school.draw(g, frameCount);
         }
         for (Defense d : defenses) {
             d.draw(g, frameCount);
@@ -503,12 +678,30 @@ public class GameWorld {
             g.setStroke(new BasicStroke(1f));
         }
 
+        drawHoldRing(g);
         for (Explosion e : explosions) {
             e.draw(g);
         }
         for (Popup p : popups) {
             p.draw(g);
         }
+    }
+
+    /** The ring that fills while you hold the mouse on something. */
+    private void drawHoldRing(Graphics2D g) {
+        if (holdTarget == null || holdProgress <= 0) {
+            return;
+        }
+        double fraction = holdProgress / (double) holdTarget.getType().getHoldFrames();
+        int r = 11;
+        int x = (int) holdTarget.getX() - r;
+        int y = (int) holdTarget.getY() - r;
+        g.setStroke(new BasicStroke(3f));
+        g.setColor(new Color(0, 0, 0, 110));
+        g.drawOval(x, y, r * 2, r * 2);
+        g.setColor(holdTarget.getType().getColor().brighter());
+        g.drawArc(x, y, r * 2, r * 2, 90, (int) (-360 * Math.min(1.0, fraction)));
+        g.setStroke(new BasicStroke(1f));
     }
 
     private void drawBuildGhost(Graphics2D g) {
@@ -519,7 +712,7 @@ public class GameWorld {
         }
         boolean ok = tool == Tool.NET
                 ? canPlaceNet(col, row) && inventory.has(ResourceType.BAMBOO, Net.COST_BAMBOO)
-                : canPlaceMine(col, row) && inventory.has(ResourceType.ORE, Mine.COST_ORE);
+                : canPlaceMine(col, row) && inventory.has(ResourceType.NICKEL, Mine.COST_NICKEL);
         g.setColor(ok ? new Color(120, 255, 140, 90) : new Color(255, 90, 80, 90));
         g.fillRect(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE, Constants.TILE_SIZE, Constants.TILE_SIZE);
     }

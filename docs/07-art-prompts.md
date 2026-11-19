@@ -141,15 +141,20 @@ with no code change. Missing ones show simple shapes. Generate **larger** than t
 | `buildings/net.png` | 16 x 16 | One tile of net between two bamboo posts |
 | `buildings/mine.png` | 16 x 16 | Floating spiked mine buoy |
 | `nodes/bamboo.png` | 16 x 16 | Bamboo grove |
-| `nodes/fish.png` | 16 x 16 | Fish or small shoal |
-| `nodes/ore.png` | 16 x 16 | Rock with metal glints |
-| `ui/fish.png`, `ui/bamboo.png`, `ui/ore.png` | 10 x 10 | HUD icons. Must read clearly when tiny |
+| `nodes/ore.png` | 16 x 16 | **One grey rock with metal glints. The game recolors it into nickel, copper, chromite and gold**, so you need only this one |
+| `nodes/nickel.png`, `copper.png`, `chromite.png`, `gold.png` | 16 x 16 | **Optional.** Only if you want each ore to have its own picture. Otherwise the recolored rock is used |
+| `fish/tamban.png` | 10 x 5 | Small silver sardine, points **right** |
+| `fish/galunggong.png` | 12 x 6 | Round scad, blue-silver, points right |
+| `fish/bangus.png` | 14 x 6 | Slim bright-silver milkfish, points right |
+| `fish/tuna.png` | 20 x 8 | Big dark-blue torpedo-shaped tuna, points right |
+| `fish/lapulapu.png` | 20 x 10 | Orange-red grouper (the rare, valuable one), points right |
+| `ui/bamboo.png`, `ui/fish.png`, `ui/nickel.png`, `ui/copper.png`, `ui/chromite.png`, `ui/gold.png` | 10 x 10 | HUD icons. Must read clearly when tiny |
 
 ## Full asset list (generate after the test passes)
 
 **Must-have (needed first):**
 skiff, cutter, landing barge, lighthouse, the post (grounded ship with a radio), villager, fish spot, bamboo grove,
-ore mine, net barrier, mine buoy, coastal gun, HUD icons (fish, bamboo, ore, radio).
+ore rock, the 5 fish, net barrier, mine buoy, coastal gun, HUD icons (bamboo, fish, 4 ores, radio).
 
 **Should-have:**
 signal frigate, dreadnought (boss), infiltrator fishing bangka, babaylan, Bakunawa, watchtower, decoy light.
