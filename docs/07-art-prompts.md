@@ -97,26 +97,22 @@ style bible, add "flat colors, no gradients", or reduce the palette to 16 colors
 | Text or a logo appears | Add "no text, no letters, no symbols other than the emblem" |
 | Sprite sheet instead of one object | Say "ONE object only, not a sprite sheet, not multiple views" |
 
-## From Gemini to the game
+## From Gemini to the game (step by step)
 
-1. Download the PNG. Keep the original, and don't edit the original.
-2. Save it with a clear lowercase name in the project's art folder:
+1. **Generate one object per image.** Pick the version that matches the camera rule for that asset (see the style blocks below).
+2. **Download the real image** with Gemini's download button. The rounded corners you see on screen are only Gemini's preview.
+3. **Keep the original.** Put the untouched download in `art-source/` at the repo root (next to `docs/`, **not** inside `src/`). Never edit the original.
+4. **Make the game copy.** Rename it to the **exact lowercase name** in the "Exact file names" table (for example `tuna.png`). Optionally shrink it to about 4 times
+   the in-game size, because a huge image makes the game start slower (the game shrinks it either way).
+5. **Copy it into the project:** `AngHulingTanod/src/atingdagat/res/<folder>/<name>.png` (for example `res/fish/tuna.png`).
+   Create the folder if it does not exist. It **must be inside `src/`** so it is packed into the JAR.
+6. **In NetBeans:** right-click the project, choose **Clean and Build**, then press **F6**. Look at the new art in the game.
+   If the output window says `Art not found`, the folder or file name is wrong.
+7. **Look at it at real size** (the Checklist above). If it fails, fix the prompt and regenerate. Do not keep a weak image.
+8. **Write a row in the prompt log** below: the file, the tool, the date, the style version, whether you edited it by hand, and notes.
+9. **Commit and push** from the Favorites tab (so `art-source/` and the docs are included). Suggested message: `Add fish art`.
 
-```
-AngHulingTanod/src/atingdagat/res/
-├── ships/       skiff.png, cutter.png, barge.png ...
-├── buildings/   lighthouse.png, post.png ...
-├── people/      villager.png, babaylan.png ...
-└── ui/          icons
-```
-
-3. The game turns the magenta into transparency when it loads the image (chroma key), then scales it to its in-game size.
-   You don't need to edit the background.
-4. **The skiff is already wired up.** Save it as exactly `AngHulingTanod/src/atingdagat/res/ships/skiff.png`, with the
-   ship pointing **right**, and it appears in the game with no code change. If the file is missing, a placeholder is
-   drawn. (Other sprites get wired up as we build them, and Gabriel will tell you the exact file name.)
-5. Commit it. Art lives in `res/`, so it is packed into the JAR automatically.
-5. Write a row in the **prompt log** below.
+The game turns the magenta into transparency when it loads the image (chroma key). You do not need to edit the background.
 
 ## Prompt log (keep this honest, we show it in CREDITS)
 
@@ -125,6 +121,13 @@ AngHulingTanod/src/atingdagat/res/
 | ships/skiff.png | Gemini | | v1 | | |
 | buildings/lighthouse.png | Gemini | | v1 | | |
 | people/villager.png | Gemini | | v1 | | |
+| fish/tuna.png | Gemini | 2026-11-19 | fish v1 | No | Chose the top-down version (the side view would swim upside down) |
+| fish/tamban.png | Gemini | | fish v1 | | |
+| fish/galunggong.png | Gemini | | fish v1 | | |
+| fish/bangus.png | Gemini | | fish v1 | | |
+| fish/lapulapu.png | Gemini | | fish v1 | | |
+| nodes/ore.png | Gemini | | nodes v1 | | |
+| nodes/bamboo.png | Gemini | | nodes v1 | | |
 
 ## Exact file names the game loads right now
 
@@ -164,3 +167,75 @@ raider, saboteur diver, recon drone, tikbalang, engkanto, Lapulapu's stone figur
 realistic portrait).
 
 Folklore pieces should be portrayed with respect.
+
+
+---
+
+## Prompts for the rest of the assets
+
+The first style bible (top of this file) is for **things seen at a 3/4 angle**: ships, buildings, people. Some assets need a different camera, so each group
+below has its own style block. **Always paste the whole block, then one SUBJECT.** One object per image.
+
+### Fish (pure top-down, points right)
+
+Fish are rotated by the game, so they must be seen from **straight above**. Pick the top-down result, not the side view. (Style: fish v1)
+
+```
+STYLE: high-detail pixel art game sprite, viewed from DIRECTLY ABOVE (pure top-down view, like looking down
+into the sea), the fish is pointing to the RIGHT, perfectly horizontal, crisp clean pixel edges, limited
+palette of about 16 colors, bold simple shapes that stay readable when shrunk very small, thin dark outline,
+light coming from the top-left with darker shading on the bottom-right.
+RENDERING: ONE single fish, centered, filling most of the image, not a sprite sheet, not multiple views, on a
+flat solid pure magenta background (#FF00FF), one flat color with no gradient. No water, no shadow, no text,
+no letters, no border, no frame, no watermark, no glow or soft blur, hard edges only.
+COLOR RULE: the fish itself must contain no magenta, hot pink, or purple.
+```
+
+| File | SUBJECT |
+|---|---|
+| `fish/tamban.png` | `SUBJECT: a small Philippine tamban (sardine), slim silver body, pale belly, tiny dark eye, small forked tail.` |
+| `fish/galunggong.png` | `SUBJECT: a Philippine galunggong (round scad), plump torpedo body, blue-silver with a darker blue-green back, small forked tail.` |
+| `fish/bangus.png` | `SUBJECT: a Philippine bangus (milkfish), slim elegant body, bright silver, large forked tail, small dark eye.` |
+| `fish/tuna.png` | `SUBJECT: a large tuna, powerful torpedo-shaped body, deep dark-blue back with a pale silver belly, crescent tail, small pointed fins.` |
+| `fish/lapulapu.png` | `SUBJECT: a Philippine lapu-lapu (grouper), thick heavy body, orange-red with a few darker spots, wide rounded tail, big mouth. The rare, valuable fish.` |
+
+### Harvest spots and defenses (3/4 view, 16 x 16 in the game)
+
+Use the **first style bible** (top of this file) and one of these subjects. They are tiny in the game, so add this line to the style: `very simple bold shapes, readable at 16 pixels`.
+
+| File | SUBJECT |
+|---|---|
+| `nodes/bamboo.png` | `SUBJECT: a small clump of three green bamboo stalks with segment rings and a few leaves, growing from a little dirt mound.` |
+| `nodes/ore.png` | `SUBJECT: one grey rocky ore outcrop with small bright metallic glints. Neutral grey (the game recolors it into nickel, copper, chromite and gold).` |
+| `buildings/net.png` | `SUBJECT: a fishing net stretched between two short bamboo posts, seen from above at an angle, rope mesh in pale tan.` |
+| `buildings/mine.png` | `SUBJECT: a small spiked naval mine buoy, round dark steel body with short spikes and a small red warning light on top.` |
+
+### Ships and buildings (3/4 view, first style bible)
+
+| File | SUBJECT |
+|---|---|
+| `ships/cutter.png` | `SUBJECT: a fast, slim enemy patrol boat of the Kordan Dominion, charcoal-black hull with a crimson stripe, pointed bow facing right, one small gun. About 2.3 times longer than wide.` |
+| `ships/barge.png` | `SUBJECT: a wide, flat enemy landing barge of the Kordan Dominion, charcoal-black hull, a lowered front ramp, stacked crates, a small crimson marking, bow facing right. About 2.2 times longer than wide.` |
+| `buildings/post.png` | `SUBJECT: a rusting ship hull grounded on a reef and used as a command post, a small cabin on deck, a tall radio mast with an antenna crossbar, sandbags at the bow. Seen from a 3/4 top-down angle.` |
+
+### HUD icons (flat, tiny: 10 x 10 in the game)
+
+```
+STYLE: a tiny flat pixel art icon, front view, bold simple shape, thick dark outline, maximum 6 colors, readable at 10 by 10 pixels.
+RENDERING: ONE icon, centered, filling most of the image, on a flat solid pure magenta background (#FF00FF). No text, no letters, no border, no watermark, no glow.
+COLOR RULE: the icon itself must contain no magenta, hot pink, or purple.
+```
+
+| File | SUBJECT |
+|---|---|
+| `ui/bamboo.png` | `SUBJECT: a single green bamboo stalk with two segment rings.` |
+| `ui/fish.png` | `SUBJECT: a simple silver fish, side view.` |
+| `ui/nickel.png` | `SUBJECT: a small pale grey-green ore nugget.` |
+| `ui/copper.png` | `SUBJECT: a small orange copper ore nugget.` |
+| `ui/chromite.png` | `SUBJECT: a small dark steel-blue ore nugget.` |
+| `ui/gold.png` | `SUBJECT: a small shiny yellow gold nugget.` |
+
+## How we keep this file up to date
+
+Every time a **new asset is wired into the game**, this file gets (1) its row in "Exact file names", (2) its prompt here, and (3) a row in the prompt log
+after it is generated. Gabriel updates the first two when he adds code. The person who generates the art fills in the log.

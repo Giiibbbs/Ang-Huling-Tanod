@@ -22,7 +22,7 @@ import java.util.Random;
  */
 public class FishSchool implements Harvestable {
 
-    private static final double CATCH_RADIUS = 13;
+    private static final double CATCH_RADIUS = 12;
     private static final int LIFETIME = 60 * 28;     // a school stays about 28 seconds
 
     private final FishKind kind;

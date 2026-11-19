@@ -12,11 +12,11 @@ package atingdagat.economy;
 public enum FishKind {
 
     //          resource                   speed  minDepth maxDepth weight size  w   h
-    TAMBAN     (ResourceType.TAMBAN,       0.50,  1, 3, 5.0, 4, 10, 5),
-    GALUNGGONG (ResourceType.GALUNGGONG,   0.45,  2, 4, 4.0, 3, 12, 6),
-    BANGUS     (ResourceType.BANGUS,       0.40,  1, 3, 3.0, 3, 14, 6),
-    TUNA       (ResourceType.TUNA,         0.95,  5, 6, 1.6, 2, 20, 8),
-    LAPULAPU   (ResourceType.LAPULAPU,     0.30,  4, 5, 1.0, 2, 20, 10);
+    TAMBAN     (ResourceType.TAMBAN,       0.50,  1, 3, 5.0, 4, 20, 7),
+    GALUNGGONG (ResourceType.GALUNGGONG,   0.45,  2, 4, 4.0, 3, 22, 10),
+    BANGUS     (ResourceType.BANGUS,       0.40,  1, 3, 3.0, 3, 24, 9),
+    TUNA       (ResourceType.TUNA,         0.95,  5, 6, 1.6, 2, 30, 13),
+    LAPULAPU   (ResourceType.LAPULAPU,     0.30,  4, 5, 1.0, 2, 30, 15);
 
     private final ResourceType resource;
     private final double speed;
