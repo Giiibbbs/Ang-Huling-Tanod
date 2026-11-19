@@ -10,6 +10,7 @@ import atingdagat.economy.Harvestable;
 import atingdagat.economy.Inventory;
 import atingdagat.economy.ResourceNode;
 import atingdagat.economy.ResourceType;
+import atingdagat.entities.Bakunawa;
 import atingdagat.entities.Barge;
 import atingdagat.entities.Beam;
 import atingdagat.entities.Cutter;
@@ -63,6 +64,8 @@ public class GameWorld {
     private final Radio radio = new Radio();
     private final Beam beam = new Beam(lighthouse.getLampX(), lighthouse.getLampY());
     private final NightOverlay overlay = new NightOverlay();
+    private final Bakunawa dragon = new Bakunawa();   // the big event of the last night
+    private double forcedDarkness = -1;               // the ending scene sets this (-1 = follow the day cycle)
 
     // The walking tanod, and the lights that make ships visible at night
     private final Player player = new Player(
@@ -142,6 +145,8 @@ public class GameWorld {
             beam.aimAt(mouseX, mouseY);
         }
         beam.update(manual);
+
+        updateEclipse();
 
         Phase changed = cycle.update();
         if (changed != null) {
@@ -285,7 +290,8 @@ public class GameWorld {
     }
 
     private void checkNightOver() {
-        if (cycle.isNight() && spawned >= queue.size() && ships.isEmpty()) {
+        boolean eventDone = cycle.getNight() < Constants.TOTAL_NIGHTS || dragon.isDone();
+        if (cycle.isNight() && spawned >= queue.size() && ships.isEmpty() && eventDone) {
             onPhaseChange(cycle.advance());
         }
     }
@@ -322,6 +328,8 @@ public class GameWorld {
                 showBanner("NIGHT " + cycle.getNight());
                 break;
             default: // DAWN
+                dragon.finish();     // (matters only if the night was skipped in the middle of the event)
+                beam.setOn(true);
                 showBanner("DAWN - repair and rebuild");
                 break;
         }
@@ -334,6 +342,58 @@ public class GameWorld {
     private void showBanner(String text) {
         bannerText = text;
         bannerTimer = BANNER_FRAMES;
+    }
+
+    // ------------------------------------------------------------------
+    // THE BAKUNAWA (night 7)
+    // ------------------------------------------------------------------
+
+    /** Starts the event when the last ship of the last night has set sail, runs it, and handles the bite. */
+    private void updateEclipse() {
+        if (cycle.isNight() && cycle.getNight() == Constants.TOTAL_NIGHTS && spawned >= queue.size() && !queue.isEmpty()) {
+            if (dragon.getStage() == Bakunawa.Stage.IDLE) {
+                showBanner("THE MOON GOES DARK");
+            }
+            dragon.start();
+        }
+        dragon.update(frame);
+        beam.setOn(!dragon.isEclipse());
+        if (dragon.consumeBite()) {   // everything still afloat goes down with the flagship
+            for (Warship ship : ships) {
+                explosions.add(new Explosion(ship.getX(), ship.getY()));
+            }
+            ships.clear();
+        }
+    }
+
+    /** SPACE: sound the gongs (only matters during the Bakunawa event). */
+    public void gong() {
+        dragon.gong();
+    }
+
+    /** Test key E: start the Bakunawa event right now (night only). */
+    public void testEclipse() {
+        if (cycle.isNight() && outcome == Outcome.PLAYING) {
+            dragon.start();
+        }
+    }
+
+    /** Test key L: jump to the start of the last night's day. */
+    public void jumpToLastNight() {
+        if (outcome == Outcome.PLAYING) {
+            ships.clear();
+            cycle.setNight(Constants.TOTAL_NIGHTS);
+            showBanner("DAY " + Constants.TOTAL_NIGHTS);
+        }
+    }
+
+    /** The ending scene uses this to bring the sun up (0 = day, 1 = night). A negative value gives control back. */
+    public void setForcedDarkness(double value) {
+        forcedDarkness = value;
+    }
+
+    public Bakunawa getDragon() {
+        return dragon;
     }
 
     /** Test/debug key (N): jump to the next phase. Ends the night early and removes the ships. */
@@ -794,7 +854,7 @@ public class GameWorld {
     // ------------------------------------------------------------------
 
     public void draw(Graphics2D g, int frameCount) {
-        double darkness = cycle.getDarkness();
+        double darkness = forcedDarkness >= 0 ? forcedDarkness : cycle.getDarkness();
 
         map.draw(g, frameCount);
 
@@ -831,6 +891,8 @@ public class GameWorld {
             }
             g.setComposite(old);
         }
+
+        dragon.draw(g, frameCount);   // the Bakunawa and its moon, on top of the darkness
 
         // The gun's shot (on top of the darkness so it is seen)
         if (shotTimer > 0) {

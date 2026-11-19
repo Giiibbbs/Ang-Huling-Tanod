@@ -28,6 +28,8 @@ public class Beam implements Light {
     private static final double BASE_LENGTH = 240;                       // how far the beam reaches (pixels)
     private static final double LAMP_GLOW = 44;                      // always-lit circle around the lamp
 
+    private boolean on = true;                // the Bakunawa's eclipse switches the lamp off
+
     private double halfAngle = BASE_HALF_ANGLE;   // grows with lamp upgrades
     private double length = BASE_LENGTH;
     private int upgradeLevel = 0;
@@ -52,6 +54,14 @@ public class Beam implements Light {
         halfAngle = BASE_HALF_ANGLE * (1 + 0.18 * upgradeLevel);
         length = BASE_LENGTH * (1 + 0.12 * upgradeLevel);
         return true;
+    }
+
+    public void setOn(boolean on) {
+        this.on = on;
+    }
+
+    public boolean isOn() {
+        return on;
     }
 
     public int getUpgradeLevel() {
@@ -87,6 +97,9 @@ public class Beam implements Light {
     /** True if this point is inside the beam or inside the lamp's glow. */
     @Override
     public boolean lights(double x, double y) {
+        if (!on) {
+            return false;
+        }
         double dx = x - originX;
         double dy = y - originY;
         double distance = Math.hypot(dx, dy);
@@ -102,6 +115,9 @@ public class Beam implements Light {
 
     /** Paints a soft warm tint inside the cone and around the lamp (drawn after the darkness). */
     public void drawLight(Graphics2D g) {
+        if (!on) {
+            return;
+        }
         Arc2D cone = new Arc2D.Double(originX - length, originY - length, length * 2, length * 2,
                 -Math.toDegrees(angle) - Math.toDegrees(halfAngle),
                 2 * Math.toDegrees(halfAngle), Arc2D.PIE);

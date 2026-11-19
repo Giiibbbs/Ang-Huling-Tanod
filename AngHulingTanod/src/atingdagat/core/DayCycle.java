@@ -87,6 +87,14 @@ public class DayCycle {
         return Math.min(1.0, timer / (double) length(phase));
     }
 
+    /** Test key: jump to the start of a given night. */
+    public void setNight(int newNight) {
+        night = newNight;
+        phase = Phase.DAY;
+        timer = 0;
+        finished = false;
+    }
+
     /** Whole seconds left in this phase (0 at night, which has no timer). */
     public int getSecondsLeft() {
         if (phase == Phase.NIGHT || finished) {

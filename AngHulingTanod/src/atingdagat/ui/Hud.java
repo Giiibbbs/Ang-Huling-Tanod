@@ -41,6 +41,7 @@ public class Hud {
         drawBar(g, 530, "RADIO", world.getRadio().getSignal(), Radio.MAX_SIGNAL, new Color(110, 190, 245), new Color(235, 90, 80));
 
         drawHint(g, world);
+        drawEvent(g, world);
         drawBanner(g, world);
     }
 
@@ -213,6 +214,39 @@ public class Hud {
         g.setColor(Color.WHITE);
         g.drawString(hint, 8, Constants.INTERNAL_HEIGHT - 4);
         g.drawString("P pause", Constants.INTERNAL_WIDTH - 44, Constants.INTERNAL_HEIGHT - 4);
+    }
+
+    /** The story line and the gong meter of the Bakunawa event. */
+    private void drawEvent(Graphics2D g, GameWorld world) {
+        atingdagat.entities.Bakunawa dragon = world.getDragon();
+        String caption = dragon.getCaption();
+        if (caption.isEmpty()) {
+            return;
+        }
+        int cx = Constants.INTERNAL_WIDTH / 2;
+        int y = 292;
+        g.setFont(BOLD);
+        FontMetrics fm = g.getFontMetrics();
+        int w = Math.max(fm.stringWidth(caption) + 24, 250);
+        g.setColor(new Color(10, 4, 8, 200));
+        g.fillRoundRect(cx - w / 2, y - 14, w, 42, 8, 8);
+        g.setColor(new Color(255, 215, 120));
+        g.drawString(caption, cx - fm.stringWidth(caption) / 2, y);
+
+        if (dragon.getStage() == atingdagat.entities.Bakunawa.Stage.GONGS) {   // the noise meter
+            int bw = 200;
+            int bx = cx - bw / 2;
+            double fill = dragon.getNoise() / 100.0;
+            g.setColor(new Color(255, 255, 255, 50));
+            g.fillRect(bx, y + 8, bw, 10);
+            g.setColor(fill > 0.66 ? new Color(255, 215, 90) : fill > 0.33 ? new Color(255, 160, 70) : new Color(230, 90, 70));
+            g.fillRect(bx, y + 8, (int) (bw * fill), 10);
+            g.setColor(new Color(0, 0, 0, 170));
+            g.drawRect(bx, y + 8, bw, 10);
+            g.setFont(SMALL);
+            g.setColor(Color.WHITE);
+            g.drawString("NOISE", bx - 34, y + 17);
+        }
     }
 
     private void drawBanner(Graphics2D g, GameWorld world) {

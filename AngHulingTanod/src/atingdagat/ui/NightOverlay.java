@@ -45,13 +45,15 @@ public class NightOverlay {
         d.setComposite(AlphaComposite.DstOut);
 
         // Several cones, wide and faint to narrow and strong, so the edge of the beam is soft.
-        eraseCone(d, beam, 1.8, 0.14);
-        eraseCone(d, beam, 1.5, 0.20);
-        eraseCone(d, beam, 1.25, 0.28);
-        eraseCone(d, beam, 1.0, 0.75);
+        if (beam.isOn()) {   // (the eclipse puts the lamp out)
+            eraseCone(d, beam, 1.8, 0.14);
+            eraseCone(d, beam, 1.5, 0.20);
+            eraseCone(d, beam, 1.25, 0.28);
+            eraseCone(d, beam, 1.0, 0.75);
 
-        // The lamp always lights a circle around itself.
-        eraseGlow(d, beam);
+            // The lamp always lights a circle around itself.
+            eraseGlow(d, beam);
+        }
         // The lantern and every torch light a round pool too.
         for (GlowSource glow : glows) {
             erasePool(d, glow.getGlowX(), glow.getGlowY(), glow.getGlowRadius());

@@ -1,6 +1,7 @@
 package atingdagat.core;
 
 import atingdagat.map.TileMap;
+import atingdagat.ui.EndingScene;
 import atingdagat.ui.Hud;
 import atingdagat.ui.MarketPanel;
 import java.awt.Color;
@@ -43,6 +44,7 @@ public class GamePanel extends JPanel {
     private GameWorld world;               // null until the first game starts
     private final Hud hud = new Hud();
     private final MarketPanel market = new MarketPanel();
+    private EndingScene ending;   // the story shown after surviving night 7
 
     // Where the mouse is, in game (640x360) coordinates.
     private int mouseX = Constants.INTERNAL_WIDTH / 2;
@@ -146,6 +148,12 @@ public class GamePanel extends JPanel {
                     state = GameState.PAUSE;
                 } else if (code == KeyEvent.VK_N) {
                     world.skipPhase();
+                } else if (code == KeyEvent.VK_L) {
+                    world.jumpToLastNight();   // test key
+                } else if (code == KeyEvent.VK_E) {
+                    world.testEclipse();       // test key
+                } else if (code == KeyEvent.VK_SPACE) {
+                    world.gong();
                 } else if (code == KeyEvent.VK_1) {
                     world.toggleTool(GameWorld.Tool.NET);
                 } else if (code == KeyEvent.VK_2) {
@@ -172,9 +180,17 @@ public class GamePanel extends JPanel {
                 }
                 break;
             case GAME_OVER:
-            case VICTORY:
                 if (code == KeyEvent.VK_ENTER) {
                     state = GameState.MENU;
+                }
+                break;
+            case VICTORY:
+                if (code == KeyEvent.VK_ENTER) {
+                    if (ending != null && !ending.isFinished()) {
+                        ending.skip();   // jump to the title card
+                    } else {
+                        state = GameState.MENU;
+                    }
                 }
                 break;
         }
@@ -186,6 +202,9 @@ public class GamePanel extends JPanel {
 
     private void update() {
         frameCount++;
+        if (state == GameState.VICTORY && ending != null) {
+            ending.update(world);
+        }
         if (state != GameState.PLAY) {
             return; // nothing moves in the menu or while paused
         }
@@ -202,6 +221,7 @@ public class GamePanel extends JPanel {
         if (world.getOutcome() == GameWorld.Outcome.LOST) {
             state = GameState.GAME_OVER;
         } else if (world.getOutcome() == GameWorld.Outcome.WON) {
+            ending = new EndingScene(map, world.getPost().getX(), world.getPost().getY());
             state = GameState.VICTORY;
         }
     }
@@ -253,6 +273,10 @@ public class GamePanel extends JPanel {
 
         // Every other screen shows the world underneath.
         world.draw(g, frameCount);
+        if (state == GameState.VICTORY && ending != null) {
+            ending.draw(g);   // the ending story has no HUD
+            return;
+        }
         hud.draw(g, world);
         market.draw(g, world, mouseX, mouseY);
 
