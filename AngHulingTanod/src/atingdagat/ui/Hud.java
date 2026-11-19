@@ -4,6 +4,7 @@ import atingdagat.core.Constants;
 import atingdagat.core.DayCycle;
 import atingdagat.core.GameWorld;
 import atingdagat.core.Phase;
+import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
 import atingdagat.economy.ResourceType;
 import atingdagat.entities.Post;
@@ -11,7 +12,9 @@ import atingdagat.entities.Radio;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import atingdagat.util.Assets;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 /**
  * Hud.java
@@ -63,10 +66,15 @@ public class Hud {
     private void drawResources(Graphics2D g, GameWorld world) {
         int x = 110;
         for (ResourceType type : ResourceType.values()) {
-            g.setColor(type.getColor());
-            g.fillOval(x, 6, 10, 10);
-            g.setColor(new Color(0, 0, 0, 120));
-            g.drawOval(x, 6, 10, 10);
+            BufferedImage icon = Assets.get(type.getIconPath(), 10, 10);
+            if (icon != null) {
+                g.drawImage(icon, x, 6, null);
+            } else {
+                g.setColor(type.getColor());
+                g.fillOval(x, 6, 10, 10);
+                g.setColor(new Color(0, 0, 0, 120));
+                g.drawOval(x, 6, 10, 10);
+            }
             g.setFont(BOLD);
             g.setColor(Color.WHITE);
             g.drawString(String.valueOf(world.getInventory().get(type)), x + 14, 15);
@@ -92,10 +100,12 @@ public class Hud {
         String hint;
         if (world.getCycle().isNight()) {
             hint = "Move the mouse to aim the beam.  Click a LIT ship to fire.";
-        } else if (world.isNetMode()) {
-            hint = "NET TOOL: click shallow water (" + Net.COST_BAMBOO + " bamboo).  Right-click or 1 = stop.";
+        } else if (world.getTool() == GameWorld.Tool.NET) {
+            hint = "NET: click shallow water (" + Net.COST_BAMBOO + " bamboo).  Right-click or 1 = stop.";
+        } else if (world.getTool() == GameWorld.Tool.MINE) {
+            hint = "MINE: click water near the island (" + Mine.COST_ORE + " ore). It blows up ships that come close.  Right-click or 2 = stop.";
         } else {
-            hint = "Click fish, bamboo and ore to harvest.  1 = net tool.  R = repair (" + Constants.REPAIR_FISH_COST + " fish).  N = skip phase.";
+            hint = "Click fish, bamboo, ore to harvest.  1 = net  2 = mine  R = repair (" + Constants.REPAIR_FISH_COST + " fish)  N = skip";
         }
         g.setFont(SMALL);
         g.setColor(new Color(0, 0, 0, 150));

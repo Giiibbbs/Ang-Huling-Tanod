@@ -55,11 +55,11 @@ public final class Constants {
     // Starting stock, and the price of things.
     public static final int START_BAMBOO = 6;
     public static final int NET_MAX_DEPTH = 3;      // nets only on shallow water (tiles from shore)
+    public static final int MINE_MAX_DEPTH = 5;     // mines can go a little further out than nets
     public static final int REPAIR_FISH_COST = 2;
     public static final int REPAIR_POST_AMOUNT = 4;
     public static final int REPAIR_RADIO_AMOUNT = 15;
-    public static final int LANDING_POST_DAMAGE = 3;
-    public static final int LANDING_RADIO_DAMAGE = 10;
+    public static final int RADIO_PER_POST_DAMAGE = 3;  // a landing weakens the radio by 3 x the post damage
     public static final int GUN_COOLDOWN = 30;      // frames between shots
 
     // The game lasts 7 nights.

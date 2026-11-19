@@ -4,6 +4,8 @@ import atingdagat.core.Constants;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.image.BufferedImage;
+import atingdagat.util.Assets;
 
 /**
  * Lighthouse.java
@@ -12,6 +14,11 @@ import java.awt.Polygon;
  * drawn with simple shapes. Jaron's lighthouse sprite will replace them later.
  */
 public class Lighthouse {
+
+    private static final String SPRITE_PATH = "/atingdagat/res/buildings/lighthouse.png";
+    private static final int SPRITE_W = 32;
+    private static final int SPRITE_H = 48;
+    private final BufferedImage sprite = Assets.get(SPRITE_PATH, SPRITE_W, SPRITE_H);
 
     private static final int TOWER_HEIGHT = 28;
     private static final int TOWER_BOTTOM_WIDTH = 12;
@@ -46,6 +53,13 @@ public class Lighthouse {
         int bx = (int) Math.round(baseX);
         int by = (int) Math.round(baseY);
         int top = by - TOWER_HEIGHT;
+
+        if (sprite != null) {
+            g.setColor(new Color(0, 0, 0, 60));
+            g.fillOval(bx - 9, by - 3, 18, 7);
+            g.drawImage(sprite, bx - SPRITE_W / 2, by + 3 - SPRITE_H, null);
+            return;
+        }
 
         // Shadow on the ground
         g.setColor(new Color(0, 0, 0, 60));

@@ -1,17 +1,21 @@
 package atingdagat.core;
 
 import atingdagat.defense.Defense;
+import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
 import atingdagat.economy.Inventory;
 import atingdagat.economy.ResourceNode;
 import atingdagat.economy.ResourceType;
+import atingdagat.entities.Barge;
 import atingdagat.entities.Beam;
+import atingdagat.entities.Cutter;
 import atingdagat.entities.Lighthouse;
 import atingdagat.entities.Post;
 import atingdagat.entities.Radio;
 import atingdagat.entities.Skiff;
 import atingdagat.entities.Warship;
 import atingdagat.map.TileMap;
+import atingdagat.ui.Explosion;
 import atingdagat.ui.NightOverlay;
 import atingdagat.ui.Popup;
 import java.awt.AlphaComposite;
@@ -20,6 +24,7 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 /**
@@ -37,6 +42,9 @@ public class GameWorld {
 
     public enum Outcome { PLAYING, WON, LOST }
 
+    /** What a click does in the day. */
+    public enum Tool { HARVEST, NET, MINE }
+
     private static final int BANNER_FRAMES = 150;
     private static final int GUN_DAMAGE = 1;
 
@@ -53,6 +61,8 @@ public class GameWorld {
     private final ArrayList<Defense> defenses = new ArrayList<>();
     private final ArrayList<ResourceNode> nodes;
     private final ArrayList<Popup> popups = new ArrayList<>();
+    private final ArrayList<Explosion> explosions = new ArrayList<>();
+    private final ArrayList<WavePlan.Kind> queue = new ArrayList<>();   // tonight's ships, in the order they come
 
     // Rules and the clock
     private final DayCycle cycle = new DayCycle();
@@ -67,8 +77,8 @@ public class GameWorld {
     private int mouseX = Constants.INTERNAL_WIDTH / 2;
     private int mouseY = 40;
 
-    private boolean netMode = false;     // true = clicking builds a net, false = clicking harvests
-    private int spawned = 0;             // skiffs sent so far tonight
+    private Tool tool = Tool.HARVEST;
+    private int spawned = 0;             // ships sent so far tonight
     private int spawnTimer = 0;
     private int gunCooldown = 0;
     private int shotTimer = 0;           // draws the shot line for a few frames
@@ -113,6 +123,12 @@ public class GameWorld {
         for (ResourceNode node : nodes) {
             node.update();
         }
+        for (int i = explosions.size() - 1; i >= 0; i--) {
+            explosions.get(i).update();
+            if (explosions.get(i).isDone()) {
+                explosions.remove(i);
+            }
+        }
         for (int i = popups.size() - 1; i >= 0; i--) {
             popups.get(i).update();
             if (popups.get(i).isDone()) {
@@ -136,15 +152,27 @@ public class GameWorld {
     private void spawnShips() {
         int night = cycle.getNight();
         spawnTimer++;
-        if (spawned < plan.getCount(night) && spawnTimer >= plan.getInterval(night)) {
+        if (spawned < queue.size() && spawnTimer >= plan.getInterval(night)) {
             spawnTimer = 0;
+            WavePlan.Kind kind = queue.get(spawned);
             spawned++;
-            spawnSkiff();
+            spawnShip(kind);
         }
     }
 
-    /** A skiff appears just outside the screen, in a lane that points at the post. */
-    private void spawnSkiff() {
+    /** Builds tonight's list of ships from the wave plan, then shuffles it. */
+    private void buildQueue() {
+        queue.clear();
+        for (WavePlan.Kind kind : WavePlan.Kind.values()) {
+            for (int i = 0; i < plan.getCount(cycle.getNight(), kind); i++) {
+                queue.add(kind);
+            }
+        }
+        Collections.shuffle(queue, random);
+    }
+
+    /** A ship appears just outside the screen, in a lane that points at the post. */
+    private void spawnShip(WavePlan.Kind kind) {
         double band = 110;   // how far from the post's line the skiff may start
         double x;
         double y;
@@ -166,7 +194,17 @@ public class GameWorld {
                 y = Constants.INTERNAL_HEIGHT + 12;
                 break;
         }
-        ships.add(new Skiff(x, y, post.getX(), post.getY()));
+        switch (kind) {
+            case CUTTER:
+                ships.add(new Cutter(x, y, post.getX(), post.getY()));
+                break;
+            case BARGE:
+                ships.add(new Barge(x, y, post.getX(), post.getY()));
+                break;
+            default:
+                ships.add(new Skiff(x, y, post.getX(), post.getY()));
+                break;
+        }
     }
 
     private double laneX(double band) {
@@ -188,23 +226,30 @@ public class GameWorld {
                 ships.remove(i);
             } else if (ship.hasArrived()) {
                 ships.remove(i);
-                post.damage(Constants.LANDING_POST_DAMAGE);
-                radio.weaken(Constants.LANDING_RADIO_DAMAGE);
-                popups.add(new Popup(post.getX(), post.getY() - 30, "-" + Constants.LANDING_POST_DAMAGE + " Post", new Color(255, 110, 100)));
+                int hurt = ship.getLandingDamage();
+                post.damage(hurt);
+                radio.weaken(hurt * Constants.RADIO_PER_POST_DAMAGE);
+                popups.add(new Popup(post.getX(), post.getY() - 30, "-" + hurt + " Post", new Color(255, 110, 100)));
             }
         }
     }
 
     private void updateDefenses() {
         for (int i = defenses.size() - 1; i >= 0; i--) {
-            if (defenses.get(i).isDestroyed()) {
+            Defense d = defenses.get(i);
+            d.update(ships);
+            if (d.isDestroyed()) {
+                if (d instanceof Mine) {   // a mine is "destroyed" because it went off
+                    Mine mine = (Mine) d;
+                    explosions.add(new Explosion(mine.getX(), mine.getY()));
+                }
                 defenses.remove(i);
             }
         }
     }
 
     private void checkNightOver() {
-        if (cycle.isNight() && spawned >= plan.getCount(cycle.getNight()) && ships.isEmpty()) {
+        if (cycle.isNight() && spawned >= queue.size() && ships.isEmpty()) {
             onPhaseChange(cycle.advance());
         }
     }
@@ -231,6 +276,7 @@ public class GameWorld {
                 showBanner("DUSK - get ready");
                 break;
             case NIGHT:
+                buildQueue();
                 spawned = 0;
                 spawnTimer = plan.getInterval(cycle.getNight()) - 90;   // first skiff in about 1.5 seconds
                 showBanner("NIGHT " + cycle.getNight());
@@ -274,23 +320,26 @@ public class GameWorld {
             return;
         }
         if (button == 3) {
-            netMode = false;   // right click puts the net tool away
+            tool = Tool.HARVEST;   // right click puts the tool away
             return;
         }
         if (cycle.isNight()) {
             fire(x, y);
-        } else if (netMode) {
+        } else if (tool == Tool.NET) {
             placeNet(x, y);
+        } else if (tool == Tool.MINE) {
+            placeMine(x, y);
         } else {
             harvest(x, y);
         }
     }
 
-    /** Key 1: switch between the net tool and harvesting. */
-    public void toggleNetMode() {
-        if (!cycle.isNight()) {
-            netMode = !netMode;
+    /** Keys 1 and 2: pick a tool. Pressing the same key again puts it away. */
+    public void toggleTool(Tool wanted) {
+        if (cycle.isNight()) {
+            return;
         }
+        tool = (tool == wanted) ? Tool.HARVEST : wanted;
     }
 
     private void harvest(int x, int y) {
@@ -309,12 +358,21 @@ public class GameWorld {
         }
     }
 
-    /** Can a net go on this tile? */
+    /** Can a net go on this tile? (shallow water only) */
     public boolean canPlaceNet(int col, int row) {
+        return canPlaceOnWater(col, row, Constants.NET_MAX_DEPTH);
+    }
+
+    /** Can a mine go on this tile? (any water that is not too deep) */
+    public boolean canPlaceMine(int col, int row) {
+        return canPlaceOnWater(col, row, Constants.MINE_MAX_DEPTH);
+    }
+
+    private boolean canPlaceOnWater(int col, int row, int maxDepth) {
         if (col < 0 || row < 0 || col >= Constants.MAP_COLS || row >= Constants.MAP_ROWS) {
             return false;
         }
-        if (!map.isWater(row, col) || map.getDepth(row, col) > Constants.NET_MAX_DEPTH) {
+        if (!map.isWater(row, col) || map.getDepth(row, col) > maxDepth) {
             return false;
         }
         for (Defense d : defenses) {
@@ -344,6 +402,20 @@ public class GameWorld {
             return;
         }
         defenses.add(new Net(col, row));
+    }
+
+    private void placeMine(int x, int y) {
+        int col = x / Constants.TILE_SIZE;
+        int row = y / Constants.TILE_SIZE;
+        if (x < 0 || y < 0 || !canPlaceMine(col, row)) {
+            popups.add(new Popup(x, y - 6, "Water near the island only", Color.LIGHT_GRAY));
+            return;
+        }
+        if (!inventory.spend(ResourceType.ORE, Mine.COST_ORE)) {
+            popups.add(new Popup(x, y - 6, "Need " + Mine.COST_ORE + " ore", new Color(255, 150, 120)));
+            return;
+        }
+        defenses.add(new Mine(col, row));
     }
 
     /** Click a LIT ship to shoot it. You cannot hit what the beam has not found. */
@@ -410,8 +482,8 @@ public class GameWorld {
         }
 
         // Where a net would go (day only)
-        if (netMode && !cycle.isNight()) {
-            drawNetGhost(g);
+        if (tool != Tool.HARVEST && !cycle.isNight()) {
+            drawBuildGhost(g);
         }
 
         // The darkness and the light inside it
@@ -431,18 +503,23 @@ public class GameWorld {
             g.setStroke(new BasicStroke(1f));
         }
 
+        for (Explosion e : explosions) {
+            e.draw(g);
+        }
         for (Popup p : popups) {
             p.draw(g);
         }
     }
 
-    private void drawNetGhost(Graphics2D g) {
+    private void drawBuildGhost(Graphics2D g) {
         int col = mouseX / Constants.TILE_SIZE;
         int row = mouseY / Constants.TILE_SIZE;
         if (mouseX < 0 || mouseY < 0) {
             return;
         }
-        boolean ok = canPlaceNet(col, row) && inventory.has(ResourceType.BAMBOO, Net.COST_BAMBOO);
+        boolean ok = tool == Tool.NET
+                ? canPlaceNet(col, row) && inventory.has(ResourceType.BAMBOO, Net.COST_BAMBOO)
+                : canPlaceMine(col, row) && inventory.has(ResourceType.ORE, Mine.COST_ORE);
         g.setColor(ok ? new Color(120, 255, 140, 90) : new Color(255, 90, 80, 90));
         g.fillRect(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE, Constants.TILE_SIZE, Constants.TILE_SIZE);
     }
@@ -467,8 +544,8 @@ public class GameWorld {
         return radio;
     }
 
-    public boolean isNetMode() {
-        return netMode;
+    public Tool getTool() {
+        return tool;
     }
 
     public Outcome getOutcome() {
@@ -489,7 +566,7 @@ public class GameWorld {
     }
 
     public int getShipsLeftTonight() {
-        return Math.max(0, plan.getCount(cycle.getNight()) - spawned) + ships.size();
+        return Math.max(0, queue.size() - spawned) + ships.size();
     }
 
     public int getShipCount() {

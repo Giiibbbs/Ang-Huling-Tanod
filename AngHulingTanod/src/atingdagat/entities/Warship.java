@@ -32,6 +32,7 @@ public abstract class Warship {
     protected double speed;        // pixels per frame
     protected int health;
     protected final int maxHealth;
+    protected int landingDamage = 3;   // how much it hurts the post if it reaches the shore
 
     private boolean arrived = false;    // true once it has reached the shore
     private int attackTimer = 0;        // counts frames while the ship is cutting a net
@@ -213,6 +214,10 @@ public abstract class Warship {
 
     public boolean isLit() {
         return lit > 0.3;
+    }
+
+    public int getLandingDamage() {
+        return landingDamage;
     }
 
     public int getHealth() {

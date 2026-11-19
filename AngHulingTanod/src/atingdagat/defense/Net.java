@@ -2,7 +2,10 @@ package atingdagat.defense;
 
 import atingdagat.core.Constants;
 import java.awt.Color;
+import atingdagat.util.Assets;
+import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 /**
  * Net.java
@@ -14,6 +17,9 @@ public class Net implements Defense {
 
     public static final int COST_BAMBOO = 3;
     private static final int MAX_HEALTH = 4;
+
+    private static final String SPRITE_PATH = "/atingdagat/res/buildings/net.png";
+    private final BufferedImage sprite = Assets.get(SPRITE_PATH, 16, 16);
 
     private final int col;
     private final int row;
@@ -57,6 +63,14 @@ public class Net implements Defense {
         int x = col * Constants.TILE_SIZE;
         int y = row * Constants.TILE_SIZE;
         int s = Constants.TILE_SIZE;
+        if (sprite != null) {   // a damaged net fades, so the player sees it weakening
+            java.awt.Composite old = g.getComposite();
+            float alpha = 0.45f + 0.55f * Math.max(0, health) / MAX_HEALTH;
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            g.drawImage(sprite, x, y, null);
+            g.setComposite(old);
+            return;
+        }
         int sway = (int) Math.round(Math.sin(frame * 0.05 + col + row) * 1);
 
         // Rope mesh: fewer lines when it is damaged, so the player can see it weakening.

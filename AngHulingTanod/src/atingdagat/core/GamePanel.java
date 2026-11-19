@@ -135,7 +135,9 @@ public class GamePanel extends JPanel {
                 } else if (code == KeyEvent.VK_N) {
                     world.skipPhase();
                 } else if (code == KeyEvent.VK_1) {
-                    world.toggleNetMode();
+                    world.toggleTool(GameWorld.Tool.NET);
+                } else if (code == KeyEvent.VK_2) {
+                    world.toggleTool(GameWorld.Tool.MINE);
                 } else if (code == KeyEvent.VK_R) {
                     world.repair();
                 }

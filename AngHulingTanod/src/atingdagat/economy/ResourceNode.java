@@ -3,7 +3,9 @@ package atingdagat.economy;
 import atingdagat.core.Constants;
 import atingdagat.map.TileMap;
 import java.awt.Color;
+import atingdagat.util.Assets;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +26,7 @@ public class ResourceNode {
     private static final double CLICK_RADIUS = 13;
 
     private final ResourceType type;
+    private final BufferedImage sprite;
     private final int col;
     private final int row;
     private int remaining = CAPACITY;
@@ -31,6 +34,7 @@ public class ResourceNode {
 
     public ResourceNode(ResourceType type, int col, int row) {
         this.type = type;
+        this.sprite = Assets.get(type.getSpritePath(), 16, 16);
         this.col = col;
         this.row = row;
     }
@@ -86,7 +90,9 @@ public class ResourceNode {
         int y = (int) getY();
         boolean empty = remaining <= 0;
 
-        switch (type) {
+        if (sprite != null) {
+            drawSprite(g, x, y, frame, empty);
+        } else switch (type) {
             case FISH:
                 drawFish(g, x, y, frame, empty);
                 break;
@@ -103,6 +109,16 @@ public class ResourceNode {
             g.setColor(i < remaining ? Color.WHITE : new Color(0, 0, 0, 110));
             g.fillRect(x - CAPACITY + i * 2 + i, y + 9, 2, 2);
         }
+    }
+
+    private void drawSprite(Graphics2D g, int x, int y, int frame, boolean empty) {
+        int bob = type == ResourceType.FISH ? (int) Math.round(Math.sin(frame * 0.07 + col) * 1.5) : 0;
+        java.awt.Composite old = g.getComposite();
+        if (empty) {
+            g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.35f));
+        }
+        g.drawImage(sprite, x - 8, y - 8 + bob, null);
+        g.setComposite(old);
     }
 
     private void drawFish(Graphics2D g, int x, int y, int frame, boolean empty) {

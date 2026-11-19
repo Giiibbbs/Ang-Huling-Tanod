@@ -1,10 +1,11 @@
-# Waves: how many skiffs come each night, and how often.
-# night  skiffs  seconds_between_skiffs
+# Waves: which ships attack each night, and how often they come.
+# night  skiffs  cutters  barges  seconds_between_ships
+# Skiff = normal. Cutter = fast and fragile. Barge = slow, tough, hits the post hard.
 # Edit this file in Notepad to make the game easier or harder. No recompiling needed.
-1  4   5.0
-2  6   4.5
-3  8   4.0
-4  8   3.5
-5  10  3.3
-6  12  3.0
-7  14  2.6
+1  4   0   0   5.0
+2  5   2   0   4.5
+3  5   3   1   4.2
+4  5   4   2   3.8
+5  6   5   2   3.5
+6  6   6   3   3.2
+7  7   7   4   3.0

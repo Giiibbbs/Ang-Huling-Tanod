@@ -9,8 +9,8 @@ UI/graphics/polish 15%, documentation and demo 10%.
 | Member | Owns |
 |---|---|
 | **Gabriel** | All Java code: architecture, game loop, entities, defenses, file I/O, sound, building the JAR |
-| **Gio** | Presentation slides, demo explanation, **playtesting** (and the playtest log), balance feedback |
-| **Jaron** | Art assets (CC0 packs plus Gemini-assisted pieces), README, **UML and the 1-page proposal**, CREDITS |
+| **Gio** | Presentation slides, demo explanation, **playtesting** (and the playtest log), balance feedback, **the paper (1-page proposal)** |
+| **Jaron** | Art assets (CC0 packs plus Gemini-assisted pieces), README, **UML diagram** (goes into Gio's paper), CREDITS |
 
 Everyone speaks in the live demo. See [04-pitch-and-demo.md](04-pitch-and-demo.md).
 
@@ -21,10 +21,10 @@ Dates up to Nov 21 are agreed. After that is a **proposed** plan to adjust as we
 | Date | Goal | Done when |
 |---|---|---|
 | Nov 18 | Project skeleton: window, game loop, states | The window opens, Enter/P/M work. **Done** |
-| Nov 19 | Tile map from a text file, depth shading, foam | You see a real island and sea |
-| Nov 20 | Lighthouse beam, night overlay, a moving skiff | The beam lights the skiff, the rest is dark |
-| Nov 21 | Day/night switching, harvesting, a net, HUD bars | **Playable core**: Gio can start playtesting |
-| Nov 22 to 23 | Other defenses, cutter and barge, waves from a text file | Nights 1 to 3 are playable |
+| Nov 18 to 19 | Tile map from a text file, depth shading, foam | You see a real island and sea. **Done** |
+| Nov 18 to 20 | Lighthouse beam, night overlay, a moving skiff | The beam lights the skiff, the rest is dark. **Done** |
+| Nov 19 to 21 | Day/night cycle, harvesting, a net, post and radio, HUD bars, waves from a file | **Playable core. Done (first version)**: Gio can start playtesting |
+| Nov 19 to 23 | Cutter and barge, mine buoys, waves from a text file. **Done (first version)** | Nights 1 to 7 are playable. Next: tune with Gio's playtests |
 | Nov 24 | Post, radio, island health, win and lose, high-score file | A full run from night 1 to the end screen |
 | Nov 25 | Sound, menu polish, art integration begins | Sounds on every action |
 | Nov 26 | Should-haves: infiltrators, babaylan | The identify mechanic works |
@@ -61,7 +61,7 @@ sound, and the high-score file. These are the rubric's core.
 ## Required deliverables
 
 - [ ] Working game (runnable JAR)
-- [ ] 1-page proposal with UML (Jaron)
+- [ ] 1-page proposal / paper (Gio), with the UML diagram from Jaron
 - [ ] README with member contributions
 - [ ] Peer playtest log (Gio)
 - [ ] CREDITS with licenses and AI disclosure

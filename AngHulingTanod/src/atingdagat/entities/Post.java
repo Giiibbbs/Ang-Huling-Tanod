@@ -4,6 +4,8 @@ import atingdagat.core.Constants;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.image.BufferedImage;
+import atingdagat.util.Assets;
 
 /**
  * Post.java
@@ -15,6 +17,11 @@ import java.awt.Polygon;
 public class Post {
 
     public static final int MAX_HEALTH = 20;
+
+    private static final String SPRITE_PATH = "/atingdagat/res/buildings/post.png";
+    private static final int SPRITE_W = 40;
+    private static final int SPRITE_H = 32;
+    private final BufferedImage sprite = Assets.get(SPRITE_PATH, SPRITE_W, SPRITE_H);
 
     private final int col;
     private final int row;
@@ -55,6 +62,16 @@ public class Post {
 
         g.setColor(new Color(0, 0, 0, 60));
         g.fillOval(x - 15, y + 2, 30, 9);
+
+        if (sprite != null) {
+            g.drawImage(sprite, x - SPRITE_W / 2, y + 8 - SPRITE_H, null);
+            boolean on = radioAlive && (frame / 30) % 2 == 0;
+            if (on) {   // the blinking light still shows the post's health
+                g.setColor(health > MAX_HEALTH / 3 ? new Color(120, 255, 140) : new Color(255, 80, 70));
+                g.fillOval(x + 1, y - 27, 4, 4);
+            }
+            return;
+        }
 
         // Beached hull
         Polygon hull = new Polygon(new int[]{x - 15, x + 14, x + 18, x + 10, x - 13},
