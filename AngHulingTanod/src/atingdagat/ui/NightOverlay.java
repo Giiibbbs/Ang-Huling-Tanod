@@ -21,18 +21,22 @@ import java.awt.image.BufferedImage;
  */
 public class NightOverlay {
 
-    // How dark the night is. Alpha 232 of 255 still lets a hint of the island show.
-    private static final Color NIGHT = new Color(5, 9, 28, 232);
+    // How dark a full night is. Alpha 232 of 255 still lets a hint of the island show.
+    private static final int NIGHT_ALPHA = 232;
 
-    private final BufferedImage darkness =
+    private final BufferedImage layer =
             new BufferedImage(Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT, BufferedImage.TYPE_INT_ARGB);
 
-    public void draw(Graphics2D g, Beam beam) {
-        Graphics2D d = darkness.createGraphics();
+    /** darkness: 0 = full day (nothing drawn), 1 = full night. Dusk and dawn are in between. */
+    public void draw(Graphics2D g, Beam beam, double darkness) {
+        if (darkness <= 0.01) {
+            return;
+        }
+        Graphics2D d = layer.createGraphics();
 
         // 1. Fill the whole layer with darkness.
         d.setComposite(AlphaComposite.Src);
-        d.setColor(NIGHT);
+        d.setColor(new Color(5, 9, 28, (int) (NIGHT_ALPHA * darkness)));
         d.fillRect(0, 0, Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT);
 
         // 2. Erase light from it. DST_OUT means "remove darkness where we paint".
@@ -49,7 +53,7 @@ public class NightOverlay {
         d.dispose();
 
         // 3. Put the darkness on top of the game.
-        g.drawImage(darkness, 0, 0, null);
+        g.drawImage(layer, 0, 0, null);
     }
 
     /** Erases a cone. "widen" makes it wider than the real beam, "strength" is how much it erases. */

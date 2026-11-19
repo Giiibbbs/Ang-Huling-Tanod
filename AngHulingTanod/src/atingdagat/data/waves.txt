@@ -1,0 +1,10 @@
+# Waves: how many skiffs come each night, and how often.
+# night  skiffs  seconds_between_skiffs
+# Edit this file in Notepad to make the game easier or harder. No recompiling needed.
+1  4   5.0
+2  6   4.5
+3  8   4.0
+4  8   3.5
+5  10  3.3
+6  12  3.0
+7  14  2.6

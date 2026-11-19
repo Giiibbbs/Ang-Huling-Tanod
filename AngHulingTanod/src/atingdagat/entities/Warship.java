@@ -1,11 +1,13 @@
 package atingdagat.entities;
 
 import atingdagat.core.Constants;
+import atingdagat.defense.Defense;
 import atingdagat.map.TileMap;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.util.List;
 
 /**
  * Warship.java
@@ -21,6 +23,8 @@ import java.awt.geom.AffineTransform;
 public abstract class Warship {
 
     private static final int WAKE_POINTS = 10;
+    private static final int ATTACK_INTERVAL = 45;   // frames between hits on a net
+    private static final double HIT_RADIUS = 13;     // how close a click must be to hit the ship
 
     protected double x;
     protected double y;
@@ -30,6 +34,7 @@ public abstract class Warship {
     protected final int maxHealth;
 
     private boolean arrived = false;    // true once it has reached the shore
+    private int attackTimer = 0;        // counts frames while the ship is cutting a net
     private double lit = 0;             // 0 = unseen, 1 = fully lit by the beam
 
     // Recent positions, used to draw the wake. A ring buffer built from plain arrays.
@@ -57,17 +62,29 @@ public abstract class Warship {
 
     // Shared behaviour:
 
-    public void update(TileMap map, Beam beam) {
-        move(map);
+    public void update(TileMap map, Beam beam, List<Defense> defenses) {
+        move(map, defenses);
         updateLight(beam);
         updateWake();
     }
 
-    /** Sails straight toward the target and stops when it touches land. */
-    private void move(TileMap map) {
+    /** Sails straight toward the target. Stops to cut a net in its way, and stops for good on land. */
+    private void move(TileMap map, List<Defense> defenses) {
         if (arrived) {
             return;
         }
+
+        Defense blocker = findBlocker(defenses);
+        if (blocker != null) {
+            attackTimer++;
+            if (attackTimer >= ATTACK_INTERVAL) {
+                attackTimer = 0;
+                blocker.damage(1);
+            }
+            return; // stuck in the net: no movement
+        }
+        attackTimer = 0;
+
         x += Math.cos(heading) * speed;
         y += Math.sin(heading) * speed;
 
@@ -76,6 +93,32 @@ public abstract class Warship {
         if (map.isLand(row, col)) {
             arrived = true;
         }
+    }
+
+    /** Looks a little ahead of the bow (and a little to each side) for a defense in the way. */
+    private Defense findBlocker(List<Defense> defenses) {
+        double ahead = 10;
+        double side = 5;
+        double fx = Math.cos(heading);
+        double fy = Math.sin(heading);
+        double[][] probes = {
+            {x + fx * ahead, y + fy * ahead},
+            {x + fx * ahead - fy * side, y + fy * ahead + fx * side},
+            {x + fx * ahead + fy * side, y + fy * ahead - fx * side}
+        };
+        for (Defense d : defenses) {
+            if (d.isDestroyed() || !d.blocksShips()) {
+                continue;
+            }
+            for (double[] p : probes) {
+                int col = (int) Math.floor(p[0] / Constants.TILE_SIZE);
+                int row = (int) Math.floor(p[1] / Constants.TILE_SIZE);
+                if (d.occupies(col, row)) {
+                    return d;
+                }
+            }
+        }
+        return null;
     }
 
     /** Lit quickly when the beam touches it, then fades slowly: an afterglow of about a second. */
@@ -103,9 +146,12 @@ public abstract class Warship {
         }
     }
 
-    /** At night a ship is only as visible as the beam made it. In the day it is fully visible. */
-    public void draw(Graphics2D g, boolean night) {
-        float visibility = night ? (float) lit : 1f;
+    /**
+     * darkness 0 = day (always visible), 1 = night (only as visible as the beam made it).
+     * Dusk and dawn blend between the two.
+     */
+    public void draw(Graphics2D g, double darkness) {
+        float visibility = (float) (1.0 - darkness * (1.0 - lit));
         if (visibility < 0.02f) {
             return; // not lit, so we don't even draw it
         }
@@ -133,6 +179,22 @@ public abstract class Warship {
             g.setColor(new Color(255, 255, 255, alpha));
             g.fillOval((int) (wakeX[index] - size), (int) (wakeY[index] - size), (int) (size * 2), (int) (size * 2));
         }
+    }
+
+    /** The player shot at it. */
+    public void hit(int damage) {
+        health -= damage;
+    }
+
+    public boolean isDead() {
+        return health <= 0;
+    }
+
+    /** Is this point (a mouse click) on the ship? */
+    public boolean contains(double px, double py) {
+        double dx = px - x;
+        double dy = py - y;
+        return dx * dx + dy * dy <= HIT_RADIUS * HIT_RADIUS;
     }
 
     // Getters

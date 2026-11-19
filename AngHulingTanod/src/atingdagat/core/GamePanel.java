@@ -1,11 +1,7 @@
 package atingdagat.core;
 
-import atingdagat.entities.Beam;
-import atingdagat.entities.Lighthouse;
-import atingdagat.entities.Skiff;
-import atingdagat.entities.Warship;
 import atingdagat.map.TileMap;
-import atingdagat.ui.NightOverlay;
+import atingdagat.ui.Hud;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -17,8 +13,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Random;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -31,8 +25,8 @@ import javax.swing.Timer;
  *     fit the window (so resizing the window works).
  *  3. Keeps track of the current GameState (menu, play, pause, ...).
  *
- * Other classes (TileMap, Beam, Warship...) are created here and called from
- * update() and drawGame().
+ * The run itself (clock, ships, nets, resources...) lives in GameWorld. This
+ * class creates a new GameWorld when a game starts and forwards input to it.
  */
 public class GamePanel extends JPanel {
 
@@ -43,22 +37,10 @@ public class GamePanel extends JPanel {
     private final Timer timer;
     private GameState state = GameState.MENU;
 
-    // The world.
+    // The map is loaded once. A GameWorld (one run of the game) is created when you press Enter.
     private final TileMap map = new TileMap(Constants.MAP_FILE);
-    private final Lighthouse lighthouse = new Lighthouse(Constants.LIGHTHOUSE_COL, Constants.LIGHTHOUSE_ROW);
-    private final Beam beam = new Beam(lighthouse.getLampX(), lighthouse.getLampY());
-    private final NightOverlay overlay = new NightOverlay();
-    private final ArrayList<Warship> ships = new ArrayList<>();
-    private final Random random = new Random();
-
-    // TEMPORARY test switch: press N to flip between day and night.
-    // The real day/night cycle replaces this on Nov 21.
-    private boolean night = true;
-
-    // Skiffs appear one at a time at night.
-    private static final int SPAWN_INTERVAL = 240; // frames (about 4 seconds)
-    private static final int MAX_SHIPS = 6;
-    private int spawnTimer = SPAWN_INTERVAL - 60;  // the first one comes after about a second
+    private GameWorld world;               // null until the first game starts
+    private final Hud hud = new Hud();
 
     // Where the mouse is, in game (640x360) coordinates.
     private int mouseX = Constants.INTERNAL_WIDTH / 2;
@@ -109,6 +91,16 @@ public class GamePanel extends JPanel {
                 mouseX = toGameX(e.getX());
                 mouseY = toGameY(e.getY());
             }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                requestFocusInWindow();
+                mouseX = toGameX(e.getX());
+                mouseY = toGameY(e.getY());
+                if (state == GameState.PLAY && world != null) {
+                    world.click(mouseX, mouseY, e.getButton());
+                }
+            }
         };
         addMouseListener(mouse);
         addMouseMotionListener(mouse);
@@ -134,16 +126,18 @@ public class GamePanel extends JPanel {
         switch (state) {
             case MENU:
                 if (code == KeyEvent.VK_ENTER) {
-                    state = GameState.PLAY;
+                    newGame();
                 }
                 break;
             case PLAY:
                 if (code == KeyEvent.VK_P || code == KeyEvent.VK_ESCAPE) {
                     state = GameState.PAUSE;
                 } else if (code == KeyEvent.VK_N) {
-                    night = !night;
-                    ships.clear(); // ships only come at night
-                    spawnTimer = SPAWN_INTERVAL - 60;
+                    world.skipPhase();
+                } else if (code == KeyEvent.VK_1) {
+                    world.toggleNetMode();
+                } else if (code == KeyEvent.VK_R) {
+                    world.repair();
                 }
                 break;
             case PAUSE:
@@ -172,52 +166,20 @@ public class GamePanel extends JPanel {
             return; // nothing moves in the menu or while paused
         }
 
-        // The beam turns toward the mouse.
-        beam.aimAt(mouseX, mouseY);
-        beam.update();
+        world.update(mouseX, mouseY);
 
-        // At night, send in a skiff every few seconds.
-        if (night) {
-            spawnTimer++;
-            if (spawnTimer >= SPAWN_INTERVAL && ships.size() < MAX_SHIPS) {
-                spawnTimer = 0;
-                spawnSkiff();
-            }
-        }
-
-        // Move every ship. Go backwards so removing one does not skip the next.
-        for (int i = ships.size() - 1; i >= 0; i--) {
-            Warship ship = ships.get(i);
-            ship.update(map, beam);
-            if (ship.hasArrived()) {
-                ships.remove(i); // later this will damage the post
-            }
+        // Did the run end?
+        if (world.getOutcome() == GameWorld.Outcome.LOST) {
+            state = GameState.GAME_OVER;
+        } else if (world.getOutcome() == GameWorld.Outcome.WON) {
+            state = GameState.VICTORY;
         }
     }
 
-    /** Creates a skiff just outside a random edge of the screen, heading for the lighthouse. */
-    private void spawnSkiff() {
-        double x;
-        double y;
-        switch (random.nextInt(4)) {
-            case 0:  // left
-                x = -12;
-                y = 20 + random.nextInt(Constants.INTERNAL_HEIGHT - 40);
-                break;
-            case 1:  // right
-                x = Constants.INTERNAL_WIDTH + 12;
-                y = 20 + random.nextInt(Constants.INTERNAL_HEIGHT - 40);
-                break;
-            case 2:  // top
-                x = 20 + random.nextInt(Constants.INTERNAL_WIDTH - 40);
-                y = -12;
-                break;
-            default: // bottom
-                x = 20 + random.nextInt(Constants.INTERNAL_WIDTH - 40);
-                y = Constants.INTERNAL_HEIGHT + 12;
-                break;
-        }
-        ships.add(new Skiff(x, y, lighthouse.getBaseX(), lighthouse.getBaseY()));
+    /** Starts a fresh run from night 1. */
+    private void newGame() {
+        world = new GameWorld(map);
+        state = GameState.PLAY;
     }
 
     // ------------------------------------------------------------------
@@ -252,32 +214,37 @@ public class GamePanel extends JPanel {
 
     /** Draws one frame in internal 640x360 coordinates. */
     private void drawGame(Graphics2D g) {
-        // The island and sea are drawn first, behind everything else.
-        map.draw(g, frameCount);
+        if (state == GameState.MENU || world == null) {
+            map.draw(g, frameCount);
+            dim(g, 140);
+            drawMenu(g);
+            return;
+        }
+
+        // Every other screen shows the world underneath.
+        world.draw(g, frameCount);
+        hud.draw(g, world);
 
         switch (state) {
-            case MENU:
-                dim(g, 140);
-                drawMenu(g);
-                break;
-            case PLAY:
-                drawPlay(g);
-                break;
             case PAUSE:
-                drawPlay(g);
                 dim(g, 120);
                 drawCenteredText(g, "PAUSED", 150, 32, Color.WHITE);
                 drawCenteredText(g, "P - resume     M - main menu", 185, 14, Color.LIGHT_GRAY);
                 break;
             case GAME_OVER:
                 dim(g, 170);
-                drawCenteredText(g, "GAME OVER", 160, 32, Color.RED);
-                drawCenteredText(g, "Press ENTER", 195, 14, Color.LIGHT_GRAY);
+                drawCenteredText(g, "GAME OVER", 150, 32, Color.RED);
+                drawCenteredText(g, world.getEndReason(), 178, 13, Color.WHITE);
+                drawCenteredText(g, "You reached night " + world.getCycle().getNight() + " of " + Constants.TOTAL_NIGHTS, 198, 12, Color.LIGHT_GRAY);
+                drawCenteredText(g, "Press ENTER", 226, 14, Color.LIGHT_GRAY);
                 break;
             case VICTORY:
                 dim(g, 150);
-                drawCenteredText(g, "MAY NATITIRA PA TAYO", 160, 28, Color.YELLOW);
-                drawCenteredText(g, "Press ENTER", 195, 14, Color.LIGHT_GRAY);
+                drawCenteredText(g, "MAY NATITIRA PA TAYO", 150, 28, Color.YELLOW);
+                drawCenteredText(g, world.getEndReason(), 178, 13, Color.WHITE);
+                drawCenteredText(g, "Press ENTER", 216, 14, Color.LIGHT_GRAY);
+                break;
+            default:
                 break;
         }
     }
@@ -291,30 +258,7 @@ public class GamePanel extends JPanel {
     private void drawMenu(Graphics2D g) {
         drawCenteredText(g, Constants.TITLE, 130, 24, Color.WHITE);
         drawCenteredText(g, "Press ENTER to start", 200, 14, Color.LIGHT_GRAY);
-    }
-
-    private void drawPlay(Graphics2D g) {
-        lighthouse.draw(g, night);
-
-        // Ships are drawn BEFORE the darkness. At night they only show if the beam lit them.
-        int litCount = 0;
-        for (Warship ship : ships) {
-            ship.draw(g, night);
-            if (ship.isLit()) {
-                litCount++;
-            }
-        }
-
-        if (night) {
-            overlay.draw(g, beam);   // darkness with a hole for the beam
-            beam.drawLight(g);       // warm glow inside the hole
-        }
-
-        // HUD (a simple version for now)
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        g.drawString((night ? "Night" : "Day") + " 1 / " + Constants.TOTAL_NIGHTS
-                + "   P = pause   N = day/night (test)   ships lit: " + litCount + "/" + ships.size(), 8, 14);
+        drawCenteredText(g, "May natitira pa tayo.", 224, 11, new Color(255, 235, 160));
     }
 
     private void drawCenteredText(Graphics2D g, String text, int y, int size, Color color) {

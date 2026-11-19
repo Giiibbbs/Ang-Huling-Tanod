@@ -39,6 +39,29 @@ public final class Constants {
     // How many times per second the game updates and redraws.
     public static final int TARGET_FPS = 60;
 
+    // Data files the game reads.
+    public static final String NODES_FILE = "/atingdagat/data/nodes.txt";
+    public static final String WAVES_FILE = "/atingdagat/data/waves.txt";
+
+    // How long each part of the day lasts, in frames (60 frames = 1 second).
+    public static final int DAY_FRAMES = 50 * TARGET_FPS;
+    public static final int DUSK_FRAMES = 8 * TARGET_FPS;
+    public static final int DAWN_FRAMES = 7 * TARGET_FPS;
+
+    // The post (the island's command post) stands here.
+    public static final int POST_COL = 24;
+    public static final int POST_ROW = 11;
+
+    // Starting stock, and the price of things.
+    public static final int START_BAMBOO = 6;
+    public static final int NET_MAX_DEPTH = 3;      // nets only on shallow water (tiles from shore)
+    public static final int REPAIR_FISH_COST = 2;
+    public static final int REPAIR_POST_AMOUNT = 4;
+    public static final int REPAIR_RADIO_AMOUNT = 15;
+    public static final int LANDING_POST_DAMAGE = 3;
+    public static final int LANDING_RADIO_DAMAGE = 10;
+    public static final int GUN_COOLDOWN = 30;      // frames between shots
+
     // The game lasts 7 nights.
     public static final int TOTAL_NIGHTS = 7;
 
