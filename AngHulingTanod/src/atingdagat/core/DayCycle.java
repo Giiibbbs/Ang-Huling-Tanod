@@ -87,6 +87,14 @@ public class DayCycle {
         return Math.min(1.0, timer / (double) length(phase));
     }
 
+    /** Whole seconds left in this phase (0 at night, which has no timer). */
+    public int getSecondsLeft() {
+        if (phase == Phase.NIGHT || finished) {
+            return 0;
+        }
+        return (int) Math.ceil((length(phase) - timer) / (double) Constants.TARGET_FPS);
+    }
+
     public Phase getPhase() {
         return phase;
     }

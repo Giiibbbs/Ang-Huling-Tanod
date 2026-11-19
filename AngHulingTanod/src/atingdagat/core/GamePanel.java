@@ -2,6 +2,7 @@ package atingdagat.core;
 
 import atingdagat.map.TileMap;
 import atingdagat.ui.Hud;
+import atingdagat.ui.MarketPanel;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -41,6 +42,7 @@ public class GamePanel extends JPanel {
     private final TileMap map = new TileMap(Constants.MAP_FILE);
     private GameWorld world;               // null until the first game starts
     private final Hud hud = new Hud();
+    private final MarketPanel market = new MarketPanel();
 
     // Where the mouse is, in game (640x360) coordinates.
     private int mouseX = Constants.INTERNAL_WIDTH / 2;
@@ -105,6 +107,9 @@ public class GamePanel extends JPanel {
                 mouseX = toGameX(e.getX());
                 mouseY = toGameY(e.getY());
                 if (state == GameState.PLAY && world != null) {
+                    if (e.getButton() == MouseEvent.BUTTON1 && market.click(world, mouseX, mouseY)) {
+                        return;   // the click was on the workshop panel, not on the map
+                    }
                     world.click(mouseX, mouseY, e.getButton());
                 }
             }
@@ -147,6 +152,8 @@ public class GamePanel extends JPanel {
                     world.toggleTool(GameWorld.Tool.MINE);
                 } else if (code == KeyEvent.VK_3) {
                     world.toggleTool(GameWorld.Tool.TORCH);
+                } else if (code == KeyEvent.VK_B) {
+                    market.toggle();
                 } else if (code == KeyEvent.VK_R) {
                     world.repair();
                 } else if (code == KeyEvent.VK_C) {
@@ -247,6 +254,7 @@ public class GamePanel extends JPanel {
         // Every other screen shows the world underneath.
         world.draw(g, frameCount);
         hud.draw(g, world);
+        market.draw(g, world, mouseX, mouseY);
 
         switch (state) {
             case PAUSE:

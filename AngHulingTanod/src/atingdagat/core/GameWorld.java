@@ -653,6 +653,14 @@ public class GameWorld {
         return true;
     }
 
+    public int getTorchCount() {
+        return torchCount();
+    }
+
+    public int getLampLevel() {
+        return beam.getUpgradeLevel();
+    }
+
     private int torchCount() {
         int n = 0;
         for (Defense d : defenses) {
@@ -884,6 +892,22 @@ public class GameWorld {
         g.drawOval((int) player.getX() - r, (int) player.getY() - r, r * 2, r * 2);
         g.setColor(ok ? new Color(120, 255, 140, 90) : new Color(255, 90, 80, 90));
         g.fillRect(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE, Constants.TILE_SIZE, Constants.TILE_SIZE);
+
+        // What it costs and what you have, next to the cursor
+        String label;
+        if (tool == Tool.NET) {
+            label = "Net " + Net.COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
+        } else if (tool == Tool.MINE) {
+            label = "Mine " + Mine.COST_NICKEL + " nickel (you have " + inventory.get(ResourceType.NICKEL) + ")";
+        } else {
+            label = "Torch " + Constants.TORCH_COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
+        }
+        g.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 9));
+        int lx = Math.min(mouseX + 12, Constants.INTERNAL_WIDTH - g.getFontMetrics().stringWidth(label) - 6);
+        g.setColor(new Color(0, 0, 0, 170));
+        g.fillRoundRect(lx - 3, mouseY - 16, g.getFontMetrics().stringWidth(label) + 6, 12, 4, 4);
+        g.setColor(ok ? new Color(190, 255, 200) : new Color(255, 190, 170));
+        g.drawString(label, lx, mouseY - 7);
     }
 
     // ------------------------------------------------------------------
@@ -929,6 +953,10 @@ public class GameWorld {
 
     public int getShipsLeftTonight() {
         return Math.max(0, queue.size() - spawned) + ships.size();
+    }
+
+    public int getShipsTotalTonight() {
+        return queue.size();
     }
 
     public int getShipCount() {

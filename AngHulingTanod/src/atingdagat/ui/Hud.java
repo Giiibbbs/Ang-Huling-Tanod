@@ -44,29 +44,122 @@ public class Hud {
         drawBanner(g, world);
     }
 
+    // The day dial: a little window on the sky. The sun crosses it by day, sinks at dusk, the moon
+    // shows at night, and the sun rises at dawn. The ring around it fills as the phase passes.
+    private static final int DIAL_X = 25;
+    private static final int DIAL_Y = 31;
+    private static final int DIAL_R = 19;
+
     private void drawClock(Graphics2D g, DayCycle cycle, GameWorld world) {
+        Phase phase = cycle.getPhase();
+        double p = cycle.progress();
+        double dark = cycle.getDarkness();
+        int cx = DIAL_X;
+        int cy = DIAL_Y;
+        int r = DIAL_R;
+
+        java.awt.Shape oldClip = g.getClip();
+        g.setClip(new java.awt.geom.Ellipse2D.Double(cx - r, cy - r, r * 2, r * 2));
+
+        // Sky: blue by day, navy by night, with an orange glow at dusk and dawn
+        Color sky = mix(new Color(112, 188, 238), new Color(14, 20, 50), dark);
+        if (phase == Phase.DUSK || phase == Phase.DAWN) {
+            sky = mix(sky, new Color(244, 140, 84), Math.sin(p * Math.PI) * 0.7);
+        }
+        g.setColor(sky);
+        g.fillRect(cx - r, cy - r, r * 2, r * 2);
+
+        // Stars come out as it gets dark
+        if (dark > 0.3) {
+            g.setColor(new Color(255, 255, 255, (int) (200 * dark)));
+            g.fillRect(cx - 11, cy - 12, 1, 1);
+            g.fillRect(cx + 9, cy - 8, 1, 1);
+            g.fillRect(cx - 5, cy - 4, 1, 1);
+            g.fillRect(cx + 4, cy - 14, 1, 1);
+        }
+
+        // The sun or the moon
+        if (phase == Phase.NIGHT) {
+            drawMoon(g, cx + 1, cy - 8, sky);
+        } else {
+            double sx;
+            double sy;
+            if (phase == Phase.DAY) {            // left to right over the top
+                double angle = Math.PI * (1 - p);
+                sx = cx + 13 * Math.cos(angle);
+                sy = cy - 13 * Math.sin(angle);
+            } else if (phase == Phase.DUSK) {    // sinks on the right
+                sx = cx + 13;
+                sy = cy + p * 12;
+            } else {                             // dawn: rises on the left
+                sx = cx - 13;
+                sy = cy + (1 - p) * 12;
+            }
+            g.setColor(new Color(255, 245, 160, 90));
+            g.fillOval((int) sx - 6, (int) sy - 6, 12, 12);
+            g.setColor(new Color(255, 214, 70));
+            g.fillOval((int) sx - 4, (int) sy - 4, 8, 8);
+        }
+
+        // Ground (hides the sun below the horizon)
+        g.setColor(mix(new Color(52, 120, 76), new Color(14, 30, 30), dark));
+        g.fillRect(cx - r, cy + 1, r * 2, r);
+        g.setColor(new Color(0, 0, 0, 80));
+        g.drawLine(cx - r, cy + 1, cx + r, cy + 1);
+        g.setClip(oldClip);
+
+        // The ring: how much of this phase has passed (at night: how many ships are still coming)
+        double fraction;
+        Color ringColor;
+        if (phase == Phase.NIGHT) {
+            int total = Math.max(1, world.getShipsTotalTonight());
+            fraction = world.getShipsLeftTonight() / (double) total;
+            ringColor = new Color(150, 180, 255);
+        } else {
+            fraction = p;
+            ringColor = phase == Phase.DAY ? new Color(255, 218, 100) : new Color(255, 150, 90);
+        }
+        g.setStroke(new java.awt.BasicStroke(3f));
+        g.setColor(new Color(0, 0, 0, 150));
+        g.drawOval(cx - r, cy - r, r * 2, r * 2);
+        g.setColor(ringColor);
+        g.drawArc(cx - r, cy - r, r * 2, r * 2, 90, (int) (-360 * Math.min(1.0, fraction)));
+        g.setStroke(new java.awt.BasicStroke(1f));
+
+        // Words next to the dial
         g.setFont(BOLD);
         g.setColor(cycle.isNight() ? new Color(160, 190, 255) : new Color(255, 235, 160));
-        g.drawString(cycle.getPhase().getLabel() + " " + cycle.getNight() + "/" + Constants.TOTAL_NIGHTS, 8, 12);
-
-        // Under the name: a thin bar of how much of the phase has passed, or ships left at night.
-        if (cycle.getPhase() == Phase.NIGHT) {
-            g.setFont(SMALL);
-            g.setColor(Color.WHITE);
-            g.drawString("Ships left: " + world.getShipsLeftTonight(), 8, 21);
+        g.drawString(phase.getLabel() + " " + cycle.getNight() + "/" + Constants.TOTAL_NIGHTS, 50, 12);
+        g.setFont(SMALL);
+        g.setColor(Color.WHITE);
+        if (phase == Phase.NIGHT) {
+            g.drawString("Ships left: " + world.getShipsLeftTonight(), 50, 22);
         } else {
-            g.setColor(new Color(255, 255, 255, 60));
-            g.fillRect(8, 16, 70, 4);
-            g.setColor(new Color(255, 225, 130));
-            g.fillRect(8, 16, (int) (70 * cycle.progress()), 4);
+            int secs = cycle.getSecondsLeft();
+            String until = phase == Phase.DAY ? "dusk" : phase == Phase.DUSK ? "night" : "day";
+            g.drawString(secs / 60 + ":" + (secs % 60 < 10 ? "0" : "") + secs % 60 + " to " + until, 50, 22);
         }
+    }
+
+    private void drawMoon(Graphics2D g, int x, int y, Color sky) {
+        g.setColor(new Color(235, 238, 255));
+        g.fillOval(x - 5, y - 5, 10, 10);
+        g.setColor(sky);                       // a second circle bites a crescent out of the first
+        g.fillOval(x - 2, y - 7, 9, 9);
+    }
+
+    private Color mix(Color a, Color b, double t) {
+        t = Math.max(0, Math.min(1, t));
+        return new Color((int) (a.getRed() + (b.getRed() - a.getRed()) * t),
+                (int) (a.getGreen() + (b.getGreen() - a.getGreen()) * t),
+                (int) (a.getBlue() + (b.getBlue() - a.getBlue()) * t));
     }
 
     /** Bamboo, fish (counted in meals), and the four ores. Each has an icon, or a colored dot if there is no art yet. */
     private void drawResources(Graphics2D g, GameWorld world) {
         ResourceType[] shown = {ResourceType.BAMBOO, ResourceType.TAMBAN, ResourceType.NICKEL,
             ResourceType.COPPER, ResourceType.CHROMITE, ResourceType.GOLD};
-        int x = 104;
+        int x = 122;
         for (ResourceType type : shown) {
             boolean isFish = type.getCategory() == ResourceType.Category.FISH;
             String iconPath = isFish ? "/atingdagat/res/ui/fish.png" : type.getIconPath();
@@ -112,7 +205,7 @@ public class Hud {
         } else if (world.getTool() == GameWorld.Tool.TORCH) {
             hint = "TORCH: click free land (" + Constants.TORCH_COST_BAMBOO + " bamboo). It lights the shore all night.  Right-click or 3 = stop.";
         } else {
-            hint = "WASD walk, HOLD the mouse on bamboo/ore/fish.  1 net 2 mine 3 torch  R repair C rewire V armor G lamp";
+            hint = "WASD walk.  HOLD the mouse on bamboo, ore or fish.  Click the WORKSHOP (left) to build and upgrade.  B hides it.";
         }
         g.setFont(SMALL);
         g.setColor(new Color(0, 0, 0, 150));

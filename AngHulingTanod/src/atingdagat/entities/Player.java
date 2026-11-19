@@ -16,8 +16,8 @@ import java.util.EnumMap;
  *
  * Position (x, y) is where the tanod's FEET are, in game pixels.
  *
- * Art: res/player/down.png, up.png, left.png, right.png (12x16). Each may have a
- * second walking frame, down2.png and so on. Missing art is drawn with simple shapes.
+ * Art: res/player/down.png, up.png, left.png, right.png (18x22) for standing, plus walking
+ * frames down2.png, down3.png and so on (the two steps). Missing art is drawn with simple shapes.
  */
 public class Player {
 
@@ -31,8 +31,8 @@ public class Player {
         }
     }
 
-    private static final int SPRITE_W = 12;
-    private static final int SPRITE_H = 16;
+    private static final int SPRITE_W = 18;
+    private static final int SPRITE_H = 22;
     private static final double FOOT_HALF_WIDTH = 4;   // the feet are a small box, so we can squeeze past things
 
     private final EnumMap<Facing, BufferedImage[]> frames = new EnumMap<>(Facing.class);
@@ -47,9 +47,10 @@ public class Player {
         this.x = x;
         this.y = y;
         for (Facing f : Facing.values()) {
-            BufferedImage a = Assets.get("/atingdagat/res/player/" + f.file + ".png", SPRITE_W, SPRITE_H);
-            BufferedImage b = Assets.get("/atingdagat/res/player/" + f.file + "2.png", SPRITE_W, SPRITE_H);
-            frames.put(f, new BufferedImage[]{a, b});
+            BufferedImage stand = Assets.get("/atingdagat/res/player/" + f.file + ".png", SPRITE_W, SPRITE_H);
+            BufferedImage stepA = Assets.get("/atingdagat/res/player/" + f.file + "2.png", SPRITE_W, SPRITE_H);
+            BufferedImage stepB = Assets.get("/atingdagat/res/player/" + f.file + "3.png", SPRITE_W, SPRITE_H);
+            frames.put(f, new BufferedImage[]{stand, stepA, stepB});
         }
     }
 
@@ -102,11 +103,15 @@ public class Player {
 
         BufferedImage[] set = frames.get(facing);
         BufferedImage sprite = set[0];
-        if (moving && set[1] != null && (walkTimer / 8) % 2 == 1) {
-            sprite = set[1];   // second walking frame, if the artist made one
+        if (moving) {   // walking alternates the two steps; standing uses the first picture
+            BufferedImage step = (walkTimer / 8) % 2 == 0 ? set[1] : set[2];
+            if (step != null) {
+                sprite = step;
+                bob = 0;   // the steps already move the legs, so no hop
+            }
         }
         if (sprite != null) {
-            g.drawImage(sprite, px - SPRITE_W / 2, py - SPRITE_H + 2 + bob, null);
+            g.drawImage(sprite, px - SPRITE_W / 2, py - 20 + bob, null);   // feet are 20 pixels down the picture
             return;
         }
         drawPlaceholder(g, px, py + bob);
