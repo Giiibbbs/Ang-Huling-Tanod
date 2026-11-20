@@ -59,6 +59,11 @@ public class Player {
      * so the tanod slides along the shore instead of getting stuck on it.
      */
     public void update(TileMap map, int dx, int dy) {
+        update(map, dx, dy, 1.0);
+    }
+
+    /** speedMultiplier is 1.0 normally, and more with upgraded boots. */
+    public void update(TileMap map, int dx, int dy, double speedMultiplier) {
         moving = dx != 0 || dy != 0;
         if (!moving) {
             walkTimer = 0;
@@ -66,8 +71,8 @@ public class Player {
         }
         walkTimer++;
         double length = Math.hypot(dx, dy);   // walking diagonally must not be faster
-        double stepX = dx / length * Constants.PLAYER_SPEED;
-        double stepY = dy / length * Constants.PLAYER_SPEED;
+        double stepX = dx / length * Constants.PLAYER_SPEED * speedMultiplier;
+        double stepY = dy / length * Constants.PLAYER_SPEED * speedMultiplier;
 
         if (canStand(map, x + stepX, y)) {
             x += stepX;

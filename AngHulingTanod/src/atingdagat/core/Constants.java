@@ -47,7 +47,7 @@ public final class Constants {
     public static final String WAVES_FILE = "/atingdagat/data/waves.txt";
 
     // How long each part of the day lasts, in frames (60 frames = 1 second).
-    public static final int DAY_FRAMES = 50 * TARGET_FPS;
+    public static final int DAY_FRAMES = 75 * TARGET_FPS;
     public static final int DUSK_FRAMES = 8 * TARGET_FPS;
     public static final int DAWN_FRAMES = 7 * TARGET_FPS;
 
@@ -119,5 +119,10 @@ public final class Constants {
     public static final int INDAY_HEAL_FRAMES = 6 * TARGET_FPS;    // Ka Inday mends the post this often
     public static final int MIGO_SIGNAL_FRAMES = 4 * TARGET_FPS;   // Migo boosts the radio this often
     public static final double TONYO_RANGE = 95;
+    // Day work: each survivor is paid in meals, then chops trees and bamboo for the post
+    public static final int WORKER_WAGE_MEALS = 1;                 // per survivor, per day
+    public static final int WORKER_QUOTA = 3;                      // loads carried per day
+    public static final int WORKER_CHOP_FRAMES = 4 * TARGET_FPS;   // slower than the tanod (about 1.8 s)
+    public static final double WORKER_SEARCH = 170;                // how far from the post they will go
     public static final int TONYO_COOLDOWN = 80;
 }

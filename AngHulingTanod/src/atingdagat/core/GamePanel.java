@@ -164,8 +164,18 @@ public class GamePanel extends JPanel {
                     world.toggleTool(GameWorld.Tool.TORCH);
                 } else if (code == KeyEvent.VK_4) {
                     world.toggleTool(GameWorld.Tool.PANA);
+                } else if (code == KeyEvent.VK_5) {
+                    world.buyUpgrade(atingdagat.economy.Upgrades.Gear.PICKAXE);
+                } else if (code == KeyEvent.VK_6) {
+                    world.buyUpgrade(atingdagat.economy.Upgrades.Gear.AXE);
+                } else if (code == KeyEvent.VK_7) {
+                    world.buyUpgrade(atingdagat.economy.Upgrades.Gear.BOOTS);
+                } else if (code == KeyEvent.VK_8) {
+                    world.buyUpgrade(atingdagat.economy.Upgrades.Gear.ROD);
                 } else if (code == KeyEvent.VK_J) {
                     world.testSurvivors();     // test key
+                } else if (code == KeyEvent.VK_U) {
+                    market.switchTab();
                 } else if (code == KeyEvent.VK_B) {
                     market.toggle();
                 } else if (code == KeyEvent.VK_R) {

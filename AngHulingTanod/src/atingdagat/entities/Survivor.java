@@ -1,6 +1,8 @@
 package atingdagat.entities;
 
 import atingdagat.core.Constants;
+import atingdagat.economy.ResourceNode;
+import atingdagat.economy.ResourceType;
 import atingdagat.map.TileMap;
 import atingdagat.util.Assets;
 import java.awt.Color;
@@ -30,6 +32,17 @@ public abstract class Survivor {
     private final BufferedImage sprite;   // optional art: /atingdagat/res/survivors/<name>.png (18 x 22)
     private boolean facingLeft = false;
 
+    // Day work. The walking goal is home unless there is a job.
+    private enum Job { IDLE, GOING, CHOPPING, CARRYING }
+    private double destX;
+    private double destY;
+    private Job job = Job.IDLE;
+    private ResourceNode target = null;
+    private int chopTimer = 0;
+    private int carrying = 0;
+    private int loadsToday = 0;
+    private boolean paid = false;
+
     protected Survivor(String name, String role, double startX, double startY, double homeX, double homeY) {
         this.name = name;
         this.role = role;
@@ -37,6 +50,8 @@ public abstract class Survivor {
         this.y = startY;
         this.homeX = homeX;
         this.homeY = homeY;
+        this.destX = homeX;
+        this.destY = homeY;
         this.sprite = Assets.get("/atingdagat/res/survivors/" + name.toLowerCase().replace(" ", "") + ".png", 18, 22);
     }
 
@@ -60,14 +75,14 @@ public abstract class Survivor {
     /** What the survivor says when they land. */
     public abstract String getArrivalLine();
 
-    /** Walks toward home. Stops at home. Never steps into the sea. */
+    /** Walks toward the current goal (home, or the tree being worked). Stops there. Never steps into the sea. */
     public void update(TileMap map) {
-        double dx = homeX - x;
-        double dy = homeY - y;
+        double dx = destX - x;
+        double dy = destY - y;
         double dist = Math.hypot(dx, dy);
         if (dist <= Constants.SURVIVOR_WALK_SPEED) {
-            x = homeX;
-            y = homeY;
+            x = destX;
+            y = destY;
             return;
         }
         double nx = x + dx / dist * Constants.SURVIVOR_WALK_SPEED;
@@ -79,9 +94,133 @@ public abstract class Survivor {
             x = nx;
             y = ny;
         } else {
-            x = homeX;   // the way is blocked by water: just arrive
-            y = homeY;
+            x = destX;   // the way is blocked by water: just arrive
+            y = destY;
         }
+    }
+
+    // ------------------------------------------------------------------
+    // DAY WORK: chop a tree or bamboo, carry it home, again (up to the daily quota)
+    // ------------------------------------------------------------------
+
+    /** The start of a day: pay (or not) and reset the quota. */
+    public void startDay(boolean wagePaid) {
+        paid = wagePaid;
+        loadsToday = 0;
+    }
+
+    public boolean isPaid() {
+        return paid;
+    }
+
+    public boolean isChopping() {
+        return job == Job.CHOPPING;
+    }
+
+    /** Is there a straight walk over land between these two points? (Checked every few pixels.) */
+    private static boolean landBetween(TileMap map, double x1, double y1, double x2, double y2) {
+        double dist = Math.hypot(x2 - x1, y2 - y1);
+        int steps = (int) (dist / 3) + 1;
+        for (int i = 0; i <= steps; i++) {
+            double t = i / (double) steps;
+            int col = (int) ((x1 + (x2 - x1) * t) / Constants.TILE_SIZE);
+            int row = (int) ((y1 + (y2 - y1) * t) / Constants.TILE_SIZE);
+            if (!map.isLand(row, col)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Looks for the nearest tree or bamboo that nobody else is working and that can be walked to over land. */
+    private ResourceNode findJob(TileMap map, List<ResourceNode> nodes, List<Survivor> crew, double postX, double postY) {
+        ResourceNode best = null;
+        double bestDist = Double.MAX_VALUE;
+        for (ResourceNode node : nodes) {
+            ResourceType type = node.getType();
+            if ((type != ResourceType.TREE && type != ResourceType.BAMBOO) || !node.isAvailable()) {
+                continue;
+            }
+            if (Math.hypot(node.getX() - postX, node.getY() - postY) > Constants.WORKER_SEARCH) {
+                continue;
+            }
+            boolean taken = false;
+            for (Survivor other : crew) {
+                if (other != this && other.target == node) {
+                    taken = true;
+                }
+            }
+            double d = Math.hypot(node.getX() - x, node.getY() - y);
+            if (!taken && d < bestDist
+                    && landBetween(map, x, y, node.getX(), node.getY())
+                    && landBetween(map, node.getX(), node.getY(), homeX, homeY)) {
+                best = node;
+                bestDist = d;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Called every frame by the world. "onShift" is true in the day for a survivor who was paid.
+     * Returns the bamboo delivered this frame (usually 0, and 3 when a load arrives home).
+     */
+    public int work(boolean onShift, TileMap map, List<ResourceNode> nodes, List<Survivor> crew, double postX, double postY) {
+        boolean working = onShift && paid;
+        switch (job) {
+            case IDLE:
+                if (working && loadsToday < Constants.WORKER_QUOTA && isHome()) {
+                    target = findJob(map, nodes, crew, postX, postY);
+                    if (target != null) {
+                        job = Job.GOING;
+                        destX = target.getX();
+                        destY = target.getY();
+                    }
+                } else if (!working) {
+                    destX = homeX;
+                    destY = homeY;
+                }
+                break;
+            case GOING:
+                if (!working || !target.isAvailable()) {
+                    giveUp();
+                } else if (Math.hypot(x - destX, y - destY) < 2) {
+                    job = Job.CHOPPING;
+                    chopTimer = 0;
+                }
+                break;
+            case CHOPPING:
+                if (!working || !target.isAvailable()) {
+                    giveUp();
+                    break;
+                }
+                chopTimer++;
+                if (chopTimer >= Constants.WORKER_CHOP_FRAMES) {
+                    carrying = target.harvest();
+                    loadsToday++;
+                    target = null;
+                    job = Job.CARRYING;
+                    destX = homeX;
+                    destY = homeY;
+                }
+                break;
+            default: // CARRYING
+                if (isHome()) {
+                    int delivered = carrying;
+                    carrying = 0;
+                    job = Job.IDLE;
+                    return delivered;
+                }
+                break;
+        }
+        return 0;
+    }
+
+    private void giveUp() {
+        target = null;
+        job = Job.IDLE;
+        destX = homeX;
+        destY = homeY;
     }
 
     public boolean isHome() {
@@ -129,5 +268,19 @@ public abstract class Survivor {
             g.fillRect(px + eye, py - 17 - bob, 1, 1);
         }
         drawExtra(g, px, py - bob, frame);
+        if (job == Job.CHOPPING) {                       // an axe swing
+            int swing = (frame / 10) % 2;
+            g.setColor(new Color(150, 110, 70));
+            g.drawLine(px + 4, py - 12, px + 8 - swing * 3, py - 18 + swing * 6);
+            g.setColor(new Color(210, 215, 225));
+            g.fillRect(px + 7 - swing * 3, py - 20 + swing * 6, 3, 2);
+        }
+        if (carrying > 0) {                              // a bundle of bamboo on the shoulder
+            g.setColor(new Color(120, 190, 90));
+            g.fillRect(px - 7, py - 20, 3, 12);
+            g.fillRect(px - 5, py - 22, 3, 12);
+            g.setColor(new Color(60, 100, 50));
+            g.drawRect(px - 7, py - 20, 3, 12);
+        }
     }
 }

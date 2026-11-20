@@ -5,6 +5,7 @@ import atingdagat.core.GameWorld;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
 import atingdagat.economy.ResourceType;
+import atingdagat.economy.Upgrades;
 import atingdagat.entities.Radio;
 import java.awt.Color;
 import java.awt.Font;
@@ -55,6 +56,7 @@ public class MarketPanel {
     private static final int Y = 56;
     private static final int W = 140;
     private static final int HEADER = 14;
+    private static final int TABBAR = 12;
     private static final int ROW = 24;
     private static final int TIP_HEIGHT = 36;
     private static final int CREW_HEIGHT = 16;
@@ -64,6 +66,21 @@ public class MarketPanel {
     private static final Font KEY = new Font("SansSerif", Font.BOLD, 9);
 
     private boolean open = true;
+    private boolean upgradesTab = false;   // false: BUILD tab, true: UPGRADES tab
+
+    /** Key U (or a click on a tab): switch between BUILD and UPGRADES. */
+    public void switchTab() {
+        upgradesTab = !upgradesTab;
+    }
+
+    private int rowCount() {
+        return upgradesTab ? Upgrades.Gear.values().length : Offer.values().length;
+    }
+
+    /** Top of the first row. */
+    private int rowsTop() {
+        return Y + HEADER + TABBAR;
+    }
 
     public void toggle() {
         open = !open;
@@ -75,7 +92,7 @@ public class MarketPanel {
     }
 
     private int height() {
-        return open ? HEADER + Offer.values().length * ROW + CREW_HEIGHT + TIP_HEIGHT : HEADER;
+        return open ? HEADER + TABBAR + rowCount() * ROW + CREW_HEIGHT + TIP_HEIGHT : HEADER;
     }
 
     private boolean inside(int x, int y) {
@@ -86,8 +103,8 @@ public class MarketPanel {
         if (!open || x < X || x > X + W) {
             return -1;
         }
-        int index = (y - Y - HEADER) / ROW;
-        if (y < Y + HEADER || index < 0 || index >= Offer.values().length) {
+        int index = (y - rowsTop()) / ROW;
+        if (y < rowsTop() || index < 0 || index >= rowCount()) {
             return -1;
         }
         return index;
@@ -106,9 +123,17 @@ public class MarketPanel {
             toggle();   // the header is a button too
             return true;
         }
+        if (y < rowsTop()) {   // the tab bar
+            upgradesTab = x > X + W / 2;
+            return true;
+        }
         int index = rowAt(x, y);
         if (index >= 0) {
-            use(world, Offer.values()[index]);
+            if (upgradesTab) {
+                world.buyUpgrade(Upgrades.Gear.values()[index]);
+            } else {
+                use(world, Offer.values()[index]);
+            }
         }
         return true;
     }
@@ -234,13 +259,82 @@ public class MarketPanel {
             return;
         }
 
+        drawTabs(g);
         int hover = rowAt(mouseX, mouseY);
-        Offer[] offers = Offer.values();
-        for (int i = 0; i < offers.length; i++) {
-            drawRow(g, world, offers[i], Y + HEADER + i * ROW, i == hover);
+        String tip;
+        if (upgradesTab) {
+            Upgrades.Gear[] gear = Upgrades.Gear.values();
+            for (int i = 0; i < gear.length; i++) {
+                drawGearRow(g, world, gear[i], rowsTop() + i * ROW, i == hover);
+            }
+            tip = hover >= 0 ? gear[hover].getDescription() : "Click a tool (or press 5-8) to buy its next level. Bamboo, and a little ore from level 2.";
+        } else {
+            Offer[] offers = Offer.values();
+            for (int i = 0; i < offers.length; i++) {
+                drawRow(g, world, offers[i], rowsTop() + i * ROW, i == hover);
+            }
+            tip = hover >= 0 ? offers[hover].description : "Click a row (or press its key). Then click the map to place it.";
         }
         drawCrew(g, world);
-        drawTip(g, hover >= 0 ? offers[hover].description : "Click a row (or press its key). Then click the map to place it.");
+        drawTip(g, tip);
+    }
+
+    private void drawTabs(Graphics2D g) {
+        String[] names = {"BUILD", "UPGRADES  (U)"};
+        for (int i = 0; i < 2; i++) {
+            boolean active = (i == 1) == upgradesTab;
+            int tx = X + i * (W / 2);
+            g.setColor(active ? new Color(70, 62, 24, 235) : new Color(30, 38, 62, 215));
+            g.fillRect(tx, Y + HEADER, W / 2, TABBAR);
+            g.setFont(TINY);
+            g.setColor(active ? new Color(255, 225, 140) : new Color(150, 165, 190));
+            g.drawString(names[i], tx + 6, Y + HEADER + 9);
+        }
+    }
+
+    /** One tool in the Upgrades tab: its level, and what the next level costs. */
+    private void drawGearRow(Graphics2D g, GameWorld world, Upgrades.Gear gear, int y, boolean hover) {
+        Upgrades up = world.getUpgrades();
+        boolean maxed = up.isMaxed(gear);
+        int bamboo = world.getInventory().get(ResourceType.BAMBOO);
+        int ore = world.getInventory().get(gear.getOre());
+        boolean bambooOk = bamboo >= up.bambooCost(gear);
+        boolean oreOk = ore >= up.oreCost(gear);
+
+        g.setColor(hover ? new Color(44, 58, 92, 225) : new Color(20, 28, 48, 205));
+        g.fillRect(X, y, W, ROW);
+
+        g.setColor(new Color(235, 235, 245));
+        g.fillRoundRect(X + 4, y + 4, 12, 12, 4, 4);
+        g.setFont(KEY);
+        g.setColor(new Color(30, 30, 50));
+        g.drawString(gear.getKey(), X + 4 + (12 - g.getFontMetrics().stringWidth(gear.getKey())) / 2, y + 13);
+
+        g.setFont(NAME);
+        g.setColor(maxed ? new Color(150, 160, 170) : Color.WHITE);
+        g.drawString(gear.getLabel(), X + 21, y + 12);
+
+        // Three pips show the level
+        for (int i = 0; i < Upgrades.MAX_LEVEL; i++) {
+            g.setColor(i < up.getLevel(gear) ? new Color(255, 215, 90) : new Color(255, 255, 255, 50));
+            g.fillRect(X + W - 5 - (Upgrades.MAX_LEVEL - i) * 8, y + 5, 6, 6);
+        }
+        if (maxed) {
+            g.setFont(TINY);
+            g.setColor(new Color(255, 215, 90));
+            g.drawString("MAX", X + 21 + 62, y + 21);
+            return;
+        }
+        // Cost of the next level: bamboo, then ore if the level needs it
+        g.setFont(TINY);
+        String b = "Bamboo " + bamboo + "/" + up.bambooCost(gear);
+        g.setColor(bambooOk ? new Color(170, 240, 180) : new Color(255, 170, 140));
+        g.drawString(b, X + 21, y + 21);
+        if (up.oreCost(gear) > 0) {
+            int ox = X + 21 + g.getFontMetrics().stringWidth(b) + 6;
+            g.setColor(oreOk ? new Color(170, 240, 180) : new Color(255, 170, 140));
+            g.drawString("+ " + gear.getOre().getLabel() + " " + ore + "/" + up.oreCost(gear), ox, y + 21);
+        }
     }
 
     private void drawRow(Graphics2D g, GameWorld world, Offer offer, int y, boolean hover) {
@@ -293,7 +387,7 @@ public class MarketPanel {
 
     /** A strip showing which survivors have arrived: a lit chip with the name, or a dark "?" chip. */
     private void drawCrew(Graphics2D g, GameWorld world) {
-        int y = Y + HEADER + Offer.values().length * ROW;
+        int y = rowsTop() + rowCount() * ROW;
         g.setColor(new Color(20, 28, 48, 205));
         g.fillRect(X, y, W, CREW_HEIGHT);
         String[] names = {"Ka Inday", "Migo", "Tonyo"};
@@ -301,9 +395,11 @@ public class MarketPanel {
         g.setFont(TINY);
         for (int i = 0; i < names.length; i++) {
             boolean here = false;
+            boolean paid = false;
             for (atingdagat.entities.Survivor sv : world.getSurvivors()) {
                 if (sv.getName().equals(names[i])) {
                     here = true;
+                    paid = sv.isPaid();
                 }
             }
             int cx = X + 4 + i * chipW;
@@ -312,12 +408,16 @@ public class MarketPanel {
             g.setColor(here ? new Color(220, 250, 220) : new Color(130, 140, 160));
             String t = here ? names[i] : "? night " + (2 * (i + 1));
             g.drawString(t, cx + 3, y + 11);
+            if (here) {   // green dot: paid and working today. red: no meals, resting.
+                g.setColor(paid ? new Color(120, 255, 130) : new Color(255, 110, 90));
+                g.fillOval(cx + chipW - 9, y + 6, 4, 4);
+            }
         }
     }
 
     /** The help box at the bottom of the panel (shows the row under the mouse). */
     private void drawTip(Graphics2D g, String text) {
-        int y = Y + HEADER + Offer.values().length * ROW + CREW_HEIGHT;
+        int y = rowsTop() + rowCount() * ROW + CREW_HEIGHT;
         g.setColor(new Color(12, 16, 30, 225));
         g.fillRoundRect(X, y, W, TIP_HEIGHT, 6, 6);
         g.setFont(TINY);

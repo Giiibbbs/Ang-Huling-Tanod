@@ -17,6 +17,7 @@ import atingdagat.economy.Inventory;
 import atingdagat.economy.ResourceNode;
 import atingdagat.economy.ResourceType;
 import atingdagat.economy.SupplyCrate;
+import atingdagat.economy.Upgrades;
 import atingdagat.entities.Bakunawa;
 import atingdagat.entities.Barge;
 import atingdagat.entities.Beam;
@@ -101,6 +102,7 @@ public class GameWorld {
     private final DayCycle cycle = new DayCycle();
     private final WavePlan plan = new WavePlan(Constants.WAVES_FILE);
     private final Inventory inventory = new Inventory();
+    private final Upgrades upgrades = new Upgrades();
     private final Random random = new Random();
 
     private Outcome outcome = Outcome.PLAYING;
@@ -152,7 +154,7 @@ public class GameWorld {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
 
-        player.update(map, moveX, moveY);
+        player.update(map, moveX, moveY, upgrades.speedMultiplier());
 
         // Near the lighthouse, holding SPACE steers the beam by hand. Otherwise it sweeps by itself.
         boolean manual = steering && isNearLighthouse();
@@ -333,6 +335,7 @@ public class GameWorld {
         switch (phase) {
             case DAY:
                 showBanner("DAY " + cycle.getNight());
+                payCrew();
                 break;
             case DUSK:
                 showBanner("DUSK - get ready");
@@ -552,7 +555,7 @@ public class GameWorld {
 
         // The tanod must be close enough. Fish can be reached further (a cast line) than things on land.
         if (under != null) {
-            double reach = (under instanceof FishSchool || under instanceof SupplyCrate) ? Constants.FISH_REACH : Constants.LAND_REACH;
+            double reach = (under instanceof FishSchool || under instanceof SupplyCrate) ? Constants.FISH_REACH + upgrades.extraFishReach() : Constants.LAND_REACH;
             if (!inReach(under.getX(), under.getY(), reach)) {
                 if (holdTarget != under) {   // one reminder per spot, not one every frame
                     popups.add(new Popup(under.getX(), under.getY() - 12, "Too far - walk closer", Color.LIGHT_GRAY));
@@ -577,7 +580,7 @@ public class GameWorld {
                 holdProgress = 0;
             }
             holdProgress++;
-            if (holdProgress >= under.getHoldFrames()) {
+            if (holdProgress >= holdFramesFor(under)) {
                 collect(under);
                 holdProgress = 0;
             }
@@ -587,6 +590,11 @@ public class GameWorld {
                 holdTarget = null;
             }
         }
+    }
+
+    /** How many frames this harvest takes for this player: the base time, shortened by the upgraded tool. */
+    private int holdFramesFor(Harvestable target) {
+        return Math.max(15, (int) Math.round(target.getHoldFrames() * upgrades.holdMultiplier(target)));
     }
 
     private void collect(Harvestable target) {
@@ -936,10 +944,47 @@ public class GameWorld {
                 boats.remove(i);
             }
         }
+        boolean shift = cycle.getPhase() == Phase.DAY;
         for (Survivor sv : survivors) {
+            int bamboo = sv.work(shift, map, nodes, survivors, post.getX(), post.getY());
+            if (bamboo > 0) {
+                inventory.add(ResourceType.BAMBOO, bamboo);
+                popups.add(new Popup(sv.getX(), sv.getY() - 26, "+" + bamboo + " Bamboo", ResourceType.BAMBOO.getColor()));
+            }
             sv.update(map);
             sv.act(post, radio, ships, frame);
         }
+    }
+
+    /** At the start of each day every survivor asks for their wage (meals). No meals: they rest. */
+    private void payCrew() {
+        for (Survivor sv : survivors) {
+            boolean paid = inventory.spendMeals(Constants.WORKER_WAGE_MEALS);
+            sv.startDay(paid);
+            popups.add(new Popup(sv.getX(), sv.getY() - 26,
+                    paid ? "-" + Constants.WORKER_WAGE_MEALS + " meal: working" : "No meals: resting",
+                    paid ? new Color(160, 230, 160) : new Color(255, 160, 130)));
+        }
+    }
+
+    /** Keys 5 to 8 (or a click in the Workshop): buy the next level of a tool. */
+    public void buyUpgrade(Upgrades.Gear gear) {
+        if (cycle.isNight() || outcome != Outcome.PLAYING) {
+            return;
+        }
+        if (upgrades.isMaxed(gear)) {
+            say(gear.getLabel() + " is fully upgraded", Color.LIGHT_GRAY);
+        } else if (!upgrades.buy(gear, inventory)) {
+            say("Need " + upgrades.bambooCost(gear) + " bamboo"
+                    + (upgrades.oreCost(gear) > 0 ? " + " + upgrades.oreCost(gear) + " " + gear.getOre().getLabel().toLowerCase() : ""),
+                    new Color(255, 150, 120));
+        } else {
+            say(gear.getLabel() + " level " + upgrades.getLevel(gear), new Color(255, 225, 140));
+        }
+    }
+
+    public Upgrades getUpgrades() {
+        return upgrades;
     }
 
     private boolean crateBoosted() {
@@ -1206,7 +1251,7 @@ public class GameWorld {
         if (holdTarget == null || holdProgress <= 0) {
             return;
         }
-        double fraction = holdProgress / (double) holdTarget.getHoldFrames();
+        double fraction = holdProgress / (double) holdFramesFor(holdTarget);
         if (holdTarget instanceof FishSchool || holdTarget instanceof SupplyCrate) {   // the fishing line
             g.setColor(new Color(255, 255, 255, 120));
             g.drawLine((int) player.getX(), (int) player.getY() - 8, (int) holdTarget.getX(), (int) holdTarget.getY());
