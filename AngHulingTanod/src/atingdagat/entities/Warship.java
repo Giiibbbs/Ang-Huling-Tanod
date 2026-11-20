@@ -24,7 +24,7 @@ public abstract class Warship {
 
     private static final int WAKE_POINTS = 10;
     private static final int ATTACK_INTERVAL = 45;   // frames between hits on a net
-    private static final double HIT_RADIUS = 13;     // how close a click must be to hit the ship
+    private static final double HIT_RADIUS = 13;     // how close a click must be to hit the ship (a big ship can say more)
 
     protected double x;
     protected double y;
@@ -195,7 +195,13 @@ public abstract class Warship {
     public boolean contains(double px, double py) {
         double dx = px - x;
         double dy = py - y;
-        return dx * dx + dy * dy <= HIT_RADIUS * HIT_RADIUS;
+        double r = getHitRadius();
+        return dx * dx + dy * dy <= r * r;
+    }
+
+    /** How big the click target is. Long ships override this, so you can hit the bow and the stern too. */
+    protected double getHitRadius() {
+        return HIT_RADIUS;
     }
 
     // Getters

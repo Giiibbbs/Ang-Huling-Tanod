@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage;
 public class Cutter extends Warship {
 
     private static final String SPRITE_PATH = "/atingdagat/res/ships/cutter.png";
-    private static final int LENGTH = 28;
+    private static final int LENGTH = 40;
     private static final int WIDTH = 12;
 
     private final BufferedImage sprite = Assets.get(SPRITE_PATH, LENGTH, WIDTH);
@@ -23,6 +23,11 @@ public class Cutter extends Warship {
     public Cutter(double x, double y, double targetX, double targetY) {
         super(x, y, targetX, targetY, 1.0, 2);
         landingDamage = 2;
+    }
+
+    @Override
+    protected double getHitRadius() {
+        return 15;
     }
 
     @Override

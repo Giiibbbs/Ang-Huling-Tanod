@@ -39,6 +39,11 @@ public class Bakunawa {
     private static final double MOON_X = 300;
     private static final double MOON_Y = 62;
     private static final double MOON_R = 16;
+    private static final int FLAGSHIP_W = 100;
+    private static final int FLAGSHIP_H = 50;
+    private final java.awt.image.BufferedImage flagshipSprite =
+            atingdagat.util.Assets.get("/atingdagat/res/ships/flagship.png", FLAGSHIP_W, FLAGSHIP_H);
+
     private static final double SHIP_X = 505;              // where the Kordan flagship waits
     private static final double SHIP_Y = 250;
 
@@ -271,6 +276,11 @@ public class Bakunawa {
         gg.setPaint(new RadialGradientPaint(new Point2D.Double(0, 0), 44f, new float[]{0f, 1f},
                 new Color[]{new Color(255, 70, 50, 70), new Color(255, 70, 50, 0)}));
         gg.fillOval(-44, -44, 88, 88);
+        if (flagshipSprite != null) {                  // Jaron's art, drawn from its centre
+            gg.drawImage(flagshipSprite, -FLAGSHIP_W / 2, -FLAGSHIP_H / 2, null);
+            gg.dispose();
+            return;
+        }
         Polygon hull = new Polygon(new int[]{-36, 30, 42, 30, -36}, new int[]{-9, -11, 0, 11, 9}, 5);
         gg.setColor(new Color(36, 38, 48));
         gg.fillPolygon(hull);

@@ -14,14 +14,19 @@ import java.awt.image.BufferedImage;
 public class Barge extends Warship {
 
     private static final String SPRITE_PATH = "/atingdagat/res/ships/barge.png";
-    private static final int LENGTH = 44;
-    private static final int WIDTH = 20;
+    private static final int LENGTH = 58;
+    private static final int WIDTH = 25;
 
     private final BufferedImage sprite = Assets.get(SPRITE_PATH, LENGTH, WIDTH);
 
     public Barge(double x, double y, double targetX, double targetY) {
         super(x, y, targetX, targetY, 0.3, 8);
         landingDamage = 6;
+    }
+
+    @Override
+    protected double getHitRadius() {
+        return 20;
     }
 
     @Override

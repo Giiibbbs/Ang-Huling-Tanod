@@ -18,13 +18,18 @@ import java.awt.image.BufferedImage;
 public class Skiff extends Warship {
 
     private static final String SPRITE_PATH = "/atingdagat/res/ships/skiff.png";
-    private static final int LENGTH = 32;
-    private static final int WIDTH = 16;
+    private static final int LENGTH = 38;
+    private static final int WIDTH = 12;
 
     private final BufferedImage sprite = Assets.get(SPRITE_PATH, LENGTH, WIDTH);
 
     public Skiff(double x, double y, double targetX, double targetY) {
         super(x, y, targetX, targetY, 0.55, 3);
+    }
+
+    @Override
+    protected double getHitRadius() {
+        return 15;
     }
 
     @Override
