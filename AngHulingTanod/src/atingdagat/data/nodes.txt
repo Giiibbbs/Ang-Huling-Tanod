@@ -1,14 +1,25 @@
 # Harvest spots on LAND: TYPE column row units
-# Columns 0-39, rows 0-22 (same grid as island.txt). BAMBOO and ORES must be on land (: or #).
-# Bamboo grows back slowly. Ores NEVER grow back, so the units here are all there will ever be.
+# Columns 0-63, rows 0-35 (same grid as island.txt, tiles are 10 px). BAMBOO, TREE and ORES must be on land (: or #).
+# Bamboo and trees grow back slowly (a tree gives bamboo too: chop it with the mouse). Ores NEVER grow back, so the units here are all there will ever be.
 # Fish are not listed here: they swim around the sea by themselves (see economy/FishKind.java).
-BAMBOO    15  9   6
-BAMBOO    16 12   6
-BAMBOO    24  8   6
-BAMBOO    26 12   6
-NICKEL    13 10   5
-NICKEL    27  9   5
-COPPER    21 14   4
-COPPER    14 12   4
-CHROMITE  22  8   6
-GOLD      28  8   3
+BAMBOO    23 14 6
+BAMBOO    25 20 6
+BAMBOO    40 12 6
+BAMBOO    44 20 6
+NICKEL    19 16 5
+NICKEL    46 14 5
+COPPER    34 24 4
+COPPER    21 20 4
+CHROMITE  36 12 6
+GOLD      48 12 3
+TREE      16 24 3
+TREE      22 24 3
+TREE      30 21 3
+TREE      31 11 3
+TREE      49 17 3
+TREE      38 22 3
+TREE      36 17 3
+TREE      26 12 3
+TREE      42 15 3
+TREE      33 14 3
+TREE      26 16 3

@@ -33,8 +33,8 @@ public class TileMap {
     public static final char SAND = ':';
     public static final char GRASS = '#';
 
-    // Water further than this many tiles from land is drawn as "deepest".
-    private static final int MAX_DEPTH = 6;
+    // Water further than this many tiles from land is drawn as "deepest". (9 tiles of 10 px is about 6 old tiles of 16 px.)
+    private static final int MAX_DEPTH = 9;
 
     private final int cols = Constants.MAP_COLS;
     private final int rows = Constants.MAP_ROWS;
@@ -197,10 +197,17 @@ public class TileMap {
         return !isLand(row, col);
     }
 
-    /** Distance from the shore in tiles (0 = land). */
+    /**
+     * Distance from the shore, in depth units of Constants.DEPTH_UNIT_PX pixels (0 = land).
+     * We count in tiles inside the map, then convert, so "nets go 3 deep" means the same number of
+     * pixels whatever the tile size is.
+     */
     public int getDepth(int row, int col) {
         int d = depthAt(row, col);
-        return (d < 0) ? MAX_DEPTH : d;
+        if (d < 0) {
+            d = MAX_DEPTH;
+        }
+        return (d * Constants.TILE_SIZE + Constants.DEPTH_UNIT_PX - 1) / Constants.DEPTH_UNIT_PX;
     }
 
     // ------------------------------------------------------------------
@@ -243,14 +250,14 @@ public class TileMap {
             g.fillRect(x, y, ts, ts);
             if (h % 6 == 0) { // a few darker grains
                 g.setColor(new Color(196, 172, 112));
-                g.fillRect(x + (h >> 3) % 12, y + (h >> 6) % 12, 2, 1);
+                g.fillRect(x + (h >> 3) % (ts - 2), y + (h >> 6) % (ts - 2), 2, 1);
             }
         } else {
             g.setColor(new Color(clamp(78 + shade), clamp(154 + shade), clamp(76 + shade)));
             g.fillRect(x, y, ts, ts);
             if (h % 5 == 0) { // small tufts of grass
                 g.setColor(new Color(52, 120, 56));
-                g.fillRect(x + (h >> 3) % 12, y + (h >> 6) % 12, 2, 2);
+                g.fillRect(x + (h >> 3) % (ts - 2), y + (h >> 6) % (ts - 2), 2, 2);
             }
         }
     }
@@ -270,7 +277,7 @@ public class TileMap {
             int phase = (frame / 24 + h) % 6;
             if (phase < 3) {
                 g.setColor(new Color(255, 255, 255, 36 + phase * 22));
-                g.fillRect(x + (h >> 3) % 10, y + (h >> 5) % 13, 4, 1);
+                g.fillRect(x + (h >> 3) % (ts - 4), y + (h >> 5) % ts, 4, 1);
             }
         }
     }
@@ -294,7 +301,7 @@ public class TileMap {
 
         // The foam breathes in and out like a small wave. The sine makes it smooth.
         double wave = Math.sin(frame * 0.06 + (r + c) * 0.5);
-        int w = 2 + (int) Math.round(1.5 * (wave + 1) / 2 * 2); // 2 to 5 pixels wide
+        int w = 1 + (int) Math.round(1.5 * (wave + 1) / 2 * 2); // 1 to 4 pixels wide (tiles are small now)
         int alpha = 120 + (int) (70 * wave);
         g.setColor(new Color(255, 255, 255, alpha));
 

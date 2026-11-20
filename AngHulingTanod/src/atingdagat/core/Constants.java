@@ -22,16 +22,19 @@ public final class Constants {
     public static final int INTERNAL_HEIGHT = 360;
 
     // Size of one map tile (in internal pixels). The island map will be a grid of these.
-    public static final int TILE_SIZE = 16;
+    public static final int TILE_SIZE = 10;
 
-    // The map covers the whole internal screen: 40 columns x 23 rows of tiles
-    // (22.5 rows fit, so the last row is cut in half and that is fine).
+    // Gameplay depth numbers ("nets only 3 deep") are measured in units of 16 pixels, so changing TILE_SIZE
+    // never changes how far from the shore a net or a mine may go. TileMap.getDepth() converts for us.
+    public static final int DEPTH_UNIT_PX = 16;
+
+    // The map covers the whole internal screen: 64 columns x 36 rows of tiles.
     public static final int MAP_COLS = INTERNAL_WIDTH / TILE_SIZE;
     public static final int MAP_ROWS = (INTERNAL_HEIGHT + TILE_SIZE - 1) / TILE_SIZE;
 
     // Where the lighthouse stands on the island (tile column and row).
-    public static final int LIGHTHOUSE_COL = 19;
-    public static final int LIGHTHOUSE_ROW = 10;
+    public static final int LIGHTHOUSE_COL = 30;
+    public static final int LIGHTHOUSE_ROW = 16;
 
     // The map file, stored inside the project so it also works from the JAR.
     public static final String MAP_FILE = "/atingdagat/data/island.txt";
@@ -49,8 +52,8 @@ public final class Constants {
     public static final int DAWN_FRAMES = 7 * TARGET_FPS;
 
     // The post (the island's command post) stands here.
-    public static final int POST_COL = 24;
-    public static final int POST_ROW = 11;
+    public static final int POST_COL = 40;
+    public static final int POST_ROW = 18;
 
     // Starting stock, and the price of things.
     public static final int START_BAMBOO = 6;
@@ -89,8 +92,8 @@ public final class Constants {
     public static final int MAX_CRATES = 2;
 
     // The walking tanod
-    public static final int PLAYER_START_COL = 21;
-    public static final int PLAYER_START_ROW = 12;
+    public static final int PLAYER_START_COL = 34;
+    public static final int PLAYER_START_ROW = 20;
     public static final double PLAYER_SPEED = 1.5;          // pixels per frame
     public static final double LAND_REACH = 40;             // how far the tanod can harvest on land
     public static final double FISH_REACH = 120;            // how far a line can be cast for fish
@@ -100,7 +103,7 @@ public final class Constants {
 
     // Light at night
     public static final double LANTERN_RADIUS = 38;
-    public static final double TORCH_RADIUS = 34;
+    public static final double TORCH_RADIUS = 50;
     public static final int TORCH_COST_BAMBOO = 2;
     public static final int TORCH_MAX = 8;
 

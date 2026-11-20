@@ -119,8 +119,8 @@ public class EndingScene {
             if (depth < 2 || depth > 3) {
                 continue;
             }
-            double tx = col * Constants.TILE_SIZE + 8;
-            double ty = row * Constants.TILE_SIZE + 8;
+            double tx = col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
+            double ty = row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
             boolean crowded = false;
             for (Boat b : boats) {
                 if (Math.hypot(b.targetX - tx, b.targetY - ty) < 34) {

@@ -19,7 +19,7 @@ public class Net implements Defense {
     private static final int MAX_HEALTH = 4;
 
     private static final String SPRITE_PATH = "/atingdagat/res/buildings/net.png";
-    private final BufferedImage sprite = Assets.get(SPRITE_PATH, 16, 16);
+    private final BufferedImage sprite = Assets.get(SPRITE_PATH, Constants.TILE_SIZE, Constants.TILE_SIZE);
 
     private final int col;
     private final int row;

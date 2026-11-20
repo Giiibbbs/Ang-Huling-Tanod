@@ -594,7 +594,7 @@ public class GameWorld {
         if (gained <= 0) {
             return;
         }
-        ResourceType type = target.getType();
+        ResourceType type = target.getType().getStock();   // a tree gives bamboo
         inventory.add(type, gained);
         String text = "+" + gained + " " + type.getLabel();
         if (type.getMeals() > 1) {
@@ -983,13 +983,13 @@ public class GameWorld {
             while (c < Constants.MAP_COLS && map.isWater(row, c)) {
                 c++;
             }
-            return new double[]{(c - 1) * Constants.TILE_SIZE + 8, c * Constants.TILE_SIZE + 8};   // water x, first land x
+            return new double[]{(c - 1) * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0, c * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0};   // water x, first land x
         }
         int c = Constants.MAP_COLS - 1;
         while (c >= 0 && map.isWater(row, c)) {
             c--;
         }
-        return new double[]{(c + 1) * Constants.TILE_SIZE + 8, c * Constants.TILE_SIZE + 8};
+        return new double[]{(c + 1) * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0, c * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0};
     }
 
     private void sendBangka(int night) {
@@ -999,7 +999,7 @@ public class GameWorld {
         }
         boolean west = index % 2 == 0;
         double[] shore = shoreAt(west);
-        double y = Constants.POST_ROW * Constants.TILE_SIZE + 8;
+        double y = Constants.POST_ROW * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
         double startX = west ? -24 : Constants.INTERNAL_WIDTH + 24;
         Survivor passenger = makeSurvivor(index, shore[1], y + 4);
         boats.add(new Bangka(startX, y, shore[0], passenger));

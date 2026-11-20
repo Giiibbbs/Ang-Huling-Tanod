@@ -26,6 +26,8 @@ public class ResourceNode implements Harvestable {
 
     private static final int DEFAULT_UNITS = 4;
     private static final double CLICK_RADIUS = 13;
+    private static final int TREE_W = 20;
+    private static final int TREE_H = 28;
 
     private final ResourceType type;
     private final BufferedImage sprite;
@@ -46,6 +48,9 @@ public class ResourceNode implements Harvestable {
 
     /** The art for this spot. If there is no picture for this exact ore, we recolor the shared ore picture. */
     private static BufferedImage loadSprite(ResourceType type) {
+        if (type == ResourceType.TREE) {
+            return Assets.get(type.getSpritePath(), TREE_W, TREE_H);   // trees are taller than a tile
+        }
         BufferedImage own = Assets.get(type.getSpritePath(), 16, 16);
         if (own != null || type.getCategory() != ResourceType.Category.ORE) {
             return own;
@@ -66,7 +71,7 @@ public class ResourceNode implements Harvestable {
     @Override
     public boolean isNear(double px, double py) {
         double dx = px - getX();
-        double dy = py - getY();
+        double dy = py - (type == ResourceType.TREE ? getY() - 8 : getY());   // click anywhere on the leaves
         return dx * dx + dy * dy <= CLICK_RADIUS * CLICK_RADIUS;
     }
 
@@ -118,8 +123,14 @@ public class ResourceNode implements Harvestable {
             if (empty) {
                 g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.35f));
             }
-            g.drawImage(sprite, x - 8, y - 8, null);
+            if (type == ResourceType.TREE) {
+                g.drawImage(sprite, x - TREE_W / 2, y + 6 - TREE_H, null);   // the trunk's foot is on the tile
+            } else {
+                g.drawImage(sprite, x - 8, y - 8, null);
+            }
             g.setComposite(old);
+        } else if (type == ResourceType.TREE) {
+            drawTree(g, x, y, empty);
         } else if (type == ResourceType.BAMBOO) {
             drawBamboo(g, x, y, empty);
         } else {
@@ -132,6 +143,33 @@ public class ResourceNode implements Harvestable {
         g.fillRect(x - w / 2, y + 9, w, 3);
         g.setColor(empty ? new Color(255, 255, 255, 60) : Color.WHITE);
         g.fillRect(x - w / 2, y + 9, w * remaining / maxUnits, 3);
+    }
+
+    /** A round tree: trunk and two blobs of leaves. Chopped trees leave a stump. It grows back slowly. */
+    private void drawTree(Graphics2D g, int x, int y, boolean empty) {
+        g.setColor(new Color(0, 0, 0, 50));
+        g.fillOval(x - 7, y + 2, 14, 6);                       // shadow
+        g.setColor(new Color(112, 78, 44));
+        g.fillRect(x - 1, y - (empty ? 1 : 6), 3, empty ? 7 : 12);   // trunk (a stump when empty)
+        g.setColor(new Color(60, 40, 22));
+        g.drawRect(x - 1, y - (empty ? 1 : 6), 2, empty ? 6 : 11);
+        if (empty) {
+            return;
+        }
+        int leaves = Math.max(1, Math.min(3, (remaining * 3 + maxUnits - 1) / maxUnits));   // fewer leaves as it is chopped
+        g.setColor(new Color(46, 110, 52));
+        g.fillOval(x - 9, y - 18, 18, 14);
+        g.setColor(new Color(72, 150, 70));
+        g.fillOval(x - 7, y - 22, 15, 13);
+        if (leaves >= 2) {
+            g.setColor(new Color(110, 190, 90));
+            g.fillOval(x - 4, y - 21, 7, 5);
+        }
+        if (leaves >= 3) {
+            g.setColor(new Color(236, 120, 70));                // a few fruits
+            g.fillRect(x - 5, y - 12, 2, 2);
+            g.fillRect(x + 3, y - 14, 2, 2);
+        }
     }
 
     private void drawBamboo(Graphics2D g, int x, int y, boolean empty) {
@@ -216,8 +254,8 @@ public class ResourceNode implements Harvestable {
     }
 
     private static void addDefaults(ArrayList<ResourceNode> nodes) {
-        nodes.add(new ResourceNode(ResourceType.BAMBOO, 16, 9, 6));
-        nodes.add(new ResourceNode(ResourceType.NICKEL, 25, 9, 5));
-        nodes.add(new ResourceNode(ResourceType.COPPER, 21, 14, 4));
+        nodes.add(new ResourceNode(ResourceType.BAMBOO, 23, 14, 6));
+        nodes.add(new ResourceNode(ResourceType.NICKEL, 46, 14, 5));
+        nodes.add(new ResourceNode(ResourceType.COPPER, 34, 24, 4));
     }
 }
