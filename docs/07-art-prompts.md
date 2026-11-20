@@ -2,7 +2,7 @@
 
 *Owner: Jaron. Written by the art director role. Goal: every sprite looks like it belongs in the same game.*
 
-The game draws on a 640x360 screen with 16x16 tiles, in a 3/4 top-down view. Sprites must match that.
+The game draws on a 640x360 screen with 10x10 tiles, in a 3/4 top-down view. Sprites must match that.
 
 ## The plan: test first, then bulk
 
@@ -80,7 +80,7 @@ Look at them **side by side**, then **shrunk to their in-game size** (32x16, 32x
 - [ ] Still readable when shrunk to in-game size
 - [ ] Background is one flat magenta, with no gradient and no pink halo on the edges
 - [ ] Nothing like a real flag or a copyrighted character
-- [ ] The scale makes sense next to a 16x16 tile (the skiff is about 2 tiles long)
+- [ ] The scale makes sense next to a 10x10 tile (the skiff is about 3 tiles long). Sprites are bigger than a tile on purpose: a tree or a ore rock overlaps its neighbors a little
 
 If it fails, tell Gabriel which item failed. Typical fixes: add "fewer small details" or "bolder shapes" to the
 style bible, add "flat colors, no gradients", or reduce the palette to 16 colors.
@@ -136,22 +136,78 @@ with no code change. Missing ones show simple shapes. Generate **larger** than t
 
 | File | In-game size | Notes |
 |---|---|---|
-| `ships/skiff.png` | 32 x 16 | Points **right** |
-| `ships/cutter.png` | 28 x 12 | Points right. Slimmer and faster-looking than the skiff |
-| `ships/barge.png` | 44 x 20 | Points right. Wide, flat landing barge with a ramp |
+| `ships/skiff.png` | 38 x 12 | Points **right**. **Done: Jaron's art is in the game** (the game scales it down, so a big original is fine) |
+| `ships/cutter.png` | 40 x 12 | Points right. Slimmer and faster-looking than the skiff. **Done** |
+| `ships/barge.png` | 58 x 25 | Points right. Wide, flat landing barge. **Done** |
+| `ships/flagship.png` | 100 x 50 | Points right. The Kordan flagship the Bakunawa swallows on night 7. **Done**. Tip: the magenta must be one flat colour. The first flagship had a darker magenta (228, 2, 204), so we flattened it to 255, 0, 255 |
 | `buildings/lighthouse.png` | 32 x 48 | Base of the tower at the bottom of the image |
 | `buildings/post.png` | 40 x 32 | Grounded ship with a cabin and a radio mast |
 | `buildings/net.png` | 16 x 16 | One tile of net between two bamboo posts |
 | `buildings/mine.png` | 16 x 16 | Floating spiked mine buoy |
+| `player/down.png`, `up.png`, `left.png`, `right.png` | 18 x 22 | **The tanod** (already drawn by us as a placeholder: chibi, headband, teal vest, lantern). Standing pictures. Walking steps are `down2.png`, `down3.png`, `up2.png`, `up3.png`, `left2.png`, `left3.png`, `right2.png`, `right3.png`. Replace any of them with better art |
+| `buildings/torch.png` | 12 x 16 | Bamboo torch with a flame, 3/4 view |
+| `buildings/pana.png` | 14 x 20 | Bamboo arrow tower: four bamboo legs, a small platform and a bow on top. Optional (we draw one in code) |
+| `survivors/kainday.png`, `survivors/migo.png`, `survivors/tonyo.png` | 18 x 22 each | The three survivors, chibi, same style as the tanod, standing pose, facing down. Ka Inday: elder Babaylan, white cloth, red headband. Migo: young, blue polo, headset. Tonyo: green jacket, red cap, rifle across the body. Optional (we draw them in code) |
+| `items/crate.png` | 16 x 16 | Floating wooden supply crate with metal corners, 3/4 view. Optional (we draw one in code) |
+| `nodes/tree.png` | 20 x 28 | **A tree** (taller than a tile): round leafy canopy, short trunk, 3/4 view. The trunk's foot sits on the tile. Optional (we draw one in code) |
 | `nodes/bamboo.png` | 16 x 16 | Bamboo grove |
 | `nodes/ore.png` | 16 x 16 | **One grey rock with metal glints. The game recolors it into nickel, copper, chromite and gold**, so you need only this one |
 | `nodes/nickel.png`, `copper.png`, `chromite.png`, `gold.png` | 16 x 16 | **Optional.** Only if you want each ore to have its own picture. Otherwise the recolored rock is used |
-| `fish/tamban.png` | 10 x 5 | Small silver sardine, points **right** |
-| `fish/galunggong.png` | 12 x 6 | Round scad, blue-silver, points right |
-| `fish/bangus.png` | 14 x 6 | Slim bright-silver milkfish, points right |
-| `fish/tuna.png` | 20 x 8 | Big dark-blue torpedo-shaped tuna, points right |
-| `fish/lapulapu.png` | 20 x 10 | Orange-red grouper (the rare, valuable one), points right |
+| `fish/tamban.png` | 14 x 5 | Small silver sardine, points **right** |
+| `fish/galunggong.png` | 16 x 7 | Round scad, blue-silver, points right |
+| `fish/bangus.png` | 18 x 7 | Slim bright-silver milkfish, points right |
+| `fish/tuna.png` | 22 x 9 | Big dark-blue torpedo-shaped tuna, points right |
+| `fish/lapulapu.png` | 22 x 11 | Orange-red grouper (the rare, valuable one), points right |
 | `ui/bamboo.png`, `ui/fish.png`, `ui/nickel.png`, `ui/copper.png`, `ui/chromite.png`, `ui/gold.png` | 10 x 10 | HUD icons. Must read clearly when tiny |
+
+### The tanod (4 directions)
+
+*In-game size: 18 x 22 (a chibi: big head, small body, like a 2D Pokémon-style trainer). Make four separate images of the SAME character so Jaron can name them `down`, `up`, `left`, `right`. We already have a drawn placeholder set; this prompt is only if Jaron wants to improve it.*
+
+```
+[STYLE BIBLE]
+SUBJECT: a Filipino tanod (barangay watchman), young adult, CHIBI proportions (big head, small body), black hair with a
+small ponytail, a cloth headband, an open teal vest over a bare chest, rolled-up khaki shorts, barefoot, holding a small glowing
+lantern in one hand. Determined, friendly face. Clean pixel art with a dark outline.
+VIEW: seen from a 3/4 top-down angle, FACING THE VIEWER (this is the "down" image).
+Then repeat with the SAME character facing AWAY from the viewer (up), facing LEFT, and facing RIGHT.
+COLOR RULE: the object itself must contain no magenta, hot pink, or purple.
+```
+
+### Tree
+
+```
+[STYLE BIBLE]
+SUBJECT: a single round tropical island tree (mango or narra), thick short trunk, full rounded dark-green canopy with lighter
+highlights on top, a few small orange fruits. 3/4 top-down angle, no ground, no shadow.
+COLOR RULE: the object itself must contain no magenta, hot pink, or purple.
+```
+Ask for it 20 wide by 28 tall (about 3:4). Save as `nodes/tree.png`.
+
+### Supply crate
+
+```
+[STYLE BIBLE]
+SUBJECT: a small wooden supply crate with metal corner plates and a rope handle, floating, slightly weathered.
+3/4 top-down angle, no water, no shadow.
+COLOR RULE: the object itself must contain no magenta, hot pink, or purple.
+```
+
+### Torch
+
+```
+[STYLE BIBLE]
+SUBJECT: a single bamboo torch planted in sand, tall thin bamboo pole with a wrapped cloth head burning with a small
+orange flame. 3/4 top-down angle, no ground, no shadow.
+COLOR RULE: the object itself must contain no magenta, hot pink, or purple.
+```
+
+## IMPORTANT: Gemini often saves WebP, not PNG
+
+If you rename a `.webp` file to `.png`, the game **cannot read it** (the Output window says `Could not read image`) and shows
+shapes instead. Always save as a real PNG: in the browser choose **Save image as** and pick PNG, or open the image in Paint and
+choose **Save as > PNG**. To check: the file's Type in File Explorer must say "PNG", not "WEBP".
+Fish should also be **cropped close** around the fish, with little empty background, because they are drawn very small.
 
 ## Full asset list (generate after the test passes)
 

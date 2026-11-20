@@ -108,7 +108,7 @@ from two places at once.
 **Why:**
 - **A resizable window for free.** Game positions never depend on the window size.
 - **Sharp pixel art.** Enlarging with "nearest neighbor" makes crisp squares, not blur.
-- **Simple math.** 16-pixel tiles fit exactly 40 across.
+- **Simple math.** 16-pixel tiles fit exactly 40 across. (Later we made the tiles 10 pixels, 64 across, so the island has a finer coast and more room for trees.)
 
 **Without it:** resizing the window would break the layout, the mouse position, and the art.
 

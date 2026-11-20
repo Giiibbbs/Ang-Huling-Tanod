@@ -31,13 +31,13 @@ blood effects stay off by default.
 
 ## The loop
 
-One night is one pass through the loop. Surviving night 7 and sending the final broadcast brings the relief fleet.
+One night is one pass through the loop. Surviving night 7 triggers the Bakunawa eclipse, and then the ending (see "The ending" below).
 
 1. **Day: harvest and build.** Send villagers to gather fish, bamboo, and ore, and spend resources on defenses.
 2. **Dusk: preview and prepare.** A preview shows what the next wave looks like, so you can adjust.
 3. **Night: defend and broadcast.** Steer the beam, identify targets, fire, and keep the radio alive.
-4. **Dawn: report and repair.** Count the damage and repair. Then ask: is night 7 done? If yes, the relief fleet arrives
-   and the final broadcast wins. If no, the next night begins.
+4. **Dawn: report and repair.** Count the damage and repair. Then ask: is night 7 done? If yes, the ending plays
+   and you win. If no, the next night begins.
 
 The big decision in every loop is how much to harvest, because overharvesting weakens the island.
 
@@ -161,8 +161,9 @@ Controls are mouse-first, so anyone can learn them in a minute.
 | Input | Action |
 |---|---|
 | Mouse click | Place a defense, or send villagers to harvest by day |
-| Mouse move | Aim the lighthouse beam at night |
-| Left click | Fire the deck gun at the beam's target |
+| W A S D | Walk the island (the tanod cannot enter the sea) |
+| Hold Space at the lighthouse | Steer the beam by hand at night. Otherwise it sweeps by itself |
+| Left click | Harvest, build, or fire at a lit ship, all within the tanod's reach |
 | Space | Sound the horn and gongs (noise) |
 | 1 to 5 | Choose a defense |
 | P | Pause |
@@ -176,7 +177,27 @@ defense bar, and a dusk preview of the next wave.
 
 ## Win, lose, and scoring
 
-You **win** by surviving 7 nights and sending the final broadcast, which brings the relief fleet.
+You **win** by surviving 7 nights. The ending is a story told in two parts.
+
+### The ending
+
+**Night 7: the Bakunawa.** When the last wave of night 7 has set sail, the moon goes dark (an eclipse) and the Bakunawa, the
+moon-eating dragon of Filipino folklore, rises from the sea. **The lighthouse lamp goes out**, so only the lantern and the
+torches give light. The Kordan flagship waits at sea in a red glow. In the old stories people drove the Bakunawa away by making
+noise with pots and gongs, so the player must **tap Space to sound the gongs** and fill a noise meter (it drains if you stop). When
+it is full the dragon dives, swallows the Kordan flagship, and every ship still afloat goes down with it. Then it sinks away and the
+moon returns.
+
+**Dawn of the eighth day.** A short story plays over the island (about 30 seconds, ENTER skips it):
+
+1. The sea is dark and quiet. The Kordan fleet is gone.
+2. Tiny lights appear one by one across the water: other islands, answering the radio.
+3. A voice on the radio says "May natitira pa kami."
+4. Bangkas (fishing boats) with lanterns sail in from every side while the sun rises.
+5. A helicopter flies in over the post.
+6. The title card: **"May natitira pa tayo."** and **"You were never the last tanod."**
+
+The idea: the title says "the last tanod", and the ending shows he never was. The radio broadcast was heard.
 
 You **lose** when any of these happens:
 
@@ -190,7 +211,7 @@ end. The best scores are saved to a file.
 ## Art direction
 
 3/4 top-down pixel art with more detail than a low-resolution look: the game draws on an internal 640x360 screen and
-scales it up (see the code guide). 16x16 tiles. Free CC0 asset packs plus AI-assisted reference art for custom pieces;
+scales it up (see the code guide). 10x10 tiles (the island is 64 by 36 tiles). Free CC0 asset packs plus AI-assisted reference art for custom pieces;
 every source is listed in [CREDITS.md](../CREDITS.md). The art stays inspiration-only: we do not copy any existing
 game's art.
 
@@ -237,11 +258,18 @@ schedule in [02-project-plan.md](02-project-plan.md).
 
 | Design item | In the build? | Note |
 |---|---|---|
-| Island map from a text file, depth shading | Yes | `data/island.txt` |
+| Island map from a text file, depth shading | Yes | `data/island.txt`. 64 x 36 tiles of 10 px. The island is about 1.2 times bigger than the first version, same shape, with a smoother coast |
+| Trees | Yes | 11 trees on the island. Hold the mouse on one to chop it (3 bamboo each, 3 chops per tree, grows back slowly) |
 | Day, dusk, night, dawn cycle | Yes | Dusk fades the light in. It is not yet a "preview of the night" |
 | Harvesting (bamboo, 4 ores, 5 fish) | Yes | You HOLD the mouse. Bamboo regrows slowly, ore never does, fish schools swim and must be followed |
 | Ore uses | Yes | Nickel: mines. Copper: radio rewire. Chromite: post armor. Gold: lamp upgrade |
-| Lighthouse beam and darkness | Yes | |
+| Lighthouse beam and darkness | Yes | The beam now sweeps by itself, so there is no more circling to cover blind spots |
+| Walking tanod, lantern, torch posts | Yes | WASD. The lantern lights a small circle. Torches (2 bamboo, up to 8, on land) light fixed patches of shore (radius 50 px) |
+| Day dial and Workshop panel | Yes | The dial shows the sun and moon, the time left in the phase, and ships left at night. The Workshop (left, by day) lists every build and upgrade with cost, what you have, and level. You can click rows or use the keys |
+| Survivors by bangka | Yes | After night 2, 4 and 6 a bangka lands at dawn with a survivor, a classmate-inspired character. **Ka Inday** (Babaylan) slowly heals the post and radio. **Migo** (radio nerd) keeps the signal climbing and brings crates faster. **Tonyo** (sentry) shoots lit ships near the post. They stand with you in the ending |
+| Pana tower | Yes | 4 bamboo, up to 4, on free land. Shoots the nearest ship in range about every 1.7 s with no light needed |
+| Supply crates | Yes | A crate floats in about every 24 s (every 14 s if the radio is 70 or more). Cast a line and hold the mouse on it to get 1-2 ore. Ore that has run out on the map is 3 times as likely to be inside, so the player is never stuck. Drifts away at night or after 45 s |
+| Reach limits | Yes | Land things 40 px, fish 120 px (cast from the shore), building 80 px, gun 200 px |
 | Net barrier | Yes | 3 bamboo, shallow water. Ships stop and cut it |
 | Mine buoy | Yes | 2 ore. Explodes when a ship comes near |
 | Skiff, cutter, landing barge | Yes | Waves in `data/waves.txt` |
@@ -249,4 +277,6 @@ schedule in [02-project-plan.md](02-project-plan.md).
 | Gun | Simplified | Click a lit ship to fire. The aimed deck gun and the coastal gun are planned |
 | Repair | Simplified | Press R in the day (2 meals of fish). No resource-depletion penalty yet |
 | Sound, high-score file | Not yet | Never-cut items |
-| Infiltrators, babaylan, Bakunawa, frigate, dreadnought | Not yet | See the cut order in the plan |
+| Bakunawa eclipse (night 7) | Yes | A scripted event: moon eaten, lamp out, tap Space for the gongs, the flagship is swallowed. Not a boss fight with health |
+| Ending scene | Yes | Lights across the sea, a radio voice, bangkas, sunrise, helicopter, title card. Replaces the plain victory text |
+| Infiltrators, babaylan, frigate, dreadnought | Not yet | See the cut order in the plan |

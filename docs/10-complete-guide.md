@@ -95,9 +95,9 @@ The per-file table (what each file does and what it depends on) is in [08-file-r
 
 | File | Format | Edit it to |
 |---|---|---|
-| `island.txt` | 40 columns x 23 rows of `~` water, `:` sand, `#` grass | Redraw the island |
+| `island.txt` | 64 columns x 36 rows of `~` water, `:` sand, `#` grass | Redraw the island |
 | `waves.txt` | `night skiffs cutters barges seconds` per line | Make nights easier or harder |
-| `nodes.txt` | `TYPE column row units` per line (`BAMBOO`, `NICKEL`, `COPPER`, `CHROMITE`, `GOLD`) | Move or add spots, or change how much a vein holds |
+| `nodes.txt` | `TYPE column row units` per line (`BAMBOO`, `TREE`, `NICKEL`, `COPPER`, `CHROMITE`, `GOLD`) | Move or add spots, or change how much a vein holds |
 
 Lines starting with `#` are comments. A bad line is skipped with a message, and a missing file uses defaults. The game does not crash.
 
@@ -234,7 +234,7 @@ Save the PNG with the exact name in `res/`. See `07-art-prompts.md`. No code cha
 - **Enum**: a fixed list of names (`Phase.NIGHT`).
 - **ArrayList**: a list that grows. **Array**: a fixed-size list.
 - **Frame**: one pass of the loop (1/60 second).
-- **Tile**: one square of the map (16 x 16 pixels).
+- **Tile**: one square of the map (10 x 10 pixels).
 - **Sprite**: a picture of a thing. **Placeholder**: a simple shape drawn until the sprite exists.
 - **Chroma key**: removing a background color (our magenta) to make it transparent.
 - **Package**: a folder of related classes.

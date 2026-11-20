@@ -89,7 +89,7 @@ the window is.
 
 1. **A resizable window.** The game logic always uses the same 640x360 coordinates, so resizing never breaks anything.
 2. **Sharp pixel art.** We stretch with "nearest neighbor", which makes pixels bigger instead of blurry.
-3. **Simple math for art.** Every tile is 16x16 pixels, so the map is 40 by 22.5 tiles on the small screen.
+3. **Simple math for art.** Every tile is 10x10 pixels, so the map is 64 by 36 tiles on the small screen.
 
 **How it works:**
 
@@ -275,7 +275,7 @@ cooking on your own.
 
 ## 7. The island and sea (`TileMap`, in `atingdagat.map`)
 
-**In one sentence:** the map is a grid of 16x16 tiles read from a text file, and `TileMap` draws the island, shades the
+**In one sentence:** the map is a grid of 10x10 tiles (64 by 36) read from a text file, and `TileMap` draws the island, shades the
 water by depth, and adds foam along the shore.
 
 **Why we did it this way:**
@@ -284,6 +284,8 @@ water by depth, and adds foam along the shore.
   `:` sand, `#` grass). Anyone on the team can open it in Notepad and reshape the island without touching Java. It is
   also the file I/O the rubric asks for.
 - **A 2D array.** A grid is the natural fit: `tiles[row][col]`. Looking up a tile is instant.
+- **Depth in 16 px units.** `getDepth()` counts steps from the shore in tiles and then converts to units of `Constants.DEPTH_UNIT_PX` (16 px).
+  So "nets go 3 deep" means about 48 px whatever the tile size is. We made the tiles smaller (16 px to 10 px) and no rule in the game had to change. Positions in `Constants` (`POST_COL`, `LIGHTHOUSE_COL`) and in `nodes.txt` are tile numbers, so those were converted once.
 - **Loaded from inside the project.** We read the file with `getResourceAsStream`, not a path like `C:\...`, so it still
   works from the JAR on another computer.
 - **A safe fallback.** If the file is missing or has no land, we print a warning and build a default oval island in code.
@@ -624,6 +626,7 @@ It also covers the rubric's **file I/O** (15%).
 | Thing | Where | What makes it a decision |
 |---|---|---|
 | Bamboo | Groves on land (`data/nodes.txt`) | Takes 1.5 s per unit. Grows back slowly |
+| Trees | `TREE` lines in `data/nodes.txt` | Take 1.8 s per chop and give 3 bamboo each. A `ResourceType` line: `getStock()` says a tree puts **bamboo** in the bag, so the player has one building material. Three chops, then a stump that regrows |
 | Nickel, copper, chromite, gold | Ore veins on land | Take 2.5 to 4 s per unit. **Never grow back**, so every vein is finite |
 | Fish (5 kinds) | Swim around the sea | Schools **move**. Keep the cursor on one or the ring drains. They vanish after about 28 seconds |
 
@@ -783,7 +786,150 @@ a time and each appears with **no code change**. The exact file names and sizes 
 
 ---
 
-## 22. What we plan to add (and what each will teach)
+## 22. The walking tanod and the lights (`Player`, `Light`, `Lantern`, `Torch`)
+
+**The problem we solved.** At first the only light was one beam that followed the mouse. A beam is a thin cone, so most of
+the sea was always dark, and the player had to circle the beam round and round. That is a chore, not a decision.
+
+**The fix, in plain words.** Three kinds of light now work together, and a ship does not care which one finds it.
+
+- **`Light` (an interface).** One promise: `boolean lights(double x, double y)`. The beam, the lantern and the torch all make
+  this promise. In `Warship.updateLight` a ship only asks "does any light touch me?". This is polymorphism: the ship
+  code never mentions Beam, Lantern or Torch. `GameWorld.isLit` asks them all.
+- **`GlowSource` (a second interface).** For lights that are a round pool (lantern, torch). `NightOverlay` reads their
+  position and radius to cut a hole in the darkness for each one.
+- **`Beam`** now has `update(boolean manual)`. Nobody steering: it adds `SWEEP_SPEED` to its angle every frame, so it
+  turns by itself (one circle in about 5 seconds). Steering: it turns toward the mouse like before.
+- **`Player`** holds the tanod's feet position, faces the way it last moved, and loads 4 sprites (`down`, `up`, `left`, `right`
+  with an optional second walking frame). **Collision** is simple: each frame we try the X move and the Y move separately,
+  and cancel a move if either foot would stand on a water tile. Trying X and Y separately lets the tanod slide along the beach
+  and not get stuck. Diagonal walking divides by the length of the move, so it is not faster than walking straight.
+- **`Lantern`** has no body. It points at the Player and lights a circle of `LANTERN_RADIUS` around it.
+- **`Torch`** is a `Defense` (it sits in the same list as nets and mines), a `Light` and a `GlowSource`. One class, three promises.
+  It stands on land, never blocks ships, and cannot be destroyed.
+
+**Reach.** `GameWorld.inReach(x, y, radius)` is the distance between the tanod's feet and a point. Harvesting, building and
+shooting all call it, with a different radius from `Constants` (`LAND_REACH`, `FISH_REACH`, `BUILD_REACH`, `FIRE_RANGE`). This is why
+walking matters: the tanod must go to the thing.
+
+**Steering the beam.** `GameWorld.update` sets `manual = steering && isNearLighthouse()`. SPACE held at the tower
+steers. Anywhere else, the beam sweeps.
+
+**Keys reach the world** through `GamePanel`, which reads the `keys[]` array each frame and calls `world.setInput(moveX, moveY, steering)`.
+
+**Why this is good OOP.** Adding a new light later (a flare, a searchlight on a ship) means one new class that implements `Light`.
+No ship code changes.
+
+---
+
+## 23. The day dial and the Workshop panel (`Hud`, `MarketPanel`)
+
+**The day dial** is in `Hud.drawClock`. A circle is clipped (so nothing draws outside it) and painted in layers: the sky, the stars,
+the sun or moon, then the ground on top (which hides the sun when it sinks below the horizon). The sky colour comes from
+`DayCycle.getDarkness()` mixed with orange at dusk and dawn (`mix` blends two colours: `a + (b - a) * t`). The sun's place comes
+from the phase and `progress()`: by day it moves along an arc (`cos` and `sin` of an angle that goes from PI to 0), at dusk it sinks,
+at dawn it rises. The ring around the dial is an arc whose length is the progress (at night, the share of ships still to come).
+`DayCycle.getSecondsLeft()` gives the "0:32 to dusk" text.
+
+**The Workshop** is `MarketPanel`. An `enum Offer` holds the fixed facts of each row (key, label, the resource it costs, the price, a help text),
+so adding an item is one new line there plus one case in `use`. Each row shows:
+- a progress bar of `have / cost` (green when you can afford it, orange when not, grey when maxed),
+- the numbers ("6/3 bamboo"),
+- a status on the right (torches built, a level, or health).
+
+**Clicking.** `GamePanel` asks `market.click(...)` first. It returns `true` when the click landed on the panel, and then the world does
+NOT also treat it as a click on the map. If you click the panel while holding nothing, nothing else happens. Rows call the same
+methods as the keys (`toggleTool`, `repair`, `rewire`, `armorPost`, `upgradeLamp`), so the keys and the panel can never disagree.
+The panel only draws in the day, and **B** hides it.
+
+**The cost label** next to the cursor while placing (`GameWorld.drawBuildGhost`) says the price and what you have.
+
+---
+
+## 24. Night 7: the Bakunawa and the ending (`Bakunawa`, `EndingScene`)
+
+**`Bakunawa` is a small state machine.** A state machine means the object is always in exactly one *stage*, and each stage has its own
+rules. The stages are an enum: `IDLE`, `RISING`, `GONGS`, `SWALLOW`, `DONE`. `update()` does a `switch` on the stage, and when a stage's
+condition is met it sets the next stage and resets `timer`.
+
+| Stage | What happens | Moves on when |
+|---|---|---|
+| RISING | The moon is eaten, the dragon comes down from the top of the screen | 170 frames pass |
+| GONGS | The dragon hovers. The player taps Space (`gong()` adds to `noise`, `update()` drains it) | `noise` reaches 100 |
+| SWALLOW | It dives at the flagship, bites, the flagship sinks, it leaves | 230 frames pass |
+| DONE | The moon is back, the night may end | |
+
+**How the world uses it.** `GameWorld.updateEclipse()` starts it when night 7's queue is empty, calls `update`, switches the beam
+with `beam.setOn(!dragon.isEclipse())`, and when `consumeBite()` says "true" (it returns true exactly once, so the explosion happens once)
+it blows up every ship and clears the list. `checkNightOver` waits for `dragon.isDone()` on the last night.
+A subtle bug we fixed: the meter was capped at 100 and then drained BEFORE the "is it full?" check, so it could never read 100.
+Check first, then drain.
+
+**How the dragon is drawn.** The head moves along a path made with `sin` and easing. The body is 30 circles, and each one is placed where the head
+was a few frames ago (`trail` is a list of the head's last positions, newest first). That is why the body follows the head like a snake with no
+extra maths. The jaws are two polygons that open and close with `sin`.
+
+**`EndingScene` is a timeline.** One counter `frames`, and each thing starts at its own frame: captions (`Line` objects with `from` and `to`),
+lights (each has an appear frame), bangkas (each starts moving at its own frame toward a target), and the helicopter (starts at frame 1500).
+It sets the sky through `world.setForcedDarkness(...)`, so the sun rises by fading the darkness from 1 to 0.
+`skip()` just runs `advance()` in a loop until the title card, so skipping never leaves things in the wrong place.
+`GamePanel` shows it in the `VICTORY` state, without the HUD.
+
+**OOP and concepts to point at:** an enum as a state machine, one class owning its own timing and drawing (encapsulation), a timeline instead of many
+timers, and a small private class (`Line`, `Boat`) inside another class.
+
+---
+
+## 25. Supply crates (`SupplyCrate`)
+
+**The problem.** Ore never grows back, and the map holds less chromite (6) and gold (3) than the upgrades cost (9 and 4). A player could
+run out of something they need with no way to get more.
+
+**The fix.** A `SupplyCrate` floats in from the sea about every 24 seconds. You cast a line (same reach as fish) and hold the mouse on it.
+It is a `Harvestable`, so **the hold-the-mouse code did not change at all**. Only one thing was new in the interface: a `default` method
+`getHoldFrames()`. A default method gives every class a ready-made answer (the number in its `ResourceType`), and a class that wants something else
+(the crate opens faster than an ore vein) overrides it. That is the whole reason the interface has it.
+
+**Smart contents.** `GameWorld.pickCrateContents()` is a weighted random pick (nickel 4, copper 4, chromite 2, gold 1), but if
+`oreLeftOnMap(type)` is 0 (all its veins are empty) that ore's weight is multiplied by 3. We measured it: gold goes from 8.9% to 23% of crates
+once the gold veins are empty. Rare ores stay rare, but you can always get them.
+
+**Timing.** `updateCrates()` counts `crateTimer`, spawns when it passes the interval (shorter when the radio is strong, so protecting the radio pays),
+keeps at most 2 at once, and clears them at night. A crate drifts toward the island and stops in the shallows, bobs, and blinks in its last 6 seconds.
+
+---
+
+## 26. Survivors and the Pana tower (`Survivor`, `Bangka`, `PanaTower`)
+
+**The story.** After night 2, 4 and 6 a bangka (fishing boat) lands at dawn. Each carries a survivor of the Kordan blockade, a made-up
+character inspired by our classmates. A caption shows who they are and what they say.
+
+**Abstract class.** `Survivor` is `abstract`: you can never write `new Survivor()`. A "survivor" is an idea, and each real one has a job.
+What every survivor shares lives in the parent (walking home over land, drawing the body, the arrival text).
+The one different thing is a single method, `act(post, radio, ships, frame)`:
+
+| Class | `act()` does |
+|---|---|
+| `KaInday` | every 6 s: `post.repair(1)` and `radio.restore(2)`. Also a `GlowSource`, so she glows softly |
+| `Migo` | every 4 s: `radio.restore(1)`. Overrides `boostsCrates()` to return true |
+| `Tonyo` | finds the nearest **lit** ship within 95 px and hits it for 1 |
+
+`GameWorld` keeps one `ArrayList<Survivor>` and just loops `sv.act(...)`. It does not know who is who. That is the same polymorphism
+as `Warship` and `Defense`. `boostsCrates()` is a normal method with a default answer (false), and only `Migo` overrides it,
+so `updateCrates()` asks every survivor and Migo changes the crate speed without the world knowing his name.
+
+**The bangka.** `Bangka` sails in a straight line along the post's row from beyond the screen edge to the first shore tile. When it arrives
+`releaseCargo()` hands over the passenger once. Then the boat lingers and fades. Even nights come from the west, odd ones from the east.
+The survivor then walks to a spot near the post, and `update()` refuses to step on water.
+
+**The Pana tower.** `PanaTower implements Defense` (the fourth one). Like `Mine`, it does its work in `update(ships)`: find the nearest ship in range, hit for 1,
+wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which you cannot do by hand. It uses the same "free land" rule as the torch (`canPlaceTorch`).
+
+**Test key.** J brings all three survivors to the post at once, so you do not have to play to night 6 to see them.
+
+---
+
+## 27. What we plan to add (and what each will teach)
 
 | Feature | Concept it shows | Rubric area |
 |---|---|---|
@@ -814,7 +960,7 @@ a time and each appears with **no code change**. The exact file names and sizes 
 | Frame | One picture of the game. 60 per second. |
 | Game loop | The repeat of update then draw. |
 | Internal screen | The small 640x360 image we draw on. |
-| Tile | A 16x16 square of the map. |
+| Tile | A 10x10 square of the map. |
 | Nearest neighbor | Scaling that enlarges pixels without blur. |
 | EDT | Event Dispatch Thread, Swing's one thread. |
 | Enum | A fixed list of named values. |

@@ -103,9 +103,9 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 
 | File | What it does |
 |---|---|
-| `island.txt` | The island map, 40 columns by 23 rows. `~` water, `:` sand, `#` grass. Edit it in Notepad |
+| `island.txt` | The island map, 64 columns by 36 rows (10 px tiles). `~` water, `:` sand, `#` grass. Edit it in Notepad |
 | `waves.txt` | For each night: skiffs, cutters, barges, and seconds between ships |
-| `nodes.txt` | Where bamboo and the ore veins are: `TYPE column row units`. Fish are not in the file |
+| `nodes.txt` | Where bamboo, trees and the ore veins are: `TYPE column row units` (`TREE` is a choppable tree). Fish are not in the file |
 
 ## Where to change a number (tuning cheat sheet)
 

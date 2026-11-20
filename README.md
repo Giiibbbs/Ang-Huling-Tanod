@@ -4,7 +4,8 @@
 
 A 2D tower defense and survival game built with **Java Swing and AWT** (no external engines or libraries).
 You are the last *tanod* of Isla Dulo, the final free island of a fictional invasion. By day you harvest and build.
-By night you steer a lighthouse beam across the dark sea, because you can only see what the light touches, and keep
+By night the sea goes dark and you can only see what the light touches: the lighthouse beam sweeping the water, your own
+lantern, and the torches you planted. Walk the island, light the ships, shoot them, and keep
 the radio alive so the world hears that someone is still here. Survive seven nights.
 
 Final project for **Object-Oriented Programming**, BSIT 3A, University of Batangas Lipa City.
@@ -22,10 +23,18 @@ Work in progress. Current build: **playable core**. Harvest by day, build nets, 
 | Menu / Play / Pause screens | Done (placeholder visuals) |
 | Island tile map (loaded from a text file, depth shading, foam) | Done |
 | Lighthouse beam and night overlay (only lit things are visible) | Done |
+| Walking tanod (WASD), lantern, auto-sweeping beam, torch posts, reach limits | Done |
+| Day dial (sun, moon, time left) and clickable Workshop panel with costs and progress | Done |
+| Supply crates: ore floats in from the sea (smart: favors the ore that has run out) | Done |
+| Survivors by bangka (Ka Inday, Migo, Tonyo) at dawn after nights 2, 4, 6, plus the Pana tower | Done |
+| Bigger island on a finer 10 px tile grid, with 11 choppable trees; brighter torches | Done |
+| Night 7: Bakunawa eclipse event (lamp goes out, sound the gongs, the flagship is swallowed) | Done |
+| Ending scene: lights across the sea, bangkas, sunrise, helicopter, title card | Done |
 | First enemy ship (Skiff) with wake, art loader | Done |
 | Day/night cycle, harvesting, nets, post and radio, HUD bars, win and lose | Done (first version, needs playtesting) |
 | Waves and resource spots read from text files | Done |
 | Cutter and barge ships, mine buoys (second defense) | Done (first version) |
+| Final ship art by Jaron: skiff, cutter, barge and the Kordan flagship | Done |
 | Hold-to-harvest, 4 ores with different uses, 5 kinds of swimming fish, finite ore | Done (first version) |
 | Sprites: all file names wired, art arrives from Jaron | In progress (shapes shown until then) |
 | Sound, high-score file, infiltrators, babaylan, Bakunawa, bosses | Next |
@@ -51,22 +60,32 @@ Current build:
 | Key | Action |
 |---|---|
 | Enter | Start from the menu |
-| Mouse | Aim the lighthouse beam (it turns toward the mouse) |
+| W A S D (or arrow keys) | Walk the island. You cannot walk into the sea |
+| Mouse | Point at things to harvest, build or shoot |
+| Space (hold, next to the lighthouse, night) | Steer the beam by hand toward the mouse. Otherwise it sweeps by itself |
+| Space (tap, during the Bakunawa eclipse, night 7) | Sound the gongs. Tap fast to fill the noise meter |
 | P or Esc | Pause and resume |
 | M | Back to the menu (while paused) |
 | **Hold** left click on bamboo, ore or a fish school (day) | Harvest it. A ring fills. Let go early and it drains |
+| Click a row of the **WORKSHOP** panel (left, day only) | Build or upgrade. Each row shows its cost, what you have, and a progress bar |
+| B | Hide or show the workshop panel |
 | 1 | Net tool on or off (then click shallow water; 3 bamboo) |
 | 2 | Mine tool on or off (then click water near the island; 2 nickel) |
+| 3 | Torch tool on or off (then click free land; 2 bamboo). Lights the shore all night, up to 8 |
+| 4 | Pana tower tool on or off (then click free land; 4 bamboo). Shoots ships in range, even in the dark, up to 4 |
 | Right click | Put the tool away |
 | R | Repair the post and radio (2 meals of fish, day only) |
 | C | Rewire the radio (2 copper, +25 signal) |
 | V | Armor the post (3 chromite, +4 max health, up to 3 times) |
 | G | Upgrade the lamp (2 gold, wider and longer beam, up to 2 times) |
-| Left click (night) | Fire at a ship the beam is lighting |
+| Left click (night) | Fire at a LIT ship (the beam, your lantern or a torch must be lighting it, and it must be within gun range) |
 | N | Skip to the next phase (test key) |
+| L | Jump to the day before the last night (test key) |
+| E | Start the Bakunawa eclipse right now, at night (test key) |
+| K | Drop a supply crate now, in the day (test key) |
+| J | Bring all three survivors to the post now (test key) |
 
-Planned controls (mouse first): move the mouse to aim the lighthouse beam, left click to fire the deck gun or place a
-defense, number keys 1 to 5 to choose a defense, Space to sound the gongs. Details are in
+Planned: more defenses on the number keys. Details are in
 [docs/01-game-design.md](docs/01-game-design.md).
 
 ## Documentation

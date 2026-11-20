@@ -38,13 +38,16 @@ Slide: title, the island, one line of the pitch. Say that the empire is fictiona
 Run from the JAR, not from the IDE. Narrate what you do and *why*.
 
 1. **Menu.** Press Enter. *(Mention: the window is resizable, drag it once.)*
-2. **Day.** **Hold** the mouse on a bamboo grove until the ring fills. Chase a swimming fish school with the cursor. Press **1** and place a net, press **2** and place a mine.
+2. **Day.** Show the **day dial** (sun, time left) and the **Workshop** panel on the left. **Walk** with WASD to a bamboo grove and **hold** the mouse on it until the ring fills. Chase a swimming fish school with the cursor. Click the **Net** row in the Workshop (point at the cost and the progress bar) and place a net. Place a **torch** too.
    "Harvesting takes time, ore never grows back, and fish swim away. Fish repair, bamboo makes nets, nickel makes mines, copper fixes the radio, chromite armors the post, gold upgrades the lamp. The day is short, so I have to choose."
-3. **Dusk, then night.** Let the screen fade, or press **N** to skip. Move the mouse to sweep the beam.
-   "Only lit things are visible. The beam turns slowly, so I have to decide where to look."
+   Mention the story: "Survivors from the blockade escape by bangka. Press **J** to bring all three: Ka Inday heals the post, Migo keeps the radio strong, and Tonyo shoots lit ships. We built them from one abstract `Survivor` class." Show the **Pana tower** (key 4).
+3. **Dusk, then night.** Let the screen fade, or press **N** to skip. Point at the beam sweeping by itself, the lantern, and the torch.
+   "Only lit things are visible. The beam sweeps by itself, my lantern lights a small circle, and torches light fixed spots. I can also stand at the lighthouse and hold Space to steer the beam by hand."
 4. **A ship appears in the beam.** Click it to shoot. Show a net stopping a ship, and a mine going off.
    "I can only shoot what the beam has found."
-5. **Folklore moment.** Show the babaylan heal, or the Bakunawa eclipse. **[UPDATE: not built yet]**
+5. **Folklore moment and ending.** Press **L**, then **N** until it is night 7, then **E** to start the eclipse (or play it for real).
+   "The Bakunawa eats the moon, our lamp goes out, and like in the old stories we sound the gongs." Tap **Space** until the dragon swallows the flagship. Then let the ending play (about 30 seconds), or press ENTER to skip to the title card.
+   "Lights across the sea, other islands answering. You were never the last tanod."
 6. **Pause** with P to show the pause state, then resume.
 7. **HUD.** Point at the two bars: **Post** health and **Radio** signal. Say how you lose (either hits zero) and how you win (survive night 7).
    Show that the three ship types need different answers: the fast cutter, the tough barge, the common skiff.
