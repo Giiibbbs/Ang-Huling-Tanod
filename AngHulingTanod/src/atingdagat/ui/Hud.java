@@ -221,6 +221,7 @@ public class Hud {
         atingdagat.entities.Bakunawa dragon = world.getDragon();
         String caption = dragon.getCaption();
         if (caption.isEmpty()) {
+            drawStory(g, world);
             return;
         }
         int cx = Constants.INTERNAL_WIDTH / 2;
@@ -247,6 +248,27 @@ public class Hud {
             g.setColor(Color.WHITE);
             g.drawString("NOISE", bx - 34, y + 17);
         }
+    }
+
+    /** The short story box when a bangka lands: who they are, and what they say. */
+    private void drawStory(Graphics2D g, GameWorld world) {
+        String title = world.getStoryTitle();
+        if (title.isEmpty()) {
+            return;
+        }
+        String text = world.getStoryText();
+        double fade = world.getStoryFade();
+        int cx = Constants.INTERNAL_WIDTH / 2;
+        int y = 296;
+        g.setFont(BOLD);
+        FontMetrics fm = g.getFontMetrics();
+        int w = Math.max(fm.stringWidth(title), fm.stringWidth(text)) + 28;
+        g.setColor(new Color(10, 14, 28, (int) (205 * fade)));
+        g.fillRoundRect(cx - w / 2, y - 14, w, 36, 8, 8);
+        g.setColor(new Color(255, 215, 120, (int) (255 * fade)));
+        g.drawString(title, cx - fm.stringWidth(title) / 2, y);
+        g.setColor(new Color(235, 240, 250, (int) (255 * fade)));
+        g.drawString(text, cx - fm.stringWidth(text) / 2, y + 15);
     }
 
     private void drawBanner(Graphics2D g, GameWorld world) {

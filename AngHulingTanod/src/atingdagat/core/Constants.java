@@ -103,4 +103,18 @@ public final class Constants {
     public static final double TORCH_RADIUS = 34;
     public static final int TORCH_COST_BAMBOO = 2;
     public static final int TORCH_MAX = 8;
+
+    // Pana tower (bamboo arrow tower)
+    public static final int PANA_COST_BAMBOO = 4;
+    public static final int PANA_MAX = 4;
+    public static final double PANA_RANGE = 80;
+    public static final int PANA_COOLDOWN = 100;     // frames between arrows
+
+    // Survivors (they arrive by bangka at dawn)
+    public static final double BANGKA_SPEED = 1.3;
+    public static final double SURVIVOR_WALK_SPEED = 0.8;
+    public static final int INDAY_HEAL_FRAMES = 6 * TARGET_FPS;    // Ka Inday mends the post this often
+    public static final int MIGO_SIGNAL_FRAMES = 4 * TARGET_FPS;   // Migo boosts the radio this often
+    public static final double TONYO_RANGE = 95;
+    public static final int TONYO_COOLDOWN = 80;
 }

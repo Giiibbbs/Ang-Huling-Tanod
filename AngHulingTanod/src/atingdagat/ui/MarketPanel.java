@@ -30,6 +30,7 @@ public class MarketPanel {
         NET("1", "Net", ResourceType.BAMBOO, Net.COST_BAMBOO, "Ships stop and cut it. Place on shallow water."),
         MINE("2", "Mine", ResourceType.NICKEL, Mine.COST_NICKEL, "Blows up ships that come near. Place on water close to land."),
         TORCH("3", "Torch", ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO, "Lights the shore all night. Place on free land."),
+        PANA("4", "Pana tower", ResourceType.BAMBOO, Constants.PANA_COST_BAMBOO, "A bamboo arrow tower. Shoots ships even in the dark. Place on free land."),
         REPAIR("R", "Repair", null, Constants.REPAIR_FISH_COST, "Eat fish to mend the post and boost the radio."),
         REWIRE("C", "Rewire", ResourceType.COPPER, Constants.REWIRE_COST_COPPER, "Rewire the radio for a stronger signal."),
         ARMOR("V", "Armor", ResourceType.CHROMITE, Constants.ARMOR_COST_CHROMITE, "Armor the post: more maximum health."),
@@ -56,6 +57,7 @@ public class MarketPanel {
     private static final int HEADER = 14;
     private static final int ROW = 24;
     private static final int TIP_HEIGHT = 36;
+    private static final int CREW_HEIGHT = 16;
 
     private static final Font TINY = new Font("SansSerif", Font.PLAIN, 8);
     private static final Font NAME = new Font("SansSerif", Font.BOLD, 10);
@@ -73,7 +75,7 @@ public class MarketPanel {
     }
 
     private int height() {
-        return open ? HEADER + Offer.values().length * ROW + TIP_HEIGHT : HEADER;
+        return open ? HEADER + Offer.values().length * ROW + CREW_HEIGHT + TIP_HEIGHT : HEADER;
     }
 
     private boolean inside(int x, int y) {
@@ -122,6 +124,9 @@ public class MarketPanel {
             case TORCH:
                 world.toggleTool(GameWorld.Tool.TORCH);
                 break;
+            case PANA:
+                world.toggleTool(GameWorld.Tool.PANA);
+                break;
             case REPAIR:
                 world.repair();
                 break;
@@ -154,6 +159,8 @@ public class MarketPanel {
         switch (offer) {
             case TORCH:
                 return world.getTorchCount() >= Constants.TORCH_MAX;
+            case PANA:
+                return world.getPanaCount() >= Constants.PANA_MAX;
             case REPAIR:
                 return world.getPost().getHealth() >= world.getPost().getMaxHealth()
                         && world.getRadio().getSignal() >= Radio.MAX_SIGNAL;
@@ -173,6 +180,8 @@ public class MarketPanel {
         switch (offer) {
             case TORCH:
                 return world.getTorchCount() + "/" + Constants.TORCH_MAX + " built";
+            case PANA:
+                return world.getPanaCount() + "/" + Constants.PANA_MAX + " built";
             case REPAIR:
                 return "Post " + world.getPost().getHealth() + "/" + world.getPost().getMaxHealth();
             case REWIRE:
@@ -194,6 +203,8 @@ public class MarketPanel {
                 return world.getTool() == GameWorld.Tool.MINE;
             case TORCH:
                 return world.getTool() == GameWorld.Tool.TORCH;
+            case PANA:
+                return world.getTool() == GameWorld.Tool.PANA;
             default:
                 return false;
         }
@@ -228,6 +239,7 @@ public class MarketPanel {
         for (int i = 0; i < offers.length; i++) {
             drawRow(g, world, offers[i], Y + HEADER + i * ROW, i == hover);
         }
+        drawCrew(g, world);
         drawTip(g, hover >= 0 ? offers[hover].description : "Click a row (or press its key). Then click the map to place it.");
     }
 
@@ -279,9 +291,33 @@ public class MarketPanel {
         g.drawString(have + "/" + offer.cost + " " + unitName(offer), barX + barW + 5, y + 21);
     }
 
+    /** A strip showing which survivors have arrived: a lit chip with the name, or a dark "?" chip. */
+    private void drawCrew(Graphics2D g, GameWorld world) {
+        int y = Y + HEADER + Offer.values().length * ROW;
+        g.setColor(new Color(20, 28, 48, 205));
+        g.fillRect(X, y, W, CREW_HEIGHT);
+        String[] names = {"Ka Inday", "Migo", "Tonyo"};
+        int chipW = (W - 8) / 3;
+        g.setFont(TINY);
+        for (int i = 0; i < names.length; i++) {
+            boolean here = false;
+            for (atingdagat.entities.Survivor sv : world.getSurvivors()) {
+                if (sv.getName().equals(names[i])) {
+                    here = true;
+                }
+            }
+            int cx = X + 4 + i * chipW;
+            g.setColor(here ? new Color(70, 110, 70, 230) : new Color(40, 46, 64, 230));
+            g.fillRoundRect(cx, y + 3, chipW - 2, 11, 4, 4);
+            g.setColor(here ? new Color(220, 250, 220) : new Color(130, 140, 160));
+            String t = here ? names[i] : "? night " + (2 * (i + 1));
+            g.drawString(t, cx + 3, y + 11);
+        }
+    }
+
     /** The help box at the bottom of the panel (shows the row under the mouse). */
     private void drawTip(Graphics2D g, String text) {
-        int y = Y + HEADER + Offer.values().length * ROW;
+        int y = Y + HEADER + Offer.values().length * ROW + CREW_HEIGHT;
         g.setColor(new Color(12, 16, 30, 225));
         g.fillRoundRect(X, y, W, TIP_HEIGHT, 6, 6);
         g.setFont(TINY);

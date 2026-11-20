@@ -3,7 +3,13 @@ package atingdagat.core;
 import atingdagat.defense.Defense;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
+import atingdagat.defense.PanaTower;
 import atingdagat.defense.Torch;
+import atingdagat.entities.Bangka;
+import atingdagat.entities.KaInday;
+import atingdagat.entities.Migo;
+import atingdagat.entities.Survivor;
+import atingdagat.entities.Tonyo;
 import atingdagat.economy.FishKind;
 import atingdagat.economy.FishSchool;
 import atingdagat.economy.Harvestable;
@@ -53,7 +59,7 @@ public class GameWorld {
     public enum Outcome { PLAYING, WON, LOST }
 
     /** What a click does in the day. */
-    public enum Tool { HARVEST, NET, MINE, TORCH }
+    public enum Tool { HARVEST, NET, MINE, TORCH, PANA }
 
     private static final int BANNER_FRAMES = 150;
     private static final int GUN_DAMAGE = 1;
@@ -81,6 +87,12 @@ public class GameWorld {
     private final ArrayList<ResourceNode> nodes;
     private final ArrayList<FishSchool> fish = new ArrayList<>();
     private final ArrayList<SupplyCrate> crates = new ArrayList<>();
+    private final ArrayList<Survivor> survivors = new ArrayList<>();   // people who joined the post (a mix of subclasses)
+    private final ArrayList<Bangka> boats = new ArrayList<>();         // boats bringing them in
+    private static final int[] ARRIVAL_NIGHTS = {2, 4, 6};              // the dawn after these nights, a bangka lands
+    private String storyTitle = "";
+    private String storyText = "";
+    private int storyTimer = 0;
     private final ArrayList<Popup> popups = new ArrayList<>();
     private final ArrayList<Explosion> explosions = new ArrayList<>();
     private final ArrayList<WavePlan.Kind> queue = new ArrayList<>();   // tonight's ships, in the order they come
@@ -167,6 +179,7 @@ public class GameWorld {
         }
         updateFish();
         updateCrates();
+        updateSurvivors();
         updateHolding();
         for (int i = explosions.size() - 1; i >= 0; i--) {
             explosions.get(i).update();
@@ -188,6 +201,9 @@ public class GameWorld {
         }
         if (bannerTimer > 0) {
             bannerTimer--;
+        }
+        if (storyTimer > 0) {
+            storyTimer--;
         }
 
         checkNightOver();
@@ -336,6 +352,7 @@ public class GameWorld {
                 dragon.finish();     // (matters only if the night was skipped in the middle of the event)
                 beam.setOn(true);
                 showBanner("DAWN - repair and rebuild");
+                sendBangka(cycle.getNight());
                 break;
         }
         if (cycle.isFinished() && outcome == Outcome.PLAYING) {
@@ -446,6 +463,11 @@ public class GameWorld {
     private ArrayList<GlowSource> glowSources() {
         ArrayList<GlowSource> list = new ArrayList<>();
         list.add(lantern);
+        for (Survivor sv : survivors) {
+            if (sv instanceof GlowSource) {
+                list.add((GlowSource) sv);
+            }
+        }
         for (Defense d : defenses) {
             if (d instanceof Torch) {
                 list.add((Torch) d);
@@ -480,6 +502,8 @@ public class GameWorld {
             placeMine(x, y);
         } else if (tool == Tool.TORCH) {
             placeTorch(x, y);
+        } else if (tool == Tool.PANA) {
+            placePana(x, y);
         } else {
             holding = true;   // harvesting is HOLDING the button (see updateHolding)
         }
@@ -613,7 +637,7 @@ public class GameWorld {
             return;
         }
         crateTimer++;
-        int interval = radio.getSignal() >= Constants.CRATE_RADIO_STRONG
+        int interval = radio.getSignal() >= Constants.CRATE_RADIO_STRONG || crateBoosted()
                 ? Constants.CRATE_INTERVAL_STRONG : Constants.CRATE_INTERVAL;
         if (crateTimer >= interval && crates.size() < Constants.MAX_CRATES) {
             crateTimer = 0;
@@ -854,6 +878,162 @@ public class GameWorld {
         defenses.add(new Torch(col, row));
     }
 
+    // ------------------------------------------------------------------
+    // PANA TOWERS
+    // ------------------------------------------------------------------
+
+    public int getPanaCount() {
+        return panaCount();
+    }
+
+    private int panaCount() {
+        int n = 0;
+        for (Defense d : defenses) {
+            if (d instanceof PanaTower) {
+                n++;
+            }
+        }
+        return n;
+    }
+
+    private void placePana(int x, int y) {
+        int col = x / Constants.TILE_SIZE;
+        int row = y / Constants.TILE_SIZE;
+        if (x < 0 || y < 0 || !canPlaceTorch(col, row)) {   // same rule as a torch: free land
+            return;
+        }
+        if (!tileInBuildReach(col, row)) {
+            popups.add(new Popup(x, y - 6, "Too far", Color.LIGHT_GRAY));
+            return;
+        }
+        if (panaCount() >= Constants.PANA_MAX) {
+            popups.add(new Popup(x, y - 6, "Only " + Constants.PANA_MAX + " towers", Color.LIGHT_GRAY));
+            return;
+        }
+        if (!inventory.spend(ResourceType.BAMBOO, Constants.PANA_COST_BAMBOO)) {
+            popups.add(new Popup(x, y - 6, "Need " + Constants.PANA_COST_BAMBOO + " bamboo", new Color(255, 150, 120)));
+            return;
+        }
+        defenses.add(new PanaTower(col, row));
+    }
+
+    // ------------------------------------------------------------------
+    // SURVIVORS (they come by bangka at dawn after nights 2, 4 and 6)
+    // ------------------------------------------------------------------
+
+    private void updateSurvivors() {
+        for (int i = boats.size() - 1; i >= 0; i--) {
+            Bangka boat = boats.get(i);
+            boat.update();
+            Survivor passenger = boat.releaseCargo();
+            if (passenger != null) {
+                survivors.add(passenger);
+                storyTitle = passenger.getArrivalTitle();
+                storyText = passenger.getArrivalLine();
+                storyTimer = 8 * Constants.TARGET_FPS;
+            }
+            if (boat.isGone()) {
+                boats.remove(i);
+            }
+        }
+        for (Survivor sv : survivors) {
+            sv.update(map);
+            sv.act(post, radio, ships, frame);
+        }
+    }
+
+    private boolean crateBoosted() {
+        for (Survivor sv : survivors) {
+            if (sv.boostsCrates()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Which survivor comes after this night? 0, 1 or 2, or -1 if none. */
+    private int arrivalIndex(int night) {
+        for (int i = 0; i < ARRIVAL_NIGHTS.length; i++) {
+            if (ARRIVAL_NIGHTS[i] == night) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** A new survivor, standing "index" (0, 1, 2): where they land and where they will stand near the post. */
+    private Survivor makeSurvivor(int index, double startX, double startY) {
+        double px = post.getX();
+        double py = post.getY();
+        switch (index) {
+            case 0:
+                return new KaInday(startX, startY, px - 22, py + 10);
+            case 1:
+                return new Migo(startX, startY, px + 24, py + 12);
+            default:
+                return new Tonyo(startX, startY, px - 10, py - 20);
+        }
+    }
+
+    /** Finds the shore at the post's row on the west (even index) or east (odd index) side. */
+    private double[] shoreAt(boolean west) {
+        int row = Constants.POST_ROW;
+        if (west) {
+            int c = 0;
+            while (c < Constants.MAP_COLS && map.isWater(row, c)) {
+                c++;
+            }
+            return new double[]{(c - 1) * Constants.TILE_SIZE + 8, c * Constants.TILE_SIZE + 8};   // water x, first land x
+        }
+        int c = Constants.MAP_COLS - 1;
+        while (c >= 0 && map.isWater(row, c)) {
+            c--;
+        }
+        return new double[]{(c + 1) * Constants.TILE_SIZE + 8, c * Constants.TILE_SIZE + 8};
+    }
+
+    private void sendBangka(int night) {
+        int index = arrivalIndex(night);
+        if (index < 0) {
+            return;
+        }
+        boolean west = index % 2 == 0;
+        double[] shore = shoreAt(west);
+        double y = Constants.POST_ROW * Constants.TILE_SIZE + 8;
+        double startX = west ? -24 : Constants.INTERNAL_WIDTH + 24;
+        Survivor passenger = makeSurvivor(index, shore[1], y + 4);
+        boats.add(new Bangka(startX, y, shore[0], passenger));
+    }
+
+    /** Test/demo key (J): all three survivors are at the post right now. */
+    public void testSurvivors() {
+        if (!survivors.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < ARRIVAL_NIGHTS.length; i++) {
+            survivors.add(makeSurvivor(i, post.getX(), post.getY() + 6));   // they step out from the post to their spots
+        }
+        storyTitle = "Everyone made it";
+        storyText = "Ka Inday, Migo and Tonyo are at the post.";
+        storyTimer = 4 * Constants.TARGET_FPS;
+    }
+
+    public ArrayList<Survivor> getSurvivors() {
+        return survivors;
+    }
+
+    public String getStoryTitle() {
+        return storyTimer > 0 ? storyTitle : "";
+    }
+
+    public String getStoryText() {
+        return storyTimer > 0 ? storyText : "";
+    }
+
+    public double getStoryFade() {
+        return Math.min(1.0, storyTimer / 40.0);
+    }
+
     /** Click a LIT ship to shoot it. You cannot hit what the beam has not found. */
     private void fire(int x, int y) {
         if (gunCooldown > 0) {
@@ -971,7 +1151,13 @@ public class GameWorld {
         for (Defense d : defenses) {
             d.draw(g, frameCount);
         }
+        for (Bangka boat : boats) {
+            boat.draw(g, frameCount);
+        }
         post.draw(g, frameCount, !radio.isSilent());
+        for (Survivor sv : survivors) {
+            sv.draw(g, frameCount);
+        }
         lighthouse.draw(g, darkness > 0.5);
         player.draw(g, frameCount);
         for (Warship ship : ships) {
@@ -1047,6 +1233,9 @@ public class GameWorld {
             ok = canPlaceNet(col, row) && inventory.has(ResourceType.BAMBOO, Net.COST_BAMBOO);
         } else if (tool == Tool.MINE) {
             ok = canPlaceMine(col, row) && inventory.has(ResourceType.NICKEL, Mine.COST_NICKEL);
+        } else if (tool == Tool.PANA) {
+            ok = canPlaceTorch(col, row) && panaCount() < Constants.PANA_MAX
+                    && inventory.has(ResourceType.BAMBOO, Constants.PANA_COST_BAMBOO);
         } else {
             ok = canPlaceTorch(col, row) && torchCount() < Constants.TORCH_MAX
                     && inventory.has(ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO);
@@ -1065,6 +1254,8 @@ public class GameWorld {
             label = "Net " + Net.COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
         } else if (tool == Tool.MINE) {
             label = "Mine " + Mine.COST_NICKEL + " nickel (you have " + inventory.get(ResourceType.NICKEL) + ")";
+        } else if (tool == Tool.PANA) {
+            label = "Pana tower " + Constants.PANA_COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
         } else {
             label = "Torch " + Constants.TORCH_COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
         }

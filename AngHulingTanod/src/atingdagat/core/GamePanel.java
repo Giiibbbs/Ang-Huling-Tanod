@@ -162,6 +162,10 @@ public class GamePanel extends JPanel {
                     world.toggleTool(GameWorld.Tool.MINE);
                 } else if (code == KeyEvent.VK_3) {
                     world.toggleTool(GameWorld.Tool.TORCH);
+                } else if (code == KeyEvent.VK_4) {
+                    world.toggleTool(GameWorld.Tool.PANA);
+                } else if (code == KeyEvent.VK_J) {
+                    world.testSurvivors();     // test key
                 } else if (code == KeyEvent.VK_B) {
                     market.toggle();
                 } else if (code == KeyEvent.VK_R) {
@@ -223,7 +227,7 @@ public class GamePanel extends JPanel {
         if (world.getOutcome() == GameWorld.Outcome.LOST) {
             state = GameState.GAME_OVER;
         } else if (world.getOutcome() == GameWorld.Outcome.WON) {
-            ending = new EndingScene(map, world.getPost().getX(), world.getPost().getY());
+            ending = new EndingScene(map, world.getPost().getX(), world.getPost().getY(), world.getSurvivors());
             state = GameState.VICTORY;
         }
     }

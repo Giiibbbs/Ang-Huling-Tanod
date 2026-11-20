@@ -88,7 +88,10 @@ public class EndingScene {
     private double heliY = 80;
     private int frames = 0;
 
-    public EndingScene(TileMap map, double postX, double postY) {
+    private final java.util.List<atingdagat.entities.Survivor> crew;   // the survivors who joined you (can be empty)
+
+    public EndingScene(TileMap map, double postX, double postY, java.util.List<atingdagat.entities.Survivor> crew) {
+        this.crew = crew;
         this.postX = postX;
         this.postY = postY;
         Random random = new Random(77);   // the same sea every time
@@ -187,6 +190,9 @@ public class EndingScene {
     public void draw(Graphics2D g) {
         double night = Math.max(0, Math.min(1, 1.0 - (frames - 1250) / 550.0));   // 1 = dark, 0 = full sun
 
+        for (atingdagat.entities.Survivor sv : crew) {   // the survivors stand at the post and watch the sea
+            sv.draw(g, frames);
+        }
         drawLights(g, night);
         drawBoats(g, night);
         if (frames > 1500) {
