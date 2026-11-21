@@ -24,13 +24,15 @@ public class Upgrades {
     private static final double CAST_SAVING = 0.15;
     private static final double BOOT_BONUS = 0.15;
     private static final double ROD_REACH_BONUS = 15;
+    private static final double RIFLE_RANGE_BONUS = 70;
 
     public enum Gear {
         //      key  label         ore                      what it does
         PICKAXE("5", "Pickaxe", ResourceType.NICKEL, "Mine ore faster: about 18% quicker per level."),
         AXE    ("6", "Axe",     ResourceType.COPPER, "Chop trees and bamboo faster: about 18% quicker per level."),
         BOOTS  ("7", "Boots",   ResourceType.COPPER, "Walk faster: about 15% per level."),
-        ROD    ("8", "Fishing rod", ResourceType.NICKEL, "Cast faster and reach further out to sea.");
+        ROD    ("8", "Fishing rod", ResourceType.NICKEL, "Cast faster and reach further out to sea."),
+        RIFLE  ("9", "Rifle",   ResourceType.CHROMITE, "Shoot lit ships from further away: 70 px more per level.");
 
         private final String key;
         private final String label;
@@ -116,5 +118,10 @@ public class Upgrades {
     /** Extra pixels a line can be cast. */
     public double extraFishReach() {
         return ROD_REACH_BONUS * getLevel(Gear.ROD);
+    }
+
+    /** Extra pixels the gun can shoot. */
+    public double extraGunRange() {
+        return RIFLE_RANGE_BONUS * getLevel(Gear.RIFLE);
     }
 }

@@ -967,7 +967,7 @@ public class GameWorld {
         }
     }
 
-    /** Keys 5 to 8 (or a click in the Workshop): buy the next level of a tool. */
+    /** Keys 5 to 9 (or a click in the Workshop): buy the next level of a tool. */
     public void buyUpgrade(Upgrades.Gear gear) {
         if (cycle.isNight() || outcome != Outcome.PLAYING) {
             return;
@@ -1093,7 +1093,7 @@ public class GameWorld {
         if (target == null) {
             return;
         }
-        if (!inReach(target.getX(), target.getY(), Constants.FIRE_RANGE)) {
+        if (!inReach(target.getX(), target.getY(), Constants.FIRE_RANGE + upgrades.extraGunRange())) {
             popups.add(new Popup(target.getX(), target.getY() - 10, "Out of range", Color.LIGHT_GRAY));
             return;
         }

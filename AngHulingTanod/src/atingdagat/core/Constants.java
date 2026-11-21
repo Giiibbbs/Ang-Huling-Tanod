@@ -105,11 +105,11 @@ public final class Constants {
     public static final double LANTERN_RADIUS = 38;
     public static final double TORCH_RADIUS = 50;
     public static final int TORCH_COST_BAMBOO = 2;
-    public static final int TORCH_MAX = 8;
+    public static final int TORCH_MAX = 20;
 
     // Pana tower (bamboo arrow tower)
     public static final int PANA_COST_BAMBOO = 4;
-    public static final int PANA_MAX = 4;
+    public static final int PANA_MAX = 10;
     public static final double PANA_RANGE = 80;
     public static final int PANA_COOLDOWN = 100;     // frames between arrows
 

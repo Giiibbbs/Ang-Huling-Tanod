@@ -172,6 +172,8 @@ public class GamePanel extends JPanel {
                     world.buyUpgrade(atingdagat.economy.Upgrades.Gear.BOOTS);
                 } else if (code == KeyEvent.VK_8) {
                     world.buyUpgrade(atingdagat.economy.Upgrades.Gear.ROD);
+                } else if (code == KeyEvent.VK_9) {
+                    world.buyUpgrade(atingdagat.economy.Upgrades.Gear.RIFLE);
                 } else if (code == KeyEvent.VK_J) {
                     world.testSurvivors();     // test key
                 } else if (code == KeyEvent.VK_U) {

@@ -267,7 +267,7 @@ public class MarketPanel {
             for (int i = 0; i < gear.length; i++) {
                 drawGearRow(g, world, gear[i], rowsTop() + i * ROW, i == hover);
             }
-            tip = hover >= 0 ? gear[hover].getDescription() : "Click a tool (or press 5-8) to buy its next level. Bamboo, and a little ore from level 2.";
+            tip = hover >= 0 ? gear[hover].getDescription() : "Click a tool (or press 5-9) to buy its next level. Bamboo, and a little ore from level 2.";
         } else {
             Offer[] offers = Offer.values();
             for (int i = 0; i < offers.length; i++) {
