@@ -139,4 +139,8 @@ public final class Constants {
     public static final int MANANANGGAL_COOLDOWN = 120;
     public static final int MANANANGGAL_DAMAGE = 2;
     public static final double MANANANGGAL_SPEED = 1.7;
+    public static final int DUWENDE_NIGHT = 1;               // after this night the anthill stirs
+    public static final int PUNSO_COL = 15;                  // the anthill on the west shore
+    public static final int PUNSO_ROW = 28;
+    public static final int DUWENDE_GIFT_BAMBOO = 3;         // what he asks for
 }

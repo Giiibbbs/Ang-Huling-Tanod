@@ -30,6 +30,7 @@ import atingdagat.entities.Lighthouse;
 import atingdagat.entities.Manananggal;
 import atingdagat.entities.Player;
 import atingdagat.entities.Post;
+import atingdagat.entities.Punso;
 import atingdagat.entities.Radio;
 import atingdagat.entities.Skiff;
 import atingdagat.entities.Warship;
@@ -88,6 +89,7 @@ public class GameWorld {
     private final ArrayList<Warship> ships = new ArrayList<>();
     private final ArrayList<Defense> defenses = new ArrayList<>();
     private final BaleteTree balete = new BaleteTree(Constants.BALETE_COL, Constants.BALETE_ROW);
+    private final Punso punso = new Punso(Constants.PUNSO_COL, Constants.PUNSO_ROW);
     private final ArrayList<ResourceNode> nodes;
     private final ArrayList<FishSchool> fish = new ArrayList<>();
     private final ArrayList<SupplyCrate> crates = new ArrayList<>();
@@ -340,6 +342,7 @@ public class GameWorld {
             case DAY:
                 showBanner("DAY " + cycle.getNight());
                 payCrew();
+                duwendeGift();
                 break;
             case DUSK:
                 showBanner("DUSK - get ready");
@@ -474,6 +477,9 @@ public class GameWorld {
         if (balete.isAwake()) {
             list.add(balete);
         }
+        if (punso.isAwake()) {
+            list.add(punso);
+        }
         for (Survivor sv : survivors) {
             if (sv instanceof GlowSource) {
                 list.add((GlowSource) sv);
@@ -553,6 +559,9 @@ public class GameWorld {
         if (balete.isNear(x, y)) {
             return balete;
         }
+        if (punso.isNear(x, y)) {
+            return punso;
+        }
         return null;
     }
 
@@ -580,7 +589,8 @@ public class GameWorld {
         if (under != null && !under.isAvailable()) {
             if (holdTarget != under) {   // one reminder per spot, not one every frame
                 popups.add(new Popup(under.getX(), under.getY() - 12,
-                        under instanceof BaleteTree ? (balete.isAwake() ? "The kapre is your friend" : "The tree is quiet") : "Nothing left",
+                        under instanceof BaleteTree ? (balete.isAwake() ? "The kapre is your friend" : "The tree is quiet")
+                        : under instanceof Punso ? (punso.isAwake() ? "The duwende is your friend" : "The mound is quiet") : "Nothing left",
                         Color.LIGHT_GRAY));
             }
             holdTarget = under;
@@ -613,6 +623,10 @@ public class GameWorld {
     private void collect(Harvestable target) {
         if (target instanceof BaleteTree) {
             giveOffering();
+            return;
+        }
+        if (target instanceof Punso) {
+            giveGift();
             return;
         }
         int gained = target.harvest();
@@ -1021,6 +1035,12 @@ public class GameWorld {
     // ------------------------------------------------------------------
 
     private void monsterEvent(int night) {
+        if (night == Constants.DUWENDE_NIGHT) {
+            punso.stir();
+            tellStory("A small mound on the west shore",
+                    "Tabi-tabi po. Something tiny watches from the punso. Hold the mouse on it to leave a gift: "
+                            + Constants.DUWENDE_GIFT_BAMBOO + " bamboo.");
+        }
         if (night == Constants.KAPRE_NIGHT) {
             balete.stir();
             tellStory("The old balete stirs",
@@ -1067,13 +1087,54 @@ public class GameWorld {
         tellStory("The kapre wakes", "\"Marunong kang gumalang. Mine is the sea around my tree now. I will watch it for you.\"");
     }
 
+    /** The hold on the punso is full: pay the gift of bamboo. Not enough: nothing is taken. */
+    private void giveGift() {
+        if (!punso.isAvailable()) {
+            return;
+        }
+        if (!inventory.spend(ResourceType.BAMBOO, Constants.DUWENDE_GIFT_BAMBOO)) {
+            popups.add(new Popup(punso.getX(), punso.getY() - 26,
+                    "He wants " + Constants.DUWENDE_GIFT_BAMBOO + " bamboo", new Color(255, 160, 130)));
+            return;
+        }
+        punso.wake();
+        popups.add(new Popup(punso.getX(), punso.getY() - 26, "The duwende smiles", new Color(255, 215, 120)));
+        tellStory("The duwende is pleased", "\"Salamat sa paggalang. Every morning I will leave you something from under the earth.\"");
+    }
+
+    /** Every morning an awake duwende leaves a little ore: usually the one you have least of, sometimes gold. */
+    private void duwendeGift() {
+        if (!punso.isAwake()) {
+            return;
+        }
+        ResourceType gift;
+        if (random.nextInt(100) < 15) {
+            gift = ResourceType.GOLD;
+        } else {
+            gift = ResourceType.COPPER;
+            ResourceType[] ores = {ResourceType.NICKEL, ResourceType.CHROMITE};
+            for (ResourceType ore : ores) {
+                if (inventory.get(ore) < inventory.get(gift)) {
+                    gift = ore;
+                }
+            }
+        }
+        inventory.add(gift, 1);
+        popups.add(new Popup(punso.getX(), punso.getY() - 26, "+1 " + gift.getLabel() + " (duwende)", gift.getColor()));
+    }
+
     /** Test key H: stir and wake the balete tree, and bring the manananggal right now. */
     public void testMonsters() {
         balete.wake();
+        punso.wake();
         if (!hasManananggal()) {
             survivors.add(newManananggal(post.getX() + 30, post.getY() - 26));
         }
         tellStory("Allies of the old stories", "The kapre guards his tree. The manananggal hunts at night.");
+    }
+
+    public Punso getPunso() {
+        return punso;
     }
 
     public BaleteTree getBalete() {
@@ -1282,6 +1343,7 @@ public class GameWorld {
         for (Defense d : defenses) {
             d.draw(g, frameCount);
         }
+        punso.draw(g, frameCount);
         for (Bangka boat : boats) {
             boat.draw(g, frameCount);
         }
