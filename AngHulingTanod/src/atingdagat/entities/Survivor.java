@@ -58,6 +58,11 @@ public abstract class Survivor {
     /** This survivor's job, done once per frame. The Post and the Radio are what Ka Inday and Migo help. */
     public abstract void act(Post post, Radio radio, List<Warship> ships, int frame);
 
+    /** Does this survivor work in the day for a wage of meals? (The manananggal does not.) */
+    public boolean needsWage() {
+        return true;
+    }
+
     /** Does having this survivor make supply crates come faster? (Only Migo says yes.) */
     public boolean boostsCrates() {
         return false;
@@ -166,6 +171,9 @@ public abstract class Survivor {
      * Returns the bamboo delivered this frame (usually 0, and 3 when a load arrives home).
      */
     public int work(boolean onShift, TileMap map, List<ResourceNode> nodes, List<Survivor> crew, double postX, double postY) {
+        if (!needsWage()) {
+            return 0;
+        }
         boolean working = onShift && paid;
         switch (job) {
             case IDLE:

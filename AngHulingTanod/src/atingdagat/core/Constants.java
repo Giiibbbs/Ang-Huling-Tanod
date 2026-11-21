@@ -125,4 +125,18 @@ public final class Constants {
     public static final int WORKER_CHOP_FRAMES = 4 * TARGET_FPS;   // slower than the tanod (about 1.8 s)
     public static final double WORKER_SEARCH = 170;                // how far from the post they will go
     public static final int TONYO_COOLDOWN = 80;
+
+    // Folklore allies (story events at dawn)
+    public static final int KAPRE_NIGHT = 3;                 // after this night the balete tree stirs
+    public static final int MANANANGGAL_NIGHT = 5;           // after this night she arrives
+    public static final int BALETE_COL = 52;                 // the old balete tree on the northeast islet
+    public static final int BALETE_ROW = 8;
+    public static final int OFFERING_MEALS = 2;              // what the kapre asks for
+    public static final double KAPRE_RANGE = 130;
+    public static final int KAPRE_COOLDOWN = 110;
+    public static final int KAPRE_DAMAGE = 2;
+    public static final double MANANANGGAL_RANGE = 190;
+    public static final int MANANANGGAL_COOLDOWN = 120;
+    public static final int MANANANGGAL_DAMAGE = 2;
+    public static final double MANANANGGAL_SPEED = 1.7;
 }

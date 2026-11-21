@@ -1,5 +1,6 @@
 package atingdagat.core;
 
+import atingdagat.defense.BaleteTree;
 import atingdagat.defense.Defense;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
@@ -26,6 +27,7 @@ import atingdagat.entities.GlowSource;
 import atingdagat.entities.Lantern;
 import atingdagat.entities.Light;
 import atingdagat.entities.Lighthouse;
+import atingdagat.entities.Manananggal;
 import atingdagat.entities.Player;
 import atingdagat.entities.Post;
 import atingdagat.entities.Radio;
@@ -85,6 +87,7 @@ public class GameWorld {
     // Things that come and go
     private final ArrayList<Warship> ships = new ArrayList<>();
     private final ArrayList<Defense> defenses = new ArrayList<>();
+    private final BaleteTree balete = new BaleteTree(Constants.BALETE_COL, Constants.BALETE_ROW);
     private final ArrayList<ResourceNode> nodes;
     private final ArrayList<FishSchool> fish = new ArrayList<>();
     private final ArrayList<SupplyCrate> crates = new ArrayList<>();
@@ -135,6 +138,7 @@ public class GameWorld {
     public GameWorld(TileMap map) {
         this.map = map;
         this.nodes = ResourceNode.load(Constants.NODES_FILE, map);
+        defenses.add(balete);
         inventory.add(ResourceType.BAMBOO, Constants.START_BAMBOO);
         for (int i = 0; i < 6; i++) {
             spawnFish();
@@ -356,6 +360,7 @@ public class GameWorld {
                 beam.setOn(true);
                 showBanner("DAWN - repair and rebuild");
                 sendBangka(cycle.getNight());
+                monsterEvent(cycle.getNight());
                 break;
         }
         if (cycle.isFinished() && outcome == Outcome.PLAYING) {
@@ -466,6 +471,9 @@ public class GameWorld {
     private ArrayList<GlowSource> glowSources() {
         ArrayList<GlowSource> list = new ArrayList<>();
         list.add(lantern);
+        if (balete.isAwake()) {
+            list.add(balete);
+        }
         for (Survivor sv : survivors) {
             if (sv instanceof GlowSource) {
                 list.add((GlowSource) sv);
@@ -542,6 +550,9 @@ public class GameWorld {
                 return node;
             }
         }
+        if (balete.isNear(x, y)) {
+            return balete;
+        }
         return null;
     }
 
@@ -555,7 +566,7 @@ public class GameWorld {
 
         // The tanod must be close enough. Fish can be reached further (a cast line) than things on land.
         if (under != null) {
-            double reach = (under instanceof FishSchool || under instanceof SupplyCrate) ? Constants.FISH_REACH + upgrades.extraFishReach() : Constants.LAND_REACH;
+            double reach = (under instanceof FishSchool || under instanceof SupplyCrate || under instanceof BaleteTree) ? Constants.FISH_REACH + upgrades.extraFishReach() : Constants.LAND_REACH;
             if (!inReach(under.getX(), under.getY(), reach)) {
                 if (holdTarget != under) {   // one reminder per spot, not one every frame
                     popups.add(new Popup(under.getX(), under.getY() - 12, "Too far - walk closer", Color.LIGHT_GRAY));
@@ -568,7 +579,9 @@ public class GameWorld {
 
         if (under != null && !under.isAvailable()) {
             if (holdTarget != under) {   // one reminder per spot, not one every frame
-                popups.add(new Popup(under.getX(), under.getY() - 12, "Nothing left", Color.LIGHT_GRAY));
+                popups.add(new Popup(under.getX(), under.getY() - 12,
+                        under instanceof BaleteTree ? (balete.isAwake() ? "The kapre is your friend" : "The tree is quiet") : "Nothing left",
+                        Color.LIGHT_GRAY));
             }
             holdTarget = under;
             holdProgress = 0;
@@ -598,6 +611,10 @@ public class GameWorld {
     }
 
     private void collect(Harvestable target) {
+        if (target instanceof BaleteTree) {
+            giveOffering();
+            return;
+        }
         int gained = target.harvest();
         if (gained <= 0) {
             return;
@@ -959,6 +976,9 @@ public class GameWorld {
     /** At the start of each day every survivor asks for their wage (meals). No meals: they rest. */
     private void payCrew() {
         for (Survivor sv : survivors) {
+            if (!sv.needsWage()) {
+                continue;
+            }
             boolean paid = inventory.spendMeals(Constants.WORKER_WAGE_MEALS);
             sv.startDay(paid);
             popups.add(new Popup(sv.getX(), sv.getY() - 26,
@@ -994,6 +1014,70 @@ public class GameWorld {
             }
         }
         return false;
+    }
+
+    // ------------------------------------------------------------------
+    // FOLKLORE ALLIES (story events at dawn): the kapre in his balete tree, then the manananggal
+    // ------------------------------------------------------------------
+
+    private void monsterEvent(int night) {
+        if (night == Constants.KAPRE_NIGHT) {
+            balete.stir();
+            tellStory("The old balete stirs",
+                    "On the northeast islet something watches. Hold the mouse on the tree to leave an offering: "
+                            + Constants.OFFERING_MEALS + " meals of fish.");
+        } else if (night == Constants.MANANANGGAL_NIGHT && !hasManananggal()) {
+            survivors.add(newManananggal(-30, post.getY() - 50));
+            Survivor she = survivors.get(survivors.size() - 1);
+            tellStory(she.getArrivalTitle(), she.getArrivalLine());
+        }
+    }
+
+    private boolean hasManananggal() {
+        for (Survivor sv : survivors) {
+            if (sv instanceof Manananggal) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Manananggal newManananggal(double startX, double startY) {
+        return new Manananggal(startX, startY, post.getX() + 30, post.getY() - 26);
+    }
+
+    private void tellStory(String title, String text) {
+        storyTitle = title;
+        storyText = text;
+        storyTimer = 8 * Constants.TARGET_FPS;
+    }
+
+    /** The hold on the balete tree is full: pay the offering. Not enough meals: nothing is taken. */
+    private void giveOffering() {
+        if (!balete.isAvailable()) {
+            return;
+        }
+        if (!inventory.spendMeals(Constants.OFFERING_MEALS)) {
+            popups.add(new Popup(balete.getX(), balete.getY() - 40,
+                    "The kapre wants " + Constants.OFFERING_MEALS + " meals of fish", new Color(255, 160, 130)));
+            return;
+        }
+        balete.wake();
+        popups.add(new Popup(balete.getX(), balete.getY() - 40, "The kapre accepts", new Color(255, 215, 120)));
+        tellStory("The kapre wakes", "\"Marunong kang gumalang. Mine is the sea around my tree now. I will watch it for you.\"");
+    }
+
+    /** Test key H: stir and wake the balete tree, and bring the manananggal right now. */
+    public void testMonsters() {
+        balete.wake();
+        if (!hasManananggal()) {
+            survivors.add(newManananggal(post.getX() + 30, post.getY() - 26));
+        }
+        tellStory("Allies of the old stories", "The kapre guards his tree. The manananggal hunts at night.");
+    }
+
+    public BaleteTree getBalete() {
+        return balete;
     }
 
     /** Which survivor comes after this night? 0, 1 or 2, or -1 if none. */
@@ -1052,8 +1136,10 @@ public class GameWorld {
 
     /** Test/demo key (J): all three survivors are at the post right now. */
     public void testSurvivors() {
-        if (!survivors.isEmpty()) {
-            return;
+        for (Survivor sv : survivors) {
+            if (!(sv instanceof Manananggal)) {
+                return;   // the three have already come
+            }
         }
         for (int i = 0; i < ARRIVAL_NIGHTS.length; i++) {
             survivors.add(makeSurvivor(i, post.getX(), post.getY() + 6));   // they step out from the post to their spots
@@ -1252,7 +1338,7 @@ public class GameWorld {
             return;
         }
         double fraction = holdProgress / (double) holdFramesFor(holdTarget);
-        if (holdTarget instanceof FishSchool || holdTarget instanceof SupplyCrate) {   // the fishing line
+        if (holdTarget instanceof FishSchool || holdTarget instanceof SupplyCrate || holdTarget instanceof BaleteTree) {   // the fishing line
             g.setColor(new Color(255, 255, 255, 120));
             g.drawLine((int) player.getX(), (int) player.getY() - 8, (int) holdTarget.getX(), (int) holdTarget.getY());
         }
