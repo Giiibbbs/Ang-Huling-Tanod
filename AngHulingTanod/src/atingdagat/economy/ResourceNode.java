@@ -48,7 +48,7 @@ public class ResourceNode implements Harvestable {
 
     /** The art for this spot. If there is no picture for this exact ore, we recolor the shared ore picture. */
     private static BufferedImage loadSprite(ResourceType type) {
-        if (type == ResourceType.TREE) {
+        if (type.isTree()) {
             return Assets.get(type.getSpritePath(), TREE_W, TREE_H);   // trees are taller than a tile
         }
         BufferedImage own = Assets.get(type.getSpritePath(), 16, 16);
@@ -71,7 +71,7 @@ public class ResourceNode implements Harvestable {
     @Override
     public boolean isNear(double px, double py) {
         double dx = px - getX();
-        double dy = py - (type == ResourceType.TREE ? getY() - 8 : getY());   // click anywhere on the leaves
+        double dy = py - (type.isTree() ? getY() - 8 : getY());   // click anywhere on the leaves
         return dx * dx + dy * dy <= CLICK_RADIUS * CLICK_RADIUS;
     }
 
@@ -123,13 +123,13 @@ public class ResourceNode implements Harvestable {
             if (empty) {
                 g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.35f));
             }
-            if (type == ResourceType.TREE) {
+            if (type.isTree()) {
                 g.drawImage(sprite, x - TREE_W / 2, y + 6 - TREE_H, null);   // the trunk's foot is on the tile
             } else {
                 g.drawImage(sprite, x - 8, y - 8, null);
             }
             g.setComposite(old);
-        } else if (type == ResourceType.TREE) {
+        } else if (type.isTree()) {
             drawTree(g, x, y, empty);
         } else if (type == ResourceType.BAMBOO) {
             drawBamboo(g, x, y, empty);
@@ -145,30 +145,94 @@ public class ResourceNode implements Harvestable {
         g.fillRect(x - w / 2, y + 9, w * remaining / maxUnits, 3);
     }
 
-    /** A round tree: trunk and two blobs of leaves. Chopped trees leave a stump. It grows back slowly. */
+    /**
+     * A tree, drawn differently for each Filipino kind so you can tell them apart at a glance.
+     * Chopped trees leave a stump and grow back slowly. The crown gets thinner as the units are used.
+     */
     private void drawTree(Graphics2D g, int x, int y, boolean empty) {
         g.setColor(new Color(0, 0, 0, 50));
-        g.fillOval(x - 7, y + 2, 14, 6);                       // shadow
-        g.setColor(new Color(112, 78, 44));
-        g.fillRect(x - 1, y - (empty ? 1 : 6), 3, empty ? 7 : 12);   // trunk (a stump when empty)
-        g.setColor(new Color(60, 40, 22));
-        g.drawRect(x - 1, y - (empty ? 1 : 6), 2, empty ? 6 : 11);
+        g.fillOval(x - 8, y + 2, 16, 6);                       // shadow
         if (empty) {
+            g.setColor(new Color(112, 78, 44));
+            g.fillRect(x - 1, y - 1, 3, 7);                    // a stump
             return;
         }
-        int leaves = Math.max(1, Math.min(3, (remaining * 3 + maxUnits - 1) / maxUnits));   // fewer leaves as it is chopped
-        g.setColor(new Color(46, 110, 52));
-        g.fillOval(x - 9, y - 18, 18, 14);
-        g.setColor(new Color(72, 150, 70));
-        g.fillOval(x - 7, y - 22, 15, 13);
-        if (leaves >= 2) {
-            g.setColor(new Color(110, 190, 90));
-            g.fillOval(x - 4, y - 21, 7, 5);
-        }
-        if (leaves >= 3) {
-            g.setColor(new Color(236, 120, 70));                // a few fruits
-            g.fillRect(x - 5, y - 12, 2, 2);
-            g.fillRect(x + 3, y - 14, 2, 2);
+        int leaves = Math.max(1, Math.min(3, (remaining * 3 + maxUnits - 1) / maxUnits));
+        switch (type) {
+            case ACACIA:   // rain tree: a thin trunk under a wide flat umbrella
+                g.setColor(new Color(95, 70, 46));
+                g.fillRect(x - 1, y - 9, 3, 15);
+                g.setColor(new Color(52, 118, 60));
+                g.fillOval(x - 14, y - 20, 28, 11);
+                g.setColor(new Color(86, 160, 76));
+                g.fillOval(x - 11, y - 22, 22, 9);
+                if (leaves >= 3) {
+                    g.setColor(new Color(240, 160, 190));      // pink puffs
+                    g.fillRect(x - 6, y - 19, 2, 2);
+                    g.fillRect(x + 4, y - 20, 2, 2);
+                }
+                break;
+            case MANGO:    // dense round dark crown with mangoes
+                g.setColor(new Color(100, 72, 44));
+                g.fillRect(x - 1, y - 6, 3, 12);
+                g.setColor(new Color(30, 92, 46));
+                g.fillOval(x - 11, y - 22, 22, 18);
+                g.setColor(new Color(48, 124, 60));
+                g.fillOval(x - 8, y - 24, 16, 12);
+                g.setColor(new Color(244, 180, 40));
+                for (int i = 0; i < leaves * 2; i++) {
+                    g.fillOval(x - 8 + i * 3, y - 14 + (i % 2) * 3, 3, 4);
+                }
+                break;
+            case COCONUT:  // a leaning palm with long fronds and coconuts
+                g.setColor(new Color(150, 112, 74));
+                for (int i = 0; i < 14; i++) {
+                    g.fillRect(x - 1 + i / 5, y + 5 - i, 3, 2);
+                }
+                int topX = x + 3;
+                int topY = y - 9;
+                g.setColor(new Color(60, 132, 60));
+                int[][] fronds = {{-9, -2}, {-6, -6}, {0, -8}, {6, -6}, {10, -1}, {-7, 3}, {8, 3}};
+                for (int i = 0; i < Math.min(fronds.length, 3 + leaves * 2); i++) {
+                    g.drawLine(topX, topY, topX + fronds[i][0], topY + fronds[i][1]);
+                    g.drawLine(topX, topY - 1, topX + fronds[i][0], topY + fronds[i][1] - 1);
+                }
+                g.setColor(new Color(120, 82, 46));
+                g.fillOval(topX - 2, topY, 3, 3);
+                g.fillOval(topX + 1, topY + 1, 3, 3);
+                break;
+            case BANANA:   // short pale trunk with big drooping leaves and a bunch
+                g.setColor(new Color(170, 190, 110));
+                g.fillRect(x - 2, y - 7, 5, 13);
+                g.setColor(new Color(92, 170, 72));
+                g.fillOval(x - 12, y - 17, 13, 6);
+                g.fillOval(x, y - 18, 13, 6);
+                g.fillOval(x - 9, y - 12, 10, 5);
+                g.fillOval(x + 1, y - 13, 10, 5);
+                if (leaves >= 2) {
+                    g.setColor(new Color(236, 214, 70));
+                    g.fillRect(x + 2, y - 8, 3, 6);
+                    g.fillRect(x, y - 7, 3, 5);
+                }
+                break;
+            default:       // narra: a tall straight trunk and a broad crown dotted with yellow flowers
+                g.setColor(new Color(122, 70, 46));
+                g.fillRect(x - 1, y - 8, 3, 14);
+                g.setColor(new Color(40, 104, 52));
+                g.fillOval(x - 10, y - 22, 20, 15);
+                g.setColor(new Color(68, 146, 66));
+                g.fillOval(x - 8, y - 24, 16, 12);
+                if (leaves >= 2) {
+                    g.setColor(new Color(110, 190, 90));
+                    g.fillOval(x - 4, y - 22, 7, 5);
+                }
+                if (leaves >= 3) {
+                    g.setColor(new Color(250, 214, 60));       // narra flowers
+                    g.fillRect(x - 6, y - 15, 2, 2);
+                    g.fillRect(x + 3, y - 17, 2, 2);
+                    g.fillRect(x - 1, y - 20, 2, 2);
+                }
+                break;
         }
     }
 

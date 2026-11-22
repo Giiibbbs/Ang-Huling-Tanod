@@ -136,8 +136,9 @@ public final class Constants {
     public static final int KAPRE_COOLDOWN = 110;
     public static final int KAPRE_DAMAGE = 2;
     public static final double MANANANGGAL_RANGE = 190;
-    public static final int MANANANGGAL_COOLDOWN = 120;
-    public static final int MANANANGGAL_DAMAGE = 2;
+    public static final int MANANANGGAL_COOLDOWN = 240;
+    public static final int MANANANGGAL_DAMAGE = 1;
+    public static final int MANANANGGAL_SWOOPS = 4;           // she tires after this many swoops a night
     public static final double MANANANGGAL_SPEED = 1.7;
     public static final int DUWENDE_NIGHT = 1;               // after this night the anthill stirs
     public static final int PUNSO_COL = 15;                  // the anthill on the west shore

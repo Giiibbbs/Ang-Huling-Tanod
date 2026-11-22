@@ -31,7 +31,7 @@ public abstract class Warship {
     protected double heading;      // direction of travel, in radians
     protected double speed;        // pixels per frame
     protected int health;
-    protected final int maxHealth;
+    protected int maxHealth;
     protected int landingDamage = 3;   // how much it hurts the post if it reaches the shore
 
     private boolean arrived = false;    // true once it has reached the shore
@@ -183,6 +183,13 @@ public abstract class Warship {
     }
 
     /** The player shot at it. */
+    /** A night's twist can make a ship faster and tougher. It also counts as more maximum health, so the health bar stays right. */
+    public void powerUp(double speedFactor, int extraHealth) {
+        speed *= speedFactor;
+        health += extraHealth;
+        maxHealth += extraHealth;
+    }
+
     public void hit(int damage) {
         health -= damage;
     }

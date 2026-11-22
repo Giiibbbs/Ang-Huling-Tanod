@@ -31,7 +31,7 @@ public class Upgrades {
         PICKAXE("5", "Pickaxe", ResourceType.NICKEL, "Mine ore faster: about 18% quicker per level."),
         AXE    ("6", "Axe",     ResourceType.COPPER, "Chop trees and bamboo faster: about 18% quicker per level."),
         BOOTS  ("7", "Boots",   ResourceType.COPPER, "Walk faster: about 15% per level."),
-        ROD    ("8", "Fishing rod", ResourceType.NICKEL, "Cast faster and reach further out to sea."),
+        ROD    ("8", "Rod", ResourceType.NICKEL, "Cast faster and reach further out to sea."),
         RIFLE  ("9", "Rifle",   ResourceType.CHROMITE, "Shoot lit ships from further away: 70 px more per level.");
 
         private final String key;

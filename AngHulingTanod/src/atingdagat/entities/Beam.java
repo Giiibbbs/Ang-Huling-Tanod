@@ -32,6 +32,7 @@ public class Beam implements Light {
 
     private double halfAngle = BASE_HALF_ANGLE;   // grows with lamp upgrades
     private double length = BASE_LENGTH;
+    private double fog = 1.0;                 // a foggy night shortens the beam (1.0 = clear)
     private int upgradeLevel = 0;
 
     private final double originX;
@@ -106,7 +107,7 @@ public class Beam implements Light {
         if (distance <= LAMP_GLOW) {
             return true;
         }
-        if (distance > length) {
+        if (distance > getLength()) {
             return false;
         }
         double toPoint = Math.atan2(dy, dx);
@@ -118,10 +119,11 @@ public class Beam implements Light {
         if (!on) {
             return;
         }
-        Arc2D cone = new Arc2D.Double(originX - length, originY - length, length * 2, length * 2,
+        double len = getLength();
+        Arc2D cone = new Arc2D.Double(originX - len, originY - len, len * 2, len * 2,
                 -Math.toDegrees(angle) - Math.toDegrees(halfAngle),
                 2 * Math.toDegrees(halfAngle), Arc2D.PIE);
-        g.setPaint(new RadialGradientPaint(new Point2D.Double(originX, originY), (float) length,
+        g.setPaint(new RadialGradientPaint(new Point2D.Double(originX, originY), (float) len,
                 new float[]{0f, 0.5f, 0.9f, 1f},
                 new Color[]{new Color(255, 240, 170, 95), new Color(255, 235, 150, 50),
                     new Color(255, 230, 140, 6), new Color(255, 230, 140, 0)}));
@@ -167,8 +169,12 @@ public class Beam implements Light {
         return halfAngle;
     }
 
+    public void setFog(double factor) {
+        fog = factor;
+    }
+
     public double getLength() {
-        return length;
+        return length * fog;
     }
 
     public double getLampGlow() {

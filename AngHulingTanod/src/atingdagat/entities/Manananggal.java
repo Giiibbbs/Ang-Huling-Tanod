@@ -30,6 +30,7 @@ public class Manananggal extends Survivor implements GlowSource {
     private Mode mode = Mode.ROOST;
     private Warship prey = null;
     private int cooldown = 0;
+    private int swoopsLeft = Constants.MANANANGGAL_SWOOPS;
     private boolean facingLeft = false;
 
     public Manananggal(double startX, double startY, double roostX, double roostY) {
@@ -73,7 +74,7 @@ public class Manananggal extends Survivor implements GlowSource {
         }
         switch (mode) {
             case ROOST:
-                if (isHome() && cooldown == 0) {
+                if (isHome() && cooldown == 0 && swoopsLeft > 0) {
                     prey = nearestShip(ships);
                     if (prey != null) {
                         mode = Mode.SWOOP;
@@ -85,6 +86,7 @@ public class Manananggal extends Survivor implements GlowSource {
                     mode = Mode.RETURN;
                 } else if (Math.hypot(prey.getX() - x, prey.getY() - 6 - y) < 8) {
                     prey.hit(Constants.MANANANGGAL_DAMAGE);
+                    swoopsLeft--;
                     cooldown = Constants.MANANANGGAL_COOLDOWN;
                     mode = Mode.RETURN;
                 }
@@ -95,6 +97,12 @@ public class Manananggal extends Survivor implements GlowSource {
                 }
                 break;
         }
+    }
+
+    /** A new night: she has rested. */
+    @Override
+    public void newNight() {
+        swoopsLeft = Constants.MANANANGGAL_SWOOPS;
     }
 
     private Warship nearestShip(List<Warship> ships) {

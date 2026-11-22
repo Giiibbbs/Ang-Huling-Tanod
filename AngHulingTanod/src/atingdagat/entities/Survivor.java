@@ -40,6 +40,8 @@ public abstract class Survivor {
     private ResourceNode target = null;
     private int chopTimer = 0;
     private int carrying = 0;
+    private ResourceType carryType = ResourceType.BAMBOO;
+    private ResourceType delivered = ResourceType.BAMBOO;
     private int loadsToday = 0;
     private boolean paid = false;
 
@@ -114,6 +116,15 @@ public abstract class Survivor {
         loadsToday = 0;
     }
 
+    /** What the last delivered load was (bamboo from a narra, fruit from a mango). */
+    public ResourceType getDeliveredType() {
+        return delivered;
+    }
+
+    /** Called at the start of every night. Most survivors do not care. */
+    public void newNight() {
+    }
+
     public boolean isPaid() {
         return paid;
     }
@@ -143,7 +154,7 @@ public abstract class Survivor {
         double bestDist = Double.MAX_VALUE;
         for (ResourceNode node : nodes) {
             ResourceType type = node.getType();
-            if ((type != ResourceType.TREE && type != ResourceType.BAMBOO) || !node.isAvailable()) {
+            if ((!type.isTree() && type != ResourceType.BAMBOO) || !node.isAvailable()) {
                 continue;
             }
             if (Math.hypot(node.getX() - postX, node.getY() - postY) > Constants.WORKER_SEARCH) {
@@ -205,6 +216,7 @@ public abstract class Survivor {
                 chopTimer++;
                 if (chopTimer >= Constants.WORKER_CHOP_FRAMES) {
                     carrying = target.harvest();
+                    carryType = target.getType().getStock();
                     loadsToday++;
                     target = null;
                     job = Job.CARRYING;
@@ -214,10 +226,11 @@ public abstract class Survivor {
                 break;
             default: // CARRYING
                 if (isHome()) {
-                    int delivered = carrying;
+                    int load = carrying;
+                    delivered = carryType;
                     carrying = 0;
                     job = Job.IDLE;
-                    return delivered;
+                    return load;
                 }
                 break;
         }

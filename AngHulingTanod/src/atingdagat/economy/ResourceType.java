@@ -18,7 +18,13 @@ public enum ResourceType {
     //        label       group           color                       art name     hold  yield meals regrow
     BAMBOO   ("Bamboo",    Category.WOOD, new Color(120, 190, 90),    "bamboo",     90,   2,    0,    1500),
 
-    TREE     ("Wood",      Category.WOOD, new Color(70, 140, 70),     "tree",      110,   3,    0,    2400),
+    // Filipino trees. Narra and acacia (rain tree) give timber (bamboo). Mango, coconut and banana give fruit, which counts as a meal.
+    TREE     ("Narra",     Category.WOOD, new Color(70, 140, 70),     "tree",      110,   3,    0,    2400),
+    ACACIA   ("Acacia",    Category.WOOD, new Color(90, 150, 70),     "acacia",    100,   3,    0,    2400),
+    MANGO    ("Mango",     Category.FOOD, new Color(240, 170, 50),    "mango",      90,   2,    0,    2400),
+    COCONUT  ("Coconut",   Category.FOOD, new Color(150, 110, 70),    "coconut",   100,   2,    0,    2400),
+    BANANA   ("Banana",    Category.FOOD, new Color(235, 215, 80),    "banana",     70,   3,    0,    2000),
+    FRUIT    ("Fruit",     Category.FOOD, new Color(240, 170, 50),    "fruit",       0,   1,    1,    0),
     NICKEL   ("Nickel",    Category.ORE,  new Color(150, 195, 175),   "nickel",    150,   1,    0,    0),
     COPPER   ("Copper",    Category.ORE,  new Color(210, 125, 75),    "copper",    150,   1,    0,    0),
     CHROMITE ("Chromite",  Category.ORE,  new Color(115, 125, 150),   "chromite",  180,   1,    0,    0),
@@ -31,7 +37,7 @@ public enum ResourceType {
     LAPULAPU ("Lapu-lapu", Category.FISH, new Color(235, 110, 70),    "lapulapu",  140,   1,    8,    0);
 
     /** The big groups. The HUD and the harvest rules treat each group a bit differently. */
-    public enum Category { WOOD, ORE, FISH }
+    public enum Category { WOOD, ORE, FISH, FOOD }
 
     private final String label;
     private final Category category;
@@ -63,7 +69,22 @@ public enum ResourceType {
      * so the player has one building material, not two. Everything else gives itself.
      */
     public ResourceType getStock() {
-        return this == TREE ? BAMBOO : this;
+        switch (this) {
+            case TREE:
+            case ACACIA:
+                return BAMBOO;
+            case MANGO:
+            case COCONUT:
+            case BANANA:
+                return FRUIT;
+            default:
+                return this;
+        }
+    }
+
+    /** Is this a tree on the map (timber or fruit)? Trees are taller than a tile and chopped from the leaves. */
+    public boolean isTree() {
+        return this == TREE || this == ACACIA || this == MANGO || this == COCONUT || this == BANANA;
     }
 
     public Category getCategory() {

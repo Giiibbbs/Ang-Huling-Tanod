@@ -31,7 +31,7 @@ public class MarketPanel {
         NET("1", "Net", ResourceType.BAMBOO, Net.COST_BAMBOO, "Ships stop and cut it. Place on shallow water."),
         MINE("2", "Mine", ResourceType.NICKEL, Mine.COST_NICKEL, "Blows up ships that come near. Place on water close to land."),
         TORCH("3", "Torch", ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO, "Lights the shore all night. Place on free land."),
-        PANA("4", "Pana tower", ResourceType.BAMBOO, Constants.PANA_COST_BAMBOO, "A bamboo arrow tower. Shoots ships even in the dark. Place on free land."),
+        PANA("4", "Pana", ResourceType.BAMBOO, Constants.PANA_COST_BAMBOO, "A bamboo arrow tower. Shoots ships even in the dark. Place on free land."),
         REPAIR("R", "Repair", null, Constants.REPAIR_FISH_COST, "Eat fish to mend the post and boost the radio."),
         REWIRE("C", "Rewire", ResourceType.COPPER, Constants.REWIRE_COST_COPPER, "Rewire the radio for a stronger signal."),
         ARMOR("V", "Armor", ResourceType.CHROMITE, Constants.ARMOR_COST_CHROMITE, "Armor the post: more maximum health."),
@@ -54,16 +54,16 @@ public class MarketPanel {
 
     private static final int X = 4;
     private static final int Y = 56;
-    private static final int W = 140;
-    private static final int HEADER = 14;
-    private static final int TABBAR = 12;
-    private static final int ROW = 24;
-    private static final int TIP_HEIGHT = 36;
-    private static final int CREW_HEIGHT = 16;
+    private static final int W = 132;
+    private static final int HEADER = 12;
+    private static final int TABBAR = 11;
+    private static final int ROW = 16;
+    private static final int TIP_HEIGHT = 24;
+    private static final int CREW_HEIGHT = 13;
 
     private static final Font TINY = new Font("SansSerif", Font.PLAIN, 8);
-    private static final Font NAME = new Font("SansSerif", Font.BOLD, 10);
-    private static final Font KEY = new Font("SansSerif", Font.BOLD, 9);
+    private static final Font NAME = new Font("SansSerif", Font.BOLD, 9);
+    private static final Font KEY = new Font("SansSerif", Font.BOLD, 8);
 
     private boolean open = true;
     private boolean upgradesTab = false;   // false: BUILD tab, true: UPGRADES tab
@@ -204,17 +204,17 @@ public class MarketPanel {
     private String status(GameWorld world, Offer offer) {
         switch (offer) {
             case TORCH:
-                return world.getTorchCount() + "/" + Constants.TORCH_MAX + " built";
+                return world.getTorchCount() + "/" + Constants.TORCH_MAX;
             case PANA:
-                return world.getPanaCount() + "/" + Constants.PANA_MAX + " built";
+                return world.getPanaCount() + "/" + Constants.PANA_MAX;
             case REPAIR:
-                return "Post " + world.getPost().getHealth() + "/" + world.getPost().getMaxHealth();
+                return world.getPost().getHealth() + "/" + world.getPost().getMaxHealth();
             case REWIRE:
-                return "Radio " + world.getRadio().getSignal();
+                return "" + world.getRadio().getSignal();
             case ARMOR:
-                return "Lv " + world.getPost().getArmorLevel() + "/" + Constants.ARMOR_MAX_LEVEL;
+                return "Lv" + world.getPost().getArmorLevel();
             case LAMP:
-                return "Lv " + world.getLampLevel() + "/" + Constants.LAMP_MAX_LEVEL;
+                return "Lv" + world.getLampLevel();
             default:
                 return "";
         }
@@ -250,11 +250,11 @@ public class MarketPanel {
         g.fillRoundRect(X, Y, W, HEADER, 6, 6);
         g.setFont(KEY);
         g.setColor(new Color(255, 225, 140));
-        g.drawString("WORKSHOP", X + 6, Y + 10);
+        g.drawString("WORKSHOP", X + 6, Y + 9);
         g.setFont(TINY);
         g.setColor(new Color(200, 210, 230));
         String hide = open ? "B hide" : "B show";
-        g.drawString(hide, X + W - g.getFontMetrics().stringWidth(hide) - 6, Y + 10);
+        g.drawString(hide, X + W - g.getFontMetrics().stringWidth(hide) - 6, Y + 9);
         if (!open) {
             return;
         }
@@ -267,7 +267,7 @@ public class MarketPanel {
             for (int i = 0; i < gear.length; i++) {
                 drawGearRow(g, world, gear[i], rowsTop() + i * ROW, i == hover);
             }
-            tip = hover >= 0 ? gear[hover].getDescription() : "Click a tool (or press 5-9) to buy its next level. Bamboo, and a little ore from level 2.";
+            tip = hover >= 0 ? gear[hover].getDescription() : "Click a tool, or press 5-9, to buy its next level.";
         } else {
             Offer[] offers = Offer.values();
             for (int i = 0; i < offers.length; i++) {
@@ -288,11 +288,28 @@ public class MarketPanel {
             g.fillRect(tx, Y + HEADER, W / 2, TABBAR);
             g.setFont(TINY);
             g.setColor(active ? new Color(255, 225, 140) : new Color(150, 165, 190));
-            g.drawString(names[i], tx + 6, Y + HEADER + 9);
+            g.drawString(names[i], tx + 6, Y + HEADER + 8);
         }
     }
 
-    /** One tool in the Upgrades tab: its level, and what the next level costs. */
+    /** The little key chip shared by every row. */
+    private void drawChip(Graphics2D g, String key, int y) {
+        g.setColor(new Color(235, 235, 245));
+        g.fillRoundRect(X + 3, y + 3, 10, 10, 3, 3);
+        g.setFont(KEY);
+        g.setColor(new Color(30, 30, 50));
+        g.drawString(key, X + 3 + (10 - g.getFontMetrics().stringWidth(key)) / 2, y + 11);
+    }
+
+    /** The thin line along the bottom of a row: how much of the cost you already have. */
+    private void drawProgress(Graphics2D g, int y, double ratio, boolean affordable, boolean maxed) {
+        g.setColor(new Color(255, 255, 255, 35));
+        g.fillRect(X, y + ROW - 2, W, 2);
+        g.setColor(maxed ? new Color(120, 125, 135) : affordable ? new Color(110, 225, 125) : new Color(240, 165, 80));
+        g.fillRect(X, y + ROW - 2, (int) (W * Math.min(1.0, ratio)), 2);
+    }
+
+    /** One tool in the Upgrades tab, on a single line: key, name, level, and what the next level costs. */
     private void drawGearRow(Graphics2D g, GameWorld world, Upgrades.Gear gear, int y, boolean hover) {
         Upgrades up = world.getUpgrades();
         boolean maxed = up.isMaxed(gear);
@@ -303,38 +320,22 @@ public class MarketPanel {
 
         g.setColor(hover ? new Color(44, 58, 92, 225) : new Color(20, 28, 48, 205));
         g.fillRect(X, y, W, ROW);
-
-        g.setColor(new Color(235, 235, 245));
-        g.fillRoundRect(X + 4, y + 4, 12, 12, 4, 4);
-        g.setFont(KEY);
-        g.setColor(new Color(30, 30, 50));
-        g.drawString(gear.getKey(), X + 4 + (12 - g.getFontMetrics().stringWidth(gear.getKey())) / 2, y + 13);
+        drawChip(g, gear.getKey(), y);
 
         g.setFont(NAME);
         g.setColor(maxed ? new Color(150, 160, 170) : Color.WHITE);
-        g.drawString(gear.getLabel(), X + 21, y + 12);
-
-        // Three pips show the level
-        for (int i = 0; i < Upgrades.MAX_LEVEL; i++) {
-            g.setColor(i < up.getLevel(gear) ? new Color(255, 215, 90) : new Color(255, 255, 255, 50));
-            g.fillRect(X + W - 5 - (Upgrades.MAX_LEVEL - i) * 8, y + 5, 6, 6);
-        }
-        if (maxed) {
-            g.setFont(TINY);
-            g.setColor(new Color(255, 215, 90));
-            g.drawString("MAX", X + 21 + 62, y + 21);
-            return;
-        }
-        // Cost of the next level: bamboo, then ore if the level needs it
+        g.drawString(gear.getLabel(), X + 17, y + 11);
         g.setFont(TINY);
-        String b = "Bamboo " + bamboo + "/" + up.bambooCost(gear);
-        g.setColor(bambooOk ? new Color(170, 240, 180) : new Color(255, 170, 140));
-        g.drawString(b, X + 21, y + 21);
-        if (up.oreCost(gear) > 0) {
-            int ox = X + 21 + g.getFontMetrics().stringWidth(b) + 6;
-            g.setColor(oreOk ? new Color(170, 240, 180) : new Color(255, 170, 140));
-            g.drawString("+ " + gear.getOre().getLabel() + " " + ore + "/" + up.oreCost(gear), ox, y + 21);
+        g.setColor(new Color(255, 215, 90));
+        g.drawString(maxed ? "MAX" : "Lv" + up.getLevel(gear), X + 58, y + 11);
+        if (!maxed) {
+            String cost = bamboo + "/" + up.bambooCost(gear) + " B";
+            String ocost = up.oreCost(gear) > 0 ? "  " + ore + "/" + up.oreCost(gear) + " " + gear.getOre().getLabel().substring(0, 2) : "";
+            int right = X + W - 4;
+            g.setColor(bambooOk && oreOk ? new Color(170, 240, 180) : new Color(255, 170, 140));
+            g.drawString(cost + ocost, right - g.getFontMetrics().stringWidth(cost + ocost), y + 11);
         }
+        drawProgress(g, y, up.bambooCost(gear) == 0 ? 1 : bamboo / (double) up.bambooCost(gear), bambooOk && oreOk, maxed);
     }
 
     private void drawRow(Graphics2D g, GameWorld world, Offer offer, int y, boolean hover) {
@@ -349,40 +350,23 @@ public class MarketPanel {
             g.setColor(new Color(255, 215, 90));
             g.drawRect(X, y, W - 1, ROW - 1);
         }
+        drawChip(g, offer.key, y);
 
-        // Key chip
-        g.setColor(new Color(235, 235, 245));
-        g.fillRoundRect(X + 4, y + 4, 12, 12, 4, 4);
-        g.setFont(KEY);
-        g.setColor(new Color(30, 30, 50));
-        g.drawString(offer.key, X + 4 + (12 - g.getFontMetrics().stringWidth(offer.key)) / 2, y + 13);
-
-        // Name and status
         g.setFont(NAME);
         g.setColor(maxed ? new Color(150, 160, 170) : Color.WHITE);
-        g.drawString(offer.label, X + 21, y + 12);
-        String status = status(world, offer);
-        if (!status.isEmpty()) {
-            g.setFont(TINY);
-            g.setColor(maxed ? new Color(255, 215, 90) : new Color(190, 205, 225));
-            g.drawString(maxed ? "MAX" : status, X + W - g.getFontMetrics().stringWidth(maxed ? "MAX" : status) - 5, y + 11);
-        }
-
-        // Requirement: a bar that fills as you collect, and the numbers
-        int barX = X + 21;
-        int barY = y + 16;
-        int barW = 56;
-        double ratio = Math.min(1.0, have / (double) offer.cost);
-        g.setColor(new Color(255, 255, 255, 45));
-        g.fillRect(barX, barY, barW, 4);
-        g.setColor(maxed ? new Color(120, 125, 135) : affordable ? new Color(110, 225, 125) : new Color(240, 165, 80));
-        g.fillRect(barX, barY, (int) (barW * ratio), 4);
-        g.setColor(new Color(0, 0, 0, 150));
-        g.drawRect(barX, barY, barW, 4);
+        g.drawString(offer.label, X + 17, y + 11);
+        int nameEnd = X + 17 + g.getFontMetrics().stringWidth(offer.label) + 4;
 
         g.setFont(TINY);
-        g.setColor(affordable ? new Color(170, 240, 180) : new Color(255, 170, 140));
-        g.drawString(have + "/" + offer.cost + " " + unitName(offer), barX + barW + 5, y + 21);
+        String cost = maxed ? "MAX" : have + "/" + offer.cost + " " + unitName(offer);
+        String status = maxed ? "" : status(world, offer);
+        g.setColor(maxed ? new Color(255, 215, 90) : affordable ? new Color(170, 240, 180) : new Color(255, 170, 140));
+        g.drawString(cost, X + W - 4 - g.getFontMetrics().stringWidth(cost), y + 11);
+        if (!status.isEmpty()) {
+            g.setColor(new Color(190, 205, 225));
+            g.drawString(status, nameEnd, y + 11);
+        }
+        drawProgress(g, y, have / (double) Math.max(1, offer.cost), affordable, maxed);
     }
 
     /** A strip showing which survivors have arrived: a lit chip with the name, or a dark "?" chip. */
@@ -404,13 +388,13 @@ public class MarketPanel {
             }
             int cx = X + 4 + i * chipW;
             g.setColor(here ? new Color(70, 110, 70, 230) : new Color(40, 46, 64, 230));
-            g.fillRoundRect(cx, y + 3, chipW - 2, 11, 4, 4);
+            g.fillRoundRect(cx, y + 2, chipW - 2, 10, 4, 4);
             g.setColor(here ? new Color(220, 250, 220) : new Color(130, 140, 160));
             String t = here ? names[i] : "? night " + (2 * (i + 1));
-            g.drawString(t, cx + 3, y + 11);
+            g.drawString(t, cx + 3, y + 10);
             if (here) {   // green dot: paid and working today. red: no meals, resting.
                 g.setColor(paid ? new Color(120, 255, 130) : new Color(255, 110, 90));
-                g.fillOval(cx + chipW - 9, y + 6, 4, 4);
+                g.fillOval(cx + chipW - 9, y + 5, 4, 4);
             }
         }
     }

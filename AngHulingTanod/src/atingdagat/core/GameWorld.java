@@ -89,6 +89,7 @@ public class GameWorld {
     private final ArrayList<Warship> ships = new ArrayList<>();
     private final ArrayList<Defense> defenses = new ArrayList<>();
     private final BaleteTree balete = new BaleteTree(Constants.BALETE_COL, Constants.BALETE_ROW);
+    private int giftDay = 0;
     private final Punso punso = new Punso(Constants.PUNSO_COL, Constants.PUNSO_ROW);
     private final ArrayList<ResourceNode> nodes;
     private final ArrayList<FishSchool> fish = new ArrayList<>();
@@ -178,6 +179,11 @@ public class GameWorld {
 
         if (cycle.isNight()) {
             spawnShips();
+            // STATIC night: interference slowly drains the radio while ships are still out there
+            if (Twist.forNight(cycle.getNight()) == Twist.STATIC && frame % (6 * Constants.TARGET_FPS) == 0
+                    && getShipsLeftTonight() > 0) {
+                radio.weaken(2);
+            }
         }
         updateShips();
         updateDefenses();
@@ -218,14 +224,30 @@ public class GameWorld {
         checkLoss();
     }
 
+    /** How many ships arrive together in one pulse tonight. Bigger every few nights. */
+    private int pulseSize(int night) {
+        int[] base = {1, 1, 2, 2, 3, 3, 4, 4};
+        int size = base[Math.max(1, Math.min(Constants.TOTAL_NIGHTS, night))];
+        return Math.min(4, Twist.forNight(night) == Twist.ASSAULT ? size + 1 : size);   // only 4 sides to come from
+    }
+
+    /** Frames between pulses. A pulse of 3 waits 3 times as long as one ship would, so the average pace matches waves.txt. */
+    private int pulseInterval(int night) {
+        double factor = Twist.forNight(night) == Twist.ASSAULT ? 0.8 : 1.0;
+        return (int) (plan.getInterval(night) * pulseSize(night) * factor);
+    }
+
     private void spawnShips() {
         int night = cycle.getNight();
         spawnTimer++;
-        if (spawned < queue.size() && spawnTimer >= plan.getInterval(night)) {
+        if (spawned < queue.size() && spawnTimer >= pulseInterval(night)) {
             spawnTimer = 0;
-            WavePlan.Kind kind = queue.get(spawned);
-            spawned++;
-            spawnShip(kind);
+            ArrayList<Integer> sides = new ArrayList<>(java.util.Arrays.asList(0, 1, 2, 3));
+            Collections.shuffle(sides, random);   // a pulse comes from different sides
+            for (int k = 0; k < pulseSize(night) && spawned < queue.size(); k++) {
+                spawnShip(queue.get(spawned), sides.get(k));
+                spawned++;
+            }
         }
     }
 
@@ -241,11 +263,11 @@ public class GameWorld {
     }
 
     /** A ship appears just outside the screen, in a lane that points at the post. */
-    private void spawnShip(WavePlan.Kind kind) {
+    private void spawnShip(WavePlan.Kind kind, int side) {
         double band = 110;   // how far from the post's line the skiff may start
         double x;
         double y;
-        switch (random.nextInt(4)) {
+        switch (side) {
             case 0:  // left
                 x = -12;
                 y = laneY(band);
@@ -263,17 +285,32 @@ public class GameWorld {
                 y = Constants.INTERNAL_HEIGHT + 12;
                 break;
         }
+        Warship ship;
         switch (kind) {
             case CUTTER:
-                ships.add(new Cutter(x, y, post.getX(), post.getY()));
+                ship = new Cutter(x, y, post.getX(), post.getY());
                 break;
             case BARGE:
-                ships.add(new Barge(x, y, post.getX(), post.getY()));
+                ship = new Barge(x, y, post.getX(), post.getY());
                 break;
             default:
-                ships.add(new Skiff(x, y, post.getX(), post.getY()));
+                ship = new Skiff(x, y, post.getX(), post.getY());
                 break;
         }
+        switch (Twist.forNight(cycle.getNight())) {   // tonight's rule
+            case SURGE:
+                ship.powerUp(1.25, 0);
+                break;
+            case HARDENED:
+                ship.powerUp(1.0, 1);
+                break;
+            case ASSAULT:
+                ship.powerUp(1.1, 0);
+                break;
+            default:
+                break;
+        }
+        ships.add(ship);
     }
 
     private double laneX(double band) {
@@ -348,6 +385,9 @@ public class GameWorld {
                 showBanner("DUSK - get ready");
                 break;
             case NIGHT:
+                for (Survivor sv : survivors) {
+                    sv.newNight();
+                }
                 fish.clear();            // the fish go deep in the dark
                 crates.clear();          // and any crate left floating drifts away
                 holding = false;
@@ -355,12 +395,18 @@ public class GameWorld {
                 holdProgress = 0;
                 buildQueue();
                 spawned = 0;
-                spawnTimer = plan.getInterval(cycle.getNight()) - 90;   // first skiff in about 1.5 seconds
-                showBanner("NIGHT " + cycle.getNight());
+                spawnTimer = pulseInterval(cycle.getNight()) - 90;   // the first ships in about 1.5 seconds
+                Twist twist = Twist.forNight(cycle.getNight());
+                beam.setFog(twist == Twist.FOG ? 0.7 : 1.0);
+                showBanner("NIGHT " + cycle.getNight() + (twist == Twist.NONE ? "" : ": " + twist.getTitle()));
+                if (twist != Twist.NONE) {
+                    tellStory("Night " + cycle.getNight() + ": " + twist.getTitle(), twist.getText());
+                }
                 break;
             default: // DAWN
                 dragon.finish();     // (matters only if the night was skipped in the middle of the event)
                 beam.setOn(true);
+                beam.setFog(1.0);
                 showBanner("DAWN - repair and rebuild");
                 sendBangka(cycle.getNight());
                 monsterEvent(cycle.getNight());
@@ -979,8 +1025,9 @@ public class GameWorld {
         for (Survivor sv : survivors) {
             int bamboo = sv.work(shift, map, nodes, survivors, post.getX(), post.getY());
             if (bamboo > 0) {
-                inventory.add(ResourceType.BAMBOO, bamboo);
-                popups.add(new Popup(sv.getX(), sv.getY() - 26, "+" + bamboo + " Bamboo", ResourceType.BAMBOO.getColor()));
+                ResourceType load = sv.getDeliveredType();
+                inventory.add(load, bamboo);
+                popups.add(new Popup(sv.getX(), sv.getY() - 26, "+" + bamboo + " " + load.getLabel(), load.getColor()));
             }
             sv.update(map);
             sv.act(post, radio, ships, frame);
@@ -1102,25 +1149,51 @@ public class GameWorld {
         tellStory("The duwende is pleased", "\"Salamat sa paggalang. Every morning I will leave you something from under the earth.\"");
     }
 
-    /** Every morning an awake duwende leaves a little ore: usually the one you have least of, sometimes gold. */
+    /**
+     * Every morning an awake duwende leaves a different gift, in a four-day rotation, so he is useful at every stage:
+     * ore (the one you have least of, sometimes gold), two fruits (meals), a supply crate, or a mended post and radio.
+     */
     private void duwendeGift() {
         if (!punso.isAwake()) {
             return;
         }
-        ResourceType gift;
-        if (random.nextInt(100) < 15) {
-            gift = ResourceType.GOLD;
-        } else {
-            gift = ResourceType.COPPER;
-            ResourceType[] ores = {ResourceType.NICKEL, ResourceType.CHROMITE};
-            for (ResourceType ore : ores) {
-                if (inventory.get(ore) < inventory.get(gift)) {
-                    gift = ore;
+        String text;
+        Color color = new Color(255, 225, 140);
+        switch (giftDay++ % 4) {
+            case 0:
+                ResourceType gift;
+                if (random.nextInt(100) < 15) {
+                    gift = ResourceType.GOLD;
+                } else {
+                    gift = ResourceType.COPPER;
+                    ResourceType[] ores = {ResourceType.NICKEL, ResourceType.CHROMITE};
+                    for (ResourceType ore : ores) {
+                        if (inventory.get(ore) < inventory.get(gift)) {
+                            gift = ore;
+                        }
+                    }
                 }
-            }
+                inventory.add(gift, 1);
+                text = "+1 " + gift.getLabel();
+                color = gift.getColor();
+                break;
+            case 1:
+                inventory.add(ResourceType.FRUIT, 2);
+                text = "+2 Fruit (meals)";
+                color = ResourceType.FRUIT.getColor();
+                break;
+            case 2:
+                spawnCrate();
+                text = "A crate washes ashore";
+                break;
+            default:
+                post.repair(4);
+                radio.restore(3);
+                text = "Post and radio mended";
+                color = new Color(160, 230, 160);
+                break;
         }
-        inventory.add(gift, 1);
-        popups.add(new Popup(punso.getX(), punso.getY() - 26, "+1 " + gift.getLabel() + " (duwende)", gift.getColor()));
+        popups.add(new Popup(punso.getX(), punso.getY() - 26, text + " (duwende)", color));
     }
 
     /** Test key H: stir and wake the balete tree, and bring the manananggal right now. */
