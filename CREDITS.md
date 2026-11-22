@@ -16,6 +16,7 @@ asset.** Don't wait until the last day.
 | Scallywag Water and Islands | Foozle (itch.io / OpenGameArt) | Foozle | CC0 (confirm on the page) | Sea and island tiles | Planned, confirm before use |
 | Pirate Pack | kenney.nl | Kenney | CC0 (confirm on the page) | Ships and props | Planned, confirm before use |
 | Purupuru Island Tileset | OpenGameArt | (author) | (confirm on the page) | Island tiles | Planned, confirm before use |
+| Lapu-Lapu stone statue and manananggal (`res/monsters/`) | Gemini (AI image tool), cropped and resized by Gabriel | Team (AI-assisted) | Team-owned; AI-assisted | Folklore guardians | Done, prompts in docs/07-art-prompts.md |
 | Custom sprites and references | Generated with AI image tools, edited by the team | Team | Team-owned; AI-assisted | Character, ships, guardians | In progress |
 
 > **AI-assisted art disclosure:** some artwork started as AI-generated references (Gemini) and was edited and adapted by

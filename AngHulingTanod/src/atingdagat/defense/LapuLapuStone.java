@@ -16,13 +16,13 @@ import java.util.List;
  * story tells you he is only sleeping. It is a Defense only so the world already knows how to
  * update and draw it (ships cannot reach the islet, so it never takes damage).
  *
- * If the art file exists (res/monsters/lapulapu_stone.png, 36x44) the game draws it, otherwise
+ * If the art file exists (res/monsters/lapulapu_stone.png, drawn at 28x48) the game draws it, otherwise
  * it draws a grey statue with a spear in code.
  */
 public class LapuLapuStone implements Defense {
 
     private static final String SPRITE_PATH = "/atingdagat/res/monsters/lapulapu_stone.png";
-    private final BufferedImage sprite = Assets.get(SPRITE_PATH, 36, 44);
+    private final BufferedImage sprite = Assets.get(SPRITE_PATH, 28, 48);
 
     private final int col;
     private final int row;
@@ -69,10 +69,10 @@ public class LapuLapuStone implements Defense {
     public void draw(Graphics2D g, int frame) {
         int x = (int) getX();
         int y = (int) getY() + 5;
-        g.setColor(new Color(0, 0, 0, 60));
-        g.fillOval(x - 10, y - 3, 20, 7);
+        g.setColor(new Color(0, 0, 0, 45));
+        g.fillOval(x - 14, y - 10, 28, 9);
         if (sprite != null) {
-            g.drawImage(sprite, x - 18, y - 42, null);
+            g.drawImage(sprite, x - 14, y - 52, null);
             return;
         }
         Color stone = new Color(150, 152, 158);

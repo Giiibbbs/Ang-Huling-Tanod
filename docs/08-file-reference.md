@@ -198,10 +198,10 @@ Every file is optional. If one is missing the game draws a shape and prints a sh
 | `res/buildings/` (`lighthouse`, `post`, `net`, `mine`, `torch`, `pana`) | the buildings | lighthouse and post see the classes, net 10x10, mine 16x16, torch 12x16, pana 14x20 | Mostly placeholders |
 | `res/items/crate.png` | the supply crate | 16x16 | Placeholder |
 | `res/survivors/<name>.png` (`kainday`, `migo`, `tonyo`) | the three survivors | 18x22 | Placeholder (code-drawn) |
-| `res/monsters/lapulapu_stone.png` | the Lapu-Lapu stone statue | 36x44 | Optional. The code draws it |
+| `res/monsters/lapulapu_stone.png` | the Lapu-Lapu stone statue | 28x48 | Done. Gemini art, cropped and saved at 157x240; the game scales it down. The code draws a placeholder if it is missing |
 | `res/nodes/acacia.png`, `mango.png`, `coconut.png`, `banana.png` | the other trees (`tree.png` is narra) | 20x28 | Optional. The code draws each |
 | `res/ui/fruit.png` | fruit HUD icon | 10x10 | Optional |
-| `res/monsters/manananggal.png` | the manananggal | 30x26 | Optional. The code draws her |
+| `res/monsters/manananggal.png` | the manananggal | 36x40 | Done. Gemini art, cropped and saved at 216x240; one still image. The code draws her if it is missing |
 | `res/monsters/punso.png` | the duwende's anthill | 22x22 | Optional. The code draws it |
 
 Full prompts and the style rules are in [07-art-prompts.md](07-art-prompts.md).

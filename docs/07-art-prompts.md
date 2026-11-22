@@ -41,7 +41,7 @@ The boat is about twice as long as it is wide.
 
 ## Test sprite 2: Lighthouse (the beam's source)
 
-*In-game size: about 32x48 pixels.*
+*In-game size: about 28x48 pixels.*
 
 ```
 [STYLE BIBLE]
@@ -72,7 +72,7 @@ COLOR RULE: the object itself must contain no magenta, hot pink, or purple.
 
 ## Checklist: do the three look like one game?
 
-Look at them **side by side**, then **shrunk to their in-game size** (32x16, 32x48, 16x24).
+Look at them **side by side**, then **shrunk to their in-game size** (32x16, 28x48, 16x24).
 
 - [ ] Same outline thickness and same level of detail
 - [ ] Same palette feel (not one very saturated and one dull)
@@ -310,14 +310,14 @@ Both work without art because the code draws them. If you want to replace them, 
 
 | File | Size | What |
 |---|---|---|
-| `res/monsters/lapulapu_stone.png` | 36x44 | A grey stone statue of Lapu-Lapu, a Visayan chieftain, standing on a small base: bare chest, sash, a spear in one hand, proud stance, moss on the feet. Pixel art, 3/4 view, same style as the other sprites |
+| `res/monsters/lapulapu_stone.png` | drawn at 28x48 (**Done, in the game**) | A grey stone statue of Lapu-Lapu, a Visayan chieftain, standing on a small base: bare chest, sash, a spear in one hand, proud stance, moss on the feet. Pixel art, 3/4 view, same style as the other sprites |
 | `res/monsters/punso.png` | 22x22 | A small anthill of red-brown earth with a dark round doorway and a few ants. Pixel art, 3/4 view. The duwende is drawn by code |
-| `res/monsters/manananggal.png` | 30x26 | A pale woman, upper body only, with long black hair streaming and two big bat wings spread, flying. Not gory: she ends in a faint wisp. Pixel art |
+| `res/monsters/manananggal.png` | drawn at 36x40 (**Done, in the game; one still image, no flap animation**) | A pale woman, upper body only, with long black hair streaming and two big bat wings spread, flying. Not gory: she ends in a faint wisp. Pixel art |
 
 
 ## Full prompts for the optional art (copy after the style bible)
 
-**Lapu-Lapu stone** (`res/monsters/lapulapu_stone.png`, 36x44, upright, 3/4 view. It is not a ship, so it does not point right)
+**Lapu-Lapu stone** (`res/monsters/lapulapu_stone.png`, drawn at 28x48, upright, 3/4 view. It is not a ship, so it does not point right)
 ```
 SUBJECT: a weathered grey stone statue of a Visayan chieftain standing on a small round stone base. Bare chest,
 a simple sash and loincloth carved in stone, a long spear held upright in one hand, proud straight stance,

@@ -24,7 +24,7 @@ public class Manananggal extends Survivor implements GlowSource {
 
     private enum Mode { ROOST, SWOOP, RETURN }
 
-    private final BufferedImage art = Assets.get("/atingdagat/res/monsters/manananggal.png", 30, 26);
+    private final BufferedImage art = Assets.get("/atingdagat/res/monsters/manananggal.png", 36, 40);
     private final double roostX;
     private final double roostY;
     private Mode mode = Mode.ROOST;
@@ -138,7 +138,7 @@ public class Manananggal extends Survivor implements GlowSource {
         g.setColor(new Color(0, 0, 0, 35));                       // shadow far below
         g.fillOval(px - 6, (int) roostY + 30, 12, 4);
         if (art != null) {
-            g.drawImage(art, px - 15, py - 18, null);
+            g.drawImage(art, px - 18, py - 24, null);
             return;
         }
         int dir = facingLeft ? -1 : 1;
