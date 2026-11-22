@@ -306,6 +306,78 @@ waves are probably too easy for a perfect player. Gio's playtest decides what to
 
 ---
 
+## Step 18. Light you carry, a walking tanod, and a bigger island (Nov 19 to 20)
+
+**What we did:** the player became a real character who **walks** (WASD) and carries a **lantern**. Torches light fixed spots. The island grew to
+64 x 36 tiles (10 px each) and got 11 choppable trees. Supply crates float in with ore.
+
+**Why:** the first version had a mouse cursor doing everything. A body on the map gives **distance**, and distance creates choices: you
+must walk to the grove, walk back to build, and be somewhere at dusk. Reach limits (you can only harvest what is close) make the walk matter.
+
+**The one trick worth knowing:** when we shrank the tiles from 16 px to 10 px, every rule written in tiles ("nets only 3 deep") would have changed.
+We added `DEPTH_UNIT_PX = 16` so depth is always measured in the same real distance. Changing the tile size did not break a single rule.
+
+**Why crates:** ore never grows back, so a careless player could run out and be stuck. Crates are a safety net that also gives the sea a reason to be watched.
+
+**How we checked:** headless tests (a program that runs the game with no window and prints numbers), pictures rendered to files, and 4 random-input
+runs that must never crash.
+
+---
+
+## Step 19. Survivors, the Pana tower and the bangka (Nov 20)
+
+**What we did:** three allies arrive by **bangka** at dawn after nights 2, 4 and 6: Ka Inday heals, Migo keeps the radio up, Tonyo shoots. The **Pana tower** is
+a defense that shoots without light.
+
+**Why:** a lonely last tanod is a better story with company, and a bigger one: "You were never the last tanod" is the ending. In code they are one **abstract
+`Survivor` class** and three children. The world calls `act()` on each one and does not care who is who. This is the same idea as `Warship`, used again on purpose, so
+the professor sees the pattern repeat.
+
+**Why the Pana tower:** at night you can only shoot what the light finds. A tower that needs no light gives the player a second way to fight.
+
+---
+
+## Step 20. Upgrades and day workers (Nov 20)
+
+**What we did:** an **Upgrades** tab in the Workshop. Five tools go to level 3: pickaxe, axe, boots, fishing rod and rifle. The survivors also **work by day**: each morning they ask
+for 1 meal, then chop trees and bamboo and carry it to the post (3 loads a day).
+
+**Why:** the day felt flat once you had built everything. Tools give permanent progress, so every harvest feels better than the last. Paying workers in fish gives
+meals a use, because before this fish only healed the post and piled up.
+
+**Why one class for the levels:** `Upgrades` keeps five numbers and answers three questions ("how long does this harvest take?", "how fast do I walk?", "how far can I shoot?"). The
+world asks, the class answers. The costs are small arrays, so Gio can tune them in one place.
+
+**Why the workers check the path:** the island has coves. A worker walking in a straight line to a tree could cross water. Before choosing a tree, the worker tests the line in small steps and skips the tree if any step is sea.
+
+---
+
+## Step 21. Folklore: duwende, Lapu-Lapu stone and manananggal (Nov 21 to 22)
+
+**What we did:** three story events, each from folklore and each an **ally**.
+- After night 1 a **punso** (anthill) on the west shore stirs. A gift of bamboo wakes the **duwende**, who leaves ore every morning.
+- After night 3 a **stone statue of Lapu-Lapu** on the northeast islet gets its story: he was turned to stone, not killed. (It first was a balete tree with a kapre. Playtest said the kapre did nothing when no ship came near, so we replaced him.)
+- After night 5 the **manananggal** arrives. In the old stories she is a predator. Here she is a twist: the Kordans hunted her too.
+
+**Why allies and not enemies:** our enemies are the Kordan ships. The folklore is the island's own memory, and the theme of the game is that a community, old and new, holds together.
+Respect ("tabi-tabi po") is rewarded.
+
+**Why this was cheap to build:** the statue is a `Defense`, so the world already knew how to draw it. The manananggal is a `Survivor`, so the same. The
+duwende reuses `Harvestable`. **No change to the main loop was needed.** That is the payoff of building on interfaces and abstract classes.
+
+**Why they work without art:** each draws itself with shapes. Jaron's PNG can replace it later with no code change.
+
+---
+
+## Step 22. A longer beam and a longer day (Nov 22)
+
+**What we did:** the beam grew from 240 to 380 px (and from 16 to 21 degrees each side), and the day from 50 to 75 seconds.
+
+**Why:** the playtest feedback was "the beam does not reach the east sea." The map is 640 px wide and the lighthouse is at 300, so a 240 px beam left a whole side of the sea dark.
+A number was wrong, not a design. Tuning numbers live in `Constants` and `Beam` so this was a one-line fix.
+
+---
+
 ## The pattern behind all of it
 
 1. **One job per class.** (Easy to find, easy to change.)
@@ -313,9 +385,43 @@ waves are probably too easy for a perfect player. Gio's playtest decides what to
 3. **Never crash on missing files.** (Safe demo.)
 4. **See something working early.** (Motivation and early bug-finding.)
 5. **Write down the why.** (Study guide, demo, and professor questions all in one.)
+6. **Build on interfaces so new things plug in.** (Three folklore allies were added without touching the main loop.)
+
+## Step 23. Playtest fixes: escalating nights, Filipino trees, a smaller shop (Nov 22)
+
+**What the playtest said:** the manananggal killed a ship in one hit; the duwende was pointless after the first nights; the kapre did nothing when no ship came near; the trees looked like bamboo; the shop was too big; ships came one by one; the beam turned too slowly.
+
+**What we did:**
+- **Manananggal** nerfed: 1 damage, a long cooldown, 4 swoops a night.
+- **Duwende** gives a different gift every morning (ore, fruit, a supply crate, repairs).
+- **Kapre removed.** The balete tree became a stone statue of Lapu-Lapu, turned to stone, not killed. Freeing him is a future feature.
+- **Trees:** narra, acacia, mango, coconut and banana, each drawn differently. Mango, coconut and banana give fruit, which counts as meals.
+- **Shop** is about 70 px shorter (one-line rows).
+- **Nights escalate (FNAF style):** ships come in pulses from several sides (1,1,2,2,3,3,4) and every night has a twist (`Twist` enum): fog, static, surge, hardened, assault.
+- **Beam** follows the mouse instantly.
+- A headless **bot test** found a real crash (a pulse of 5 on night 7 needed a fifth side) and told us the first wave numbers were too harsh. We lowered `waves.txt`.
+
+**Lesson:** a small automated player is a cheap way to find crashes and rough balance, but it never replaces a human playtest.
+
+## Step 24. Radio voices ending, How to Play and combat feel (Nov 22)
+
+**What we did:** the ending story is now told through seven voices from other islands. Each dusk the radio catches one (from `voices.txt`). At dawn of day 8 the same voices answer by name as their bangkas arrive, so the whole game pays off the title: you were never the last tanod. We also added a one-page How to Play screen (H or F1) and combat feel: hit flash, floating damage numbers, screen shake and a ring on ships the beam is lighting.
+
+**Why a text file for the story:** Gio can rewrite the voices in Notepad without touching Java, and it counts as real file I/O.
+
+**A bug the bot found (Nov 22):** the Bakunawa climax never played in a normal run. `GameWorld.onPhaseChange(DAWN)` called `dragon.finish()` after every night, so by night 7 the dragon was already "done" and the event was skipped. Only the test key E showed it. Fix: before night 7 the dragon is `reset()` to asleep at each dawn, and `finish()` is used only after the last night. Lesson: test the real path from day 1, not only the test keys.
+
+**Lesson:** one object (`Warship`) now records its own damage, so every damage source gets numbers and flashes for free. Put a feature where all the sources already meet.
+
+## Step 25: the bot's critique, and the fix
+
+A headless bot played the game and found three problems: resources had no tension (bamboo piled up), enemies were too simple, and the night was thin for the player. We added wear and tear with hold-X repair (`Durable`), Raiders that shoot towers and torches, Ghost ships that need steady light, and a flare gun on F.
+
+**Lesson:** playtest with a bot early; it finds balance problems faster than opinions do. Smallest safe scope: new behavior goes through one hook (`act`) and one interface (`Durable`).
 
 ## Where to read next
 
 - To understand the code line by line: [03-code-guide.md](03-code-guide.md)
 - To find a file or change a number: [08-file-reference.md](08-file-reference.md)
 - To prepare the demo: [04-pitch-and-demo.md](04-pitch-and-demo.md)
+- For everything in one file: [10-complete-guide.md](10-complete-guide.md)

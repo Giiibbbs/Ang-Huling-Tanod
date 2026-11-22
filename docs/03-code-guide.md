@@ -359,9 +359,8 @@ point lit?"
 
 **Why we did it this way:**
 
-- **It turns at a fixed speed instead of snapping to the mouse.** If it snapped, there would be no decision to make.
-  Because it needs about a second and a half to swing around, the player has to plan where to look. That is the core of the
-  game.
+- **It follows the mouse instantly.** It first turned at a fixed speed (so the player had to plan where to look), but that felt sluggish,
+  so `TURN_SPEED` is now a half turn per frame: the beam is always where the mouse is. The decision moved elsewhere: where to stand, what to light, and the fog night.
 - **The beam knows the rules, and other classes ask it.** `beam.lights(x, y)` is the single place that decides what
   counts as lit. Ships and the overlay both use it, so they can never disagree.
 - **The tuning numbers are named constants at the top** (`TURN_SPEED`, `HALF_ANGLE`, `LENGTH`, `LAMP_GLOW`), so Gio can
@@ -375,7 +374,7 @@ point lit?"
 targetAngle = Math.atan2(y - originY, x - originX);
 ```
 
-*Turning smoothly:* each frame the beam moves toward the target by at most `TURN_SPEED`.
+*Turning:* each frame the beam moves toward the target by at most `TURN_SPEED` (now so big that it snaps; lower it to make the beam heavier).
 
 ```java
 double diff = angleDiff(targetAngle, angle);
@@ -929,7 +928,51 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 
 ---
 
-## 27. What we plan to add (and what each will teach)
+## 27. Upgrades and day workers (`Upgrades`, `Survivor.work`)
+
+**Upgrades.** `economy/Upgrades.java` keeps five levels (0 to 3) in an array indexed by the `Gear` enum (PICKAXE, AXE, BOOTS, ROD, RIFLE; the rifle adds 70 px of gun range per level and needs chromite). The enum holds each tool's fixed facts. The class holds the changing levels and answers three questions for the world: `holdMultiplier(target)` (how long a harvest takes), `speedMultiplier()` (walking) and `extraFishReach()`. Costs are arrays: bamboo 4, 6, 8 and ore 0, 1, 1 for levels 1, 2, 3 (nickel for pickaxe and rod, copper for axe and boots). `GameWorld.holdFramesFor()` is the one place where a harvest time is worked out, so the progress ring and the real time always agree.
+
+**Workers.** Each survivor has a small state machine in `Survivor.work()`: IDLE, GOING, CHOPPING, CARRYING. At the start of a day `GameWorld.payCrew()` takes 1 meal per survivor (if there are none, that survivor rests). A paid survivor finds the nearest free tree or bamboo near the post that can be walked to over land (a line check, so nobody teleports across water), chops it (4 s), carries the bamboo home and adds it to your bag. The quota is 3 loads a day. At dusk they walk home for their night jobs. A green dot in the Workshop crew strip means paid and working, red means resting.
+
+**Why this design.** The meal wage is a sink for fish (meals used to pile up). The quota stops workers from stripping the island. Polymorphism is unchanged: the world still calls `act()` on every survivor and does not care who is who.
+
+## 28. Folklore (`Punso`, `LapuLapuStone`, `Manananggal`)
+
+**The punso and the duwende** (`entities/Punso.java`). An anthill on the west shore. It is a `Harvestable` (holding the mouse on it is how you leave the gift) and a `GlowSource`. It stirs after night 1 (`monsterEvent(1)`), and 3 bamboo wakes the duwende (`GameWorld.giveGift()`). Each morning `GameWorld.duwendeGift()` adds 1 ore: usually the one of copper, nickel and chromite you have least of, and gold 15% of the time. It is a small way to fix ore running out. It is not a `Defense`, because it never fights: forcing it into that interface would be wrong, so `GameWorld` just holds it and draws it.
+
+**The Lapu-Lapu stone** (`defense/LapuLapuStone.java`). A grey statue with a spear on the northeast islet. After night 3 `monsterEvent(3)` tells the story: Lapu-Lapu was turned to stone, not killed, and some say he is only sleeping. He does nothing yet. He is a `Defense` only so the world already updates and draws him; ships cannot reach the islet. This replaced the kapre and balete tree. The plan is to let the player free him later (a task, then he fights), which is why he is a class of his own and not just a drawing.
+
+**The manananggal** (`entities/Manananggal.java`). She extends `Survivor`, so the world already knows how to update and draw her. She overrides three things: `update(map)` (she flies over the sea, a walking survivor cannot), `act()` (a small state machine: ROOST, SWOOP, RETURN) and `draw()`. `needsWage()` is false, so `payCrew()` and `work()` skip her. She arrives at dawn after night 5 from `monsterEvent(5)`.
+
+**Why this design.** Story events are plain methods called from the dawn phase, like the bangka. New allies need no change to the main loop: they are either a Defense or a Survivor. Optional art: `res/monsters/lapulapu_stone.png` (36x44), `res/monsters/punso.png` (22x22) and `res/monsters/manananggal.png` (30x26), both on flat magenta (255,0,255). Without them the code draws both. Test key `H` wakes the duwende and brings her at once.
+
+## 28b. Nights that escalate, Filipino trees, smaller shop (`Twist`, `ResourceType`, `MarketPanel`)
+
+**Pulses and twists (FNAF style).** Ships no longer trickle in one by one. `GameWorld.pulseSize(night)` gives 1,1,2,2,3,3,4 ships per pulse, and `spawnShips()` sends each pulse from different sides (never more than 4, there are only 4 sides). The wait between pulses is `waves.txt` seconds times the pulse size, so the average pace still matches the file. Each night also has one `Twist` (enum with a title and a story line): NONE, TWO_FRONTS, FOG (beam 30% shorter via `Beam.setFog`), STATIC (radio drains while ships remain), SURGE (ships 25% faster), HARDENED (+1 health through `Warship.powerUp`), ASSAULT (bigger, quicker pulses). Teaching point: an enum can carry data, so adding a twist is one new line plus one small `case`.
+
+**Trees.** `ResourceType` now has Narra and Acacia (give bamboo) and Mango, Coconut, Banana (give FRUIT, which counts as meals). `isTree()` replaced the old single TREE check. `ResourceNode.drawTree` draws each kind differently in code, so the game works with no art files.
+
+**Shop.** `MarketPanel` rows are now single-line chips with a thin progress bar, so the panel is about 188 px tall instead of 258.
+
+**Balance changes.** Manananggal: 1 damage, 4 s cooldown, 4 swoops per night. Duwende: a different gift each morning in a 4-day rotation (ore, fruit, supply crate, repairs). Waves in `waves.txt` were lowered after a headless bot test; a crude bot with full upgrades now reaches nights 6-7.
+
+## 28c. Radio voices, How to Play and combat feel (`RadioVoices`, `HelpScreen`, `Warship`)
+
+**Radio voices** (`core/RadioVoices.java`, `data/voices.txt`). A text file with one voice per line: `night | island | speaker | what you hear | what they say at the end`. `RadioVoices` reads it with a `BufferedReader` into a `List<Voice>`; a bad line is skipped and a missing file gives an empty list (the game never crashes). At dusk `GameWorld.onPhaseChange(DUSK)` shows tonight's voice with `tellStory`. `EndingScene` builds its story lines from the same list, so the ending always matches the voices the player heard. This is our data-structures and file-I/O story for the paper: a file parsed into a typed list, with safe fallbacks.
+
+**How to Play** (`ui/HelpScreen.java`, `GameState.HELP`). A new state. `GamePanel.openHelp()` remembers which screen to return to (`helpReturn`), the game is frozen while it shows (only `PLAY` updates the world), and the screen just draws text from arrays at the top of the class. Open with H on the menu or F1 anytime.
+
+**Combat feel.** Three small ideas, all in existing classes. (1) `Warship.hit()` now records `flash` and `pendingDamage`; `GameWorld.updateShips()` turns `takePendingDamage()` into a floating "-2" `Popup` and draws a white flash, so every damage source (gun, mine, Pana, manananggal) shows without changing those classes. (2) `GameWorld.addShake(power, frames)` plus `getShakeOffset()`; `GamePanel` moves the world picture by that offset (not the HUD). Ship deaths, mines and post hits shake. It uses its own `Random` so shaking never changes the waves. (3) A pulsing ring is drawn around ships the beam is lighting (`beam.lights`).
+
+## 28d. Wear, Raiders, Ghosts and the flare (`Durable`, `Raider`, `Ghost`, `Flare`, `Warship.act`)
+
+**`Durable` interface.** Net, Torch and PanaTower implement it: `getDurability`, `getMaxDurability`, `restore`, `wear` (floors at 1), `repairCostPerPoint`, plus default methods `isDamaged` and `drawWear` (a row of pips). `GameWorld` loops over `List<Defense>` and handles anything `instanceof Durable`, so a new defense gets wear and repair by adding "implements Durable". At dawn every Durable calls `wear(1)`. Holding X (`setRepairHeld`) finds the nearest damaged Durable within `REPAIR_REACH` and, every `REPAIR_FRAMES`, spends bamboo to `restore(1)`.
+
+**`Warship.act(defenses)` hook.** `update()` now does `if (!act(defenses)) move(map, defenses);`. The default `act` returns false (ship just sails). `Raider` overrides it: it picks the nearest live Pana tower or torch within 85 px, turns toward it, and every 100 frames damages it by 1, storing a shot for `GameWorld` to draw as a tracer and a "-1" popup. Teaching point: one small overridable method (the Template Method pattern) lets a subclass change behavior without touching the parent's loop.
+
+**`Ghost`** only changes two protected fields, `litRise` and `litFall`, so it is slow to become visible and fades fast. **`Flare`** implements `Light` and `GlowSource`, flies an arc for 24 frames, then burns; `GameWorld.isLit` and `glowSources` include it. `waves.txt` has two optional columns, raiders and ghosts (default 0).
+
+## 29. What we plan to add (and what each will teach)
 
 | Feature | Concept it shows | Rubric area |
 |---|---|---|

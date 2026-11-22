@@ -83,6 +83,10 @@ for gold. To keep scope small, **ship Ore as one resource** and show these as na
 Sources: [USGS, The Philippines (2024 report)](https://www.usgs.gov/centers/national-minerals-information-center/philippines)
 and [MGB, Minerals Industry at a Glance (April 2025)](https://mgb.gov.ph/images/Mineral_Statistics/2024/MINERALS_INDUSTRY_AT_A_GLANCE_Updated_11_April_2025.pdf).
 
+## Wear, repair and the flare
+
+Nets, torches and Pana towers have durability (4, 3, 4). Each dawn every one loses 1 (never below 1), and Raider shots take more. Hold X near a damaged defense to mend one point at a time (nets and torches cost 2 bamboo per point, Pana 3). This is the tension on resources: bamboo is for building AND upkeep. At night press F to fire a flare at the mouse (range 260 px, burns 6 s, 20 s cooldown); it lights ships like the beam does, so you can cover a second side.
+
 ## Enemies
 
 The Kordan fleet comes through the fog in five ship classes. The stats are placeholders to tune during playtesting
@@ -92,6 +96,8 @@ The Kordan fleet comes through the fog in five ship classes. The stats are place
 |---|---|---|---|
 | Skiff | Fast scout | Arrives first and marks the island; an unlit skiff makes the next wave bigger | Beam and quick shots |
 | Cutter | Gunboat | Stops at short range and fires at defenses | Heavier defenses and nets |
+| Raider | Tower hunter (from night 2) | Stops at range 85 and shoots the nearest Pana tower or torch, 1 damage per shot | Light it fast with the beam or a flare, kill it before it fires |
+| Ghost ship | Stealth (from night 3) | Slow to appear in light, quick to vanish again, so the beam must stay on it | Flare gun (F) holds the light in place |
 | Landing barge | Troop carrier | Beaches and spawns raiders | Mine buoys before it lands |
 | Signal frigate | Priority target | Jams the radio while in range | Decoys, then focused fire |
 | Dreadnought | Boss, night 7 | Outranges defenses and shells them from afar | Decoys, then hit its weak points |
@@ -188,14 +194,15 @@ noise with pots and gongs, so the player must **tap Space to sound the gongs** a
 it is full the dragon dives, swallows the Kordan flagship, and every ship still afloat goes down with it. Then it sinks away and the
 moon returns.
 
-**Dawn of the eighth day.** A short story plays over the island (about 30 seconds, ENTER skips it):
+**The radio voices.** Every dusk the radio catches one faint voice from another island (Isla Verde, Lubang, Maricaban, Sibuyan, Culion, Burias, Fortune Island), shown in the story box. They are read from `data/voices.txt`, one line per night. Seven nights, seven voices.
+
+**Dawn of the eighth day.** A short story plays over the island (about 31 seconds, ENTER skips it):
 
 1. The sea is dark and quiet. The Kordan fleet is gone.
-2. Tiny lights appear one by one across the water: other islands, answering the radio.
-3. A voice on the radio says "May natitira pa kami."
-4. Bangkas (fishing boats) with lanterns sail in from every side while the sun rises.
-5. A helicopter flies in over the post.
-6. The title card: **"May natitira pa tayo."** and **"You were never the last tanod."**
+2. Tiny lights appear one by one across the water.
+3. The same seven voices answer one by one, by name, as their bangkas with lanterns sail in while the sun rises.
+4. A helicopter flies in over the post.
+5. The title card: **"May natitira pa tayo."** and **"You were never the last tanod."**
 
 The idea: the title says "the last tanod", and the ending shows he never was. The radio broadcast was heard.
 
@@ -264,9 +271,12 @@ schedule in [02-project-plan.md](02-project-plan.md).
 | Harvesting (bamboo, 4 ores, 5 fish) | Yes | You HOLD the mouse. Bamboo regrows slowly, ore never does, fish schools swim and must be followed |
 | Ore uses | Yes | Nickel: mines. Copper: radio rewire. Chromite: post armor. Gold: lamp upgrade |
 | Lighthouse beam and darkness | Yes | The beam now sweeps by itself, so there is no more circling to cover blind spots |
-| Walking tanod, lantern, torch posts | Yes | WASD. The lantern lights a small circle. Torches (2 bamboo, up to 8, on land) light fixed patches of shore (radius 50 px) |
+| Walking tanod, lantern, torch posts | Yes | WASD. The lantern lights a small circle. Torches (2 bamboo, up to 20, on land) light fixed patches of shore (radius 50 px) |
 | Day dial and Workshop panel | Yes | The dial shows the sun and moon, the time left in the phase, and ships left at night. The Workshop (left, by day) lists every build and upgrade with cost, what you have, and level. You can click rows or use the keys |
 | Survivors by bangka | Yes | After night 2, 4 and 6 a bangka lands at dawn with a survivor, a classmate-inspired character. **Ka Inday** (Babaylan) slowly heals the post and radio. **Migo** (radio nerd) keeps the signal climbing and brings crates faster. **Tonyo** (sentry) shoots lit ships near the post. They stand with you in the ending |
+| Upgrade center and day workers | Yes | The Workshop has an UPGRADES tab. Five tools go to level 3 (the new Rifle adds gun range) for bamboo (every level) and a little ore (levels 2 and 3): pickaxe and axe make mining and chopping about 18% quicker per level, boots walk 15% faster per level, the rod casts faster and 15 px further. Each day every survivor is paid 1 meal and then chops trees and bamboo and carries up to 3 loads to the post. No meal means they rest |
+| Escalating nights | Yes | Ships arrive in pulses (1,1,2,2,3,3,4 together) from different sides. Each night has a twist: 1 calm, 2 two fronts, 3 fog (beam 30% shorter), 4 radio static, 5 faster ships, 6 tougher ships, 7 all-out assault. The beam follows the mouse instantly. Trees: narra and acacia give bamboo; mango, coconut and banana give fruit (meals) |
+| Folklore allies | Yes | **Duwende:** after night 1 the anthill (punso) on the west shore stirs. Leave 3 bamboo and he leaves you 1 ore every morning (the one you have least of, sometimes gold). **Lapu-Lapu stone:** after night 3 the story tells of the statue on the northeast islet: Lapu-Lapu was turned to stone, not killed, and may only be sleeping. For now it is a landmark. Freeing him is a planned feature. **Manananggal:** after night 5 she arrives, a story twist: the Kordans hunted her too. She does not work for meals. At night she swoops on the nearest ship in range and returns to her roost over the post |
 | Pana tower | Yes | 4 bamboo, up to 4, on free land. Shoots the nearest ship in range about every 1.7 s with no light needed |
 | Supply crates | Yes | A crate floats in about every 24 s (every 14 s if the radio is 70 or more). Cast a line and hold the mouse on it to get 1-2 ore. Ore that has run out on the map is 3 times as likely to be inside, so the player is never stuck. Drifts away at night or after 45 s |
 | Reach limits | Yes | Land things 40 px, fish 120 px (cast from the shore), building 80 px, gun 200 px |

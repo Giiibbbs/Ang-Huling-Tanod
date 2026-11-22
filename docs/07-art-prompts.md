@@ -139,6 +139,8 @@ with no code change. Missing ones show simple shapes. Generate **larger** than t
 | `ships/skiff.png` | 38 x 12 | Points **right**. **Done: Jaron's art is in the game** (the game scales it down, so a big original is fine) |
 | `ships/cutter.png` | 40 x 12 | Points right. Slimmer and faster-looking than the skiff. **Done** |
 | `ships/barge.png` | 58 x 25 | Points right. Wide, flat landing barge. **Done** |
+| `ships/raider.png` | 40 x 14 | OPTIONAL. Points right. Dark red hull with a gun deck. The game draws it by code if the file is missing |
+| `ships/ghost.png` | 38 x 12 | OPTIONAL. Points right. Pale, ghostly hull with cyan glowing eyes. Drawn by code if missing |
 | `ships/flagship.png` | 100 x 50 | Points right. The Kordan flagship the Bakunawa swallows on night 7. **Done**. Tip: the magenta must be one flat colour. The first flagship had a darker magenta (228, 2, 204), so we flattened it to 255, 0, 255 |
 | `buildings/lighthouse.png` | 32 x 48 | Base of the tower at the bottom of the image |
 | `buildings/post.png` | 40 x 32 | Grounded ship with a cabin and a radio mast |
@@ -149,7 +151,12 @@ with no code change. Missing ones show simple shapes. Generate **larger** than t
 | `buildings/pana.png` | 14 x 20 | Bamboo arrow tower: four bamboo legs, a small platform and a bow on top. Optional (we draw one in code) |
 | `survivors/kainday.png`, `survivors/migo.png`, `survivors/tonyo.png` | 18 x 22 each | The three survivors, chibi, same style as the tanod, standing pose, facing down. Ka Inday: elder Babaylan, white cloth, red headband. Migo: young, blue polo, headset. Tonyo: green jacket, red cap, rifle across the body. Optional (we draw them in code) |
 | `items/crate.png` | 16 x 16 | Floating wooden supply crate with metal corners, 3/4 view. Optional (we draw one in code) |
-| `nodes/tree.png` | 20 x 28 | **A tree** (taller than a tile): round leafy canopy, short trunk, 3/4 view. The trunk's foot sits on the tile. Optional (we draw one in code) |
+| `nodes/tree.png` | 20 x 28 | **Narra** (taller than a tile): spreading dark-green crown with small yellow flowers, straight trunk, 3/4 view. The trunk's foot sits on the tile. Optional (we draw one in code) |
+| `nodes/acacia.png` | 20 x 28 | **Acacia (rain tree)**: wide flat umbrella crown with pink puffs. Optional |
+| `nodes/mango.png` | 20 x 28 | **Mango**: round dense crown with a few orange-yellow mangoes. Optional |
+| `nodes/coconut.png` | 20 x 28 | **Coconut palm**: a leaning slim trunk and a fan of fronds with a couple of coconuts. Optional |
+| `nodes/banana.png` | 20 x 28 | **Banana plant**: big broad leaves and a hanging bunch. Optional |
+| `ui/fruit.png` | 10 x 10 | HUD icon: a small mango or banana. Optional |
 | `nodes/bamboo.png` | 16 x 16 | Bamboo grove |
 | `nodes/ore.png` | 16 x 16 | **One grey rock with metal glints. The game recolors it into nickel, copper, chromite and gold**, so you need only this one |
 | `nodes/nickel.png`, `copper.png`, `chromite.png`, `gold.png` | 16 x 16 | **Optional.** Only if you want each ore to have its own picture. Otherwise the recolored rock is used |
@@ -295,3 +302,43 @@ COLOR RULE: the icon itself must contain no magenta, hot pink, or purple.
 
 Every time a **new asset is wired into the game**, this file gets (1) its row in "Exact file names", (2) its prompt here, and (3) a row in the prompt log
 after it is generated. Gabriel updates the first two when he adds code. The person who generates the art fills in the log.
+
+
+## Folklore allies (optional art)
+
+Both work without art because the code draws them. If you want to replace them, use flat magenta (255,0,255) behind them, no shadow, and save real PNGs (not WebP).
+
+| File | Size | What |
+|---|---|---|
+| `res/monsters/lapulapu_stone.png` | 36x44 | A grey stone statue of Lapu-Lapu, a Visayan chieftain, standing on a small base: bare chest, sash, a spear in one hand, proud stance, moss on the feet. Pixel art, 3/4 view, same style as the other sprites |
+| `res/monsters/punso.png` | 22x22 | A small anthill of red-brown earth with a dark round doorway and a few ants. Pixel art, 3/4 view. The duwende is drawn by code |
+| `res/monsters/manananggal.png` | 30x26 | A pale woman, upper body only, with long black hair streaming and two big bat wings spread, flying. Not gory: she ends in a faint wisp. Pixel art |
+
+
+## Full prompts for the optional art (copy after the style bible)
+
+**Lapu-Lapu stone** (`res/monsters/lapulapu_stone.png`, 36x44, upright, 3/4 view. It is not a ship, so it does not point right)
+```
+SUBJECT: a weathered grey stone statue of a Visayan chieftain standing on a small round stone base. Bare chest,
+a simple sash and loincloth carved in stone, a long spear held upright in one hand, proud straight stance,
+carved headband. Cracks and a little green moss on the feet and base. It is clearly a STATUE (one grey stone
+colour with lighter highlights), not a living person and not a realistic portrait. Peaceful and dignified.
+Height about twice its width.
+```
+
+**Raider** (`res/ships/raider.png`, 40x14, points right)
+```
+SUBJECT: a small fast Kordan Dominion raiding boat seen from above at a 3/4 angle, pointing to the RIGHT.
+Narrow dark red hull with an orange stripe, a raised gun deck near the front with one small cannon, angular
+bow, charcoal-black trim, tiny three-triangle emblem. Looks aggressive and armed, smaller than a cutter.
+```
+
+**Ghost ship** (`res/ships/ghost.png`, 38x12, points right)
+```
+SUBJECT: a pale, ghostly Kordan Dominion ship seen from above at a 3/4 angle, pointing to the RIGHT. Thin
+whitish-grey hull that looks half transparent, tattered sail, two small glowing cyan eyes near the bow, a
+faint mist at the stern. Eerie but still readable as a boat. Keep the outline crisp, no soft glow into the
+magenta background.
+```
+
+Save as real PNG (not WebP) on flat magenta (255,0,255). Add each to the prompt log when generated. The game draws all three by code if the files are missing.

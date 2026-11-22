@@ -12,6 +12,9 @@ For the feature-by-feature code explanation see [03-code-guide.md](03-code-guide
 mines. By **night** the island is dark and only your **lighthouse beam** shows anything. Enemy ships sail in. You must sink or stall
 them so the **post** and the **radio** survive 7 nights. If the radio keeps broadcasting "May natitira pa tayo", you win.
 
+**You are not alone.** Survivors reach the island by bangka (Ka Inday, Migo, Tonyo) and work for you by day. Spirits from Filipino folklore can become your allies if you
+show respect: a **duwende** in an anthill, a stone statue of **Lapu-Lapu**, and a **manananggal** who flies at night. Tools can be upgraded in the Workshop.
+
 **How it is built:** plain **Java** with **Swing and AWT** (the drawing and window tools that come with Java). No game engine and no
 outside libraries. Everything on screen is drawn by our code, 60 times every second.
 
@@ -115,13 +118,14 @@ simple shape instead, so art can arrive piece by piece.
 3. **`GamePanel`** starts a 60-per-second **Timer**. It also loads the **`TileMap`** once.
 4. In the **menu**, pressing Enter makes a new **`GameWorld`**. That is one whole run of the game.
 5. Every frame the panel calls **`GameWorld.update()`** and then repaints:
-   - the beam turns toward the mouse,
-   - **`DayCycle`** ticks (Day, Dusk, Night, Dawn),
+   - the tanod walks, the beam sweeps (or turns by hand), the lantern follows,
+   - **`DayCycle`** ticks (Day, Dusk, Night, Dawn). Each dawn can trigger a story event (a bangka, a stirring tree),
+   - by day: fish swim, crates float in, survivors work, the duwende leaves ore,
    - at night, ships spawn from a shuffled queue built from `waves.txt`,
-   - ships move, get lit by the beam, cut nets, trigger mines, land,
+   - ships move, get lit by the beam, cut nets, trigger mines, land, and get shot by the Pana towers, Tonyo and the manananggal,
    - the post and radio take damage, and the game checks for win or loss.
 6. Drawing happens in this order (first = at the back):
-   **map, resource spots, defenses, post, lighthouse, ships, build preview, night darkness with a beam hole, beam glow, gun shot, explosions, popups, then the HUD**.
+   **map, resource spots, fish, crates, defenses (and the Lapu-Lapu stone, the punso), boats, post, survivors, lighthouse, the tanod, ships, build preview, night darkness with a beam hole, beam glow, the Bakunawa, gun shot, explosions, popups, then the HUD and the Workshop**.
 7. The picture is drawn on a small **640x360** hidden image, then scaled up to the real window. That is why the window can be resized.
 
 ---
@@ -134,18 +138,32 @@ simple shape instead, so art can arrive piece by piece.
 | `GameWorld` | Holds one run and applies all the rules | Separating rules from window code |
 | `DayCycle` and `Phase` | The clock and how dark it is | Enum, state over time |
 | `WavePlan` | Reads `waves.txt` | File I/O, arrays |
+| `Durable` | Things that wear and can be mended (net, torch, Pana) | Interface |
+| `Raider`, `Ghost` | Ships that shoot towers / hide in the dark | Inheritance, overriding the `act` hook |
+| `Flare` | The F flare light | Interfaces `Light`, `GlowSource` |
 | `TileMap` | Loads the island and draws water, sand and foam | 2D arrays, file I/O |
 | `Beam` | A turning cone of light. Answers "is this point lit?" | Math (angles), encapsulation |
 | `NightOverlay` | Paints darkness with a beam-shaped hole | Drawing with compositing |
 | `Warship` (abstract) | What all ships share: move, be lit, leave a wake, cut nets | **Inheritance**, abstract classes |
 | `Skiff`, `Cutter`, `Barge` | Each ship's speed, health, damage and looks | Subclasses, **polymorphism** |
 | `Defense` (interface) | The promise every defense keeps | **Interface** |
-| `Net`, `Mine` | Two different defenses | Same interface, different behavior |
+| `Net`, `Mine`, `Torch`, `PanaTower`, `LapuLapuStone` | Different defenses | Same interface, different behavior |
 | `ResourceType` and `FishKind` | Every resource as a line of data. What makes each fish different | Enum with fields: data, not if-else |
 | `ResourceNode`, `FishSchool` | A still bamboo or ore spot, and a swimming school of fish | **Interface** (`Harvestable`), a wandering movement rule |
 | `Inventory` | What you carry, and fish counted in meals | Array indexed by enum |
 | `Post`, `Radio` | What you protect | Encapsulation (private data, public methods) |
 | `Hud`, `Popup`, `Explosion` | Information and effects on top | Separation of concerns |
+| `Light`, `GlowSource` (interfaces) | Anything that lights a point, or makes a pool of light | **Interface**, one idea reused by the beam, lantern, torch, Ka Inday |
+| `Player` | The walking tanod | Input, collision with the map |
+| `Torch`, `PanaTower` | A light on the shore, and a tower that shoots in the dark | More classes behind the same `Defense` interface |
+| `Upgrades` | The five tool levels and what they cost and do | One small class answering "how fast?", "how far?" |
+| `MarketPanel` | The Workshop: BUILD and UPGRADES tabs, the crew strip | Separating drawing and clicking from the rules |
+| `SupplyCrate` | A crate floating in with ore | A third `Harvestable` |
+| `Survivor` (abstract), `KaInday`, `Migo`, `Tonyo`, `Manananggal` | The allies, each with one job. The manananggal flies and does not work for meals | **Abstract class**, **polymorphism**, overriding |
+| `Bangka` | The boat that brings a survivor | A small state machine (sail, drop off, fade) |
+| `LapuLapuStone` | The statue (a landmark for now) | A `Defense` that does nothing, which is fine |
+| `Punso` | The duwende's anthill | `Harvestable` and `GlowSource` |
+| `Bakunawa`, `EndingScene` | The eclipse event and the ending | Events driven by a timeline |
 | `Assets` | Loads art, shrinks it, removes the magenta background, remembers it | Caching, missing-file safety |
 | `Constants` | Every shared number in one place | No "magic numbers" |
 
@@ -153,8 +171,8 @@ simple shape instead, so art can arrive piece by piece.
 
 | Rubric item (weight) | Where to point |
 |---|---|
-| OOP design and code quality (30%) | Abstract `Warship` and its 3 subclasses. `Defense` interface with `Net` and `Mine`. Private fields with getters. One class, one job |
-| Gameplay and mechanics (30%) | Day and night loop, beam aiming, harvesting, nets and mines, 3 ship types, 7 nights, win and lose |
+| OOP design and code quality (30%) | Abstract `Warship` and its 3 subclasses. Abstract `Survivor` and its 4 children. `Defense`, `Harvestable` and `GlowSource` interfaces, with `Punso` implementing two of them. Private fields with getters. One class, one job |
+| Gameplay and mechanics (30%) | Day and night loop, beam aiming, harvesting, tool upgrades, nets, mines, torches and towers, 3 ship types, survivors and folklore allies, the eclipse, 7 nights, win and lose |
 | Data structures and file I/O (15%) | `ArrayList` for ships, defenses and nodes. Arrays for the map, waves, inventory and wake. Text files for map, waves and nodes, read with try-catch |
 | UI, graphics, polish (15%) | HUD bars, popups, banners, day and night lighting, resizable window, art |
 | Documentation and demo (10%) | This `docs/` folder, the README, the demo script, the playtest log |
@@ -171,7 +189,7 @@ Edit `data/nodes.txt`. Bamboo and ore must be on land. Fish are not in this file
 (Column = how far right, starting at 0. Row = how far down.)
 
 ### Change how long the day is
-`core/Constants.java`: `DAY_FRAMES`, `DUSK_FRAMES`, `DAWN_FRAMES`. 60 frames = 1 second.
+`core/Constants.java`: `DAY_FRAMES` (75 seconds now), `DUSK_FRAMES`, `DAWN_FRAMES`. 60 frames = 1 second.
 
 ### Add a new enemy ship (for example, a Frigate)
 1. Copy `Cutter.java` to `Frigate.java`. Change the class name, the numbers in `super(...)`, `landingDamage`, the name, and the shape.
@@ -187,10 +205,27 @@ Edit `data/nodes.txt`. Bamboo and ore must be on land. Fish are not in this file
 - **Ore:** add one line to `ResourceType` (copy the `COPPER` line and change the name, color and numbers), put it in `nodes.txt`, and decide its use in `GameWorld` and `Constants`.
 - **Fish:** add one line to `ResourceType` and one line to `FishKind` (speed, depth range, how common). It will start swimming on its own.
 
+### Add a new ally (for example, a tikbalang)
+1. If it **walks or flies** and helps, make a class that `extends Survivor` (copy `Manananggal`). Fill in `act()` and the story text. If it **stays in one place and fights**, make a class that `implements Defense` (copy `LapuLapuStone`).
+2. Add the night it arrives to `Constants` and one `if` in `GameWorld.monsterEvent`.
+3. Add a line to the story, the README and these docs. Art is optional.
+
+### Add a tool upgrade
+Add a value to the `Gear` enum in `Upgrades.java` (key, name, ore, description), an effect method, and one line in `GamePanel` for its key. The Workshop row appears by itself.
+
+### Change an upgrade price or how strong it is
+`economy/Upgrades.java`: `BAMBOO_COST`, `ORE_COST`, `WORK_SAVING`, `CAST_SAVING`, `BOOT_BONUS`, `RIFLE_RANGE_BONUS`.
+
 ### Add art
 Save the PNG with the exact name in `res/`. See `07-art-prompts.md`. No code changes.
 
 ---
+
+### How the ending story works
+The radio voices live in `data/voices.txt` (one line per night: island, speaker, what you hear, what they say at the end). `RadioVoices` reads the file; dusk shows the voice and `EndingScene` answers it. To change the story, edit the file in Notepad.
+
+### What makes the nights harder
+`GameWorld.spawnShips()` sends ships in pulses (`pulseSize(night)`), each from a different side. `Twist.forNight(n)` gives the night its twist (fog, static, surge, hardened, assault). To add a twist: add a line to the `Twist` enum with a title and a story line, then handle it where the effect happens (the beam for fog, `spawnShip` for speed and health). To make the game easier or harder without coding, edit `data/waves.txt`.
 
 ## Part 7. Git in plain words
 
@@ -229,12 +264,16 @@ Save the PNG with the exact name in `res/`. See `07-art-prompts.md`. No code cha
 - **Inheritance**: a child class gets everything from a parent class (`Cutter` extends `Warship`).
 - **Abstract class**: a parent you cannot create directly. It forces children to fill in the gaps.
 - **Interface**: a list of abilities a class promises to have (`Defense`).
-- **Polymorphism**: treating different kinds the same way (a list of `Warship` can hold skiffs and barges).
+- **Polymorphism**: treating different kinds the same way (a list of `Warship` can hold skiffs and barges, a list of `Survivor` holds walkers and a flyer).
+- **Story event**: something that happens once at a chosen dawn (a bangka lands, the Lapu-Lapu story is told).
+- **Ally**: a character on your side. Ours are survivors and folklore spirits.
+- **Punso**: an anthill. In folklore a duwende may live in it. **Lapu-Lapu**: the Visayan chieftain who stopped Magellan's men; in our story he is turned to stone, not killed.
+- **Headless test**: a small program that runs the game with no window and prints numbers, so we can check rules fast.
 - **Encapsulation**: keep data `private` and let the outside use only methods.
 - **Enum**: a fixed list of names (`Phase.NIGHT`).
 - **ArrayList**: a list that grows. **Array**: a fixed-size list.
 - **Frame**: one pass of the loop (1/60 second).
-- **Tile**: one square of the map (10 x 10 pixels).
+- **Tile**: one square of the map (10 x 10 pixels). The map is 64 x 36 tiles.
 - **Sprite**: a picture of a thing. **Placeholder**: a simple shape drawn until the sprite exists.
 - **Chroma key**: removing a background color (our magenta) to make it transparent.
 - **Package**: a folder of related classes.

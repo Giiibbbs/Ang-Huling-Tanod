@@ -34,6 +34,9 @@ Work in progress. Current build: **playable core**. Harvest by day, build nets, 
 | Day/night cycle, harvesting, nets, post and radio, HUD bars, win and lose | Done (first version, needs playtesting) |
 | Waves and resource spots read from text files | Done |
 | Cutter and barge ships, mine buoys (second defense) | Done (first version) |
+| Upgrade center (pickaxe, axe, boots, fishing rod, level 3) and survivors working by day for meals | Done |
+| Folklore allies: the duwende in the anthill (after night 1), the Lapu-Lapu stone statue (story, after night 3) and the manananggal (after night 5) | Done |
+| Wear and tear with hold-X repair, Raider and Ghost ships, flare gun (F), How to Play screen, radio-voices ending, combat feel | Done (needs Gio's playtest) |
 | Final ship art by Jaron: skiff, cutter, barge and the Kordan flagship | Done |
 | Hold-to-harvest, 4 ores with different uses, 5 kinds of swimming fish, finite ore | Done (first version) |
 | Sprites: all file names wired, art arrives from Jaron | In progress (shapes shown until then) |
@@ -64,15 +67,21 @@ Current build:
 | Mouse | Point at things to harvest, build or shoot |
 | Space (hold, next to the lighthouse, night) | Steer the beam by hand toward the mouse. Otherwise it sweeps by itself |
 | Space (tap, during the Bakunawa eclipse, night 7) | Sound the gongs. Tap fast to fill the noise meter |
+| F (night) | Flare gun: lights a patch of sea at the mouse for 6 s (20 s cooldown) |
+| Hold X (day or night, near a damaged defense) | Mend it: 1 point per press-and-hold, costs bamboo |
 | P or Esc | Pause and resume |
+| H (menu) or F1 (anytime) | The one-page How to Play screen |
 | M | Back to the menu (while paused) |
 | **Hold** left click on bamboo, ore or a fish school (day) | Harvest it. A ring fills. Let go early and it drains |
 | Click a row of the **WORKSHOP** panel (left, day only) | Build or upgrade. Each row shows its cost, what you have, and a progress bar |
 | B | Hide or show the workshop panel |
 | 1 | Net tool on or off (then click shallow water; 3 bamboo) |
 | 2 | Mine tool on or off (then click water near the island; 2 nickel) |
-| 3 | Torch tool on or off (then click free land; 2 bamboo). Lights the shore all night, up to 8 |
-| 4 | Pana tower tool on or off (then click free land; 4 bamboo). Shoots ships in range, even in the dark, up to 4 |
+| 3 | Torch tool on or off (then click free land; 2 bamboo). Lights the shore all night, up to 20 |
+| 5, 6, 7, 8, 9 | Buy the next level of the pickaxe, axe, boots, fishing rod or rifle (the rifle adds 70 px of gun range per level) (also click a row in the Workshop UPGRADES tab) |
+| H (in game) | Test key: wakes the duwende, and brings the manananggal now |
+| U | Switch the Workshop between the BUILD and UPGRADES tabs |
+| 4 | Pana tower tool on or off (then click free land; 4 bamboo). Shoots ships in range, even in the dark, up to 10 |
 | Right click | Put the tool away |
 | R | Repair the post and radio (2 meals of fish, day only) |
 | C | Rewire the radio (2 copper, +25 signal) |
@@ -115,7 +124,7 @@ Ang-Huling-Tanod/
     └── src/atingdagat/
         ├── core/              Main, GameFrame, GamePanel, GameWorld, DayCycle, Phase, WavePlan, GameState, Constants
         ├── map/               TileMap (island and sea)
-        ├── entities/          Lighthouse, Beam, Warship, Skiff, Cutter, Barge, Post, Radio
+        ├── entities/          Lighthouse, Beam, Warship, Skiff, Cutter, Barge, Raider, Ghost, Flare, Post, Radio
         ├── defense/           Defense (interface), Net, Mine
         ├── economy/           ResourceType, ResourceNode, FishSchool, FishKind, Harvestable, Inventory
         ├── ui/                NightOverlay, Hud, Popup, Explosion
@@ -145,3 +154,12 @@ the Play Store. The invading empire (the Kordan Dominion) is entirely fictional,
 ## Credits
 
 See [CREDITS.md](CREDITS.md) for all third-party assets, licenses, and the note on AI-assisted art.
+
+
+## Latest changes
+- Nights escalate: ships come in pulses from several sides, and every night has a twist (fog, static, surge, hardened, assault).
+- Filipino trees: narra, acacia (bamboo) and mango, coconut, banana (fruit = meals).
+- Smaller shop panel; Manananggal weaker; Duwende gives a different gift each day.
+
+- New: wear and tear (nets, torches, Pana towers lose 1 durability each dawn, mend with X for bamboo), Raiders (shoot your towers and torches), Ghost ships (slow to show, quick to vanish in the light), and the flare gun (F) so nights have more to do.
+- New: How to Play page (H on the menu, F1 anytime), radio voices from other islands (one each dusk, they answer in the ending), and combat feel (hit flash, damage numbers, screen shake, a ring around ships lit by the beam).

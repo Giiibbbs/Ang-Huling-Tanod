@@ -56,3 +56,13 @@
 - Number of testers:
 - Top 3 problems found:
 - Top 3 changes we made because of them:
+
+
+## New things to watch for (added Nov 22)
+
+- Does the tester find **F** (flare) and **hold X** (mend) without being told? Note the minute they first use each.
+- Do they understand why a tower's pips go down at dawn?
+- Does a Raider kill a tower before the tester reacts? Is that fun or annoying?
+- Do Ghost ships (night 3 onward) feel fair, or do testers lose sight of them?
+- Does bamboo ever run out, or does it pile up?
+- Bot results to compare against (headless test, Nov 22): full economy wins all 7 nights, no defenses loses by night 5.

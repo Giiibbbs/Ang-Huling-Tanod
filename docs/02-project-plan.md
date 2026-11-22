@@ -26,6 +26,7 @@ Dates up to Nov 21 are agreed. After that is a **proposed** plan to adjust as we
 | Nov 19 to 21 | Day/night cycle, harvesting, a net, post and radio, HUD bars, waves from a file | **Playable core. Done (first version)**: Gio can start playtesting |
 | Nov 19 to 23 | Cutter and barge, mine buoys, waves from a text file. **Done (first version)** | Nights 1 to 7 are playable. Next: tune with Gio's playtests |
 | Nov 19 (done) | Hold-to-harvest, 4 ores, 5 fish kinds, ore uses | Harvesting takes effort and runs out |
+| Nov 22 (done) | Bot playtest found weak spots; added wear and repair, Raider, Ghost ship, flare gun, How to Play screen, radio-voices ending | Bot wins 7 nights with full economy, loses early without defenses |
 | Nov 24 | Post, radio, island health, win and lose, high-score file | A full run from night 1 to the end screen |
 | Nov 25 | Sound, menu polish, art integration begins | Sounds on every action |
 | Nov 26 | Should-haves: infiltrators, babaylan | The identify mechanic works |
@@ -41,7 +42,7 @@ Build must-haves first. Full lists are in [01-game-design.md](01-game-design.md)
 **If time runs short, cut in this order:**
 
 1. Recon drone and blood effects
-2. Tikbalang, engkanto, and classmate cameos
+2. Tikbalang, engkanto, sirena, and classmate cameos (the duwende, the Lapu-Lapu stone and the manananggal are already done; next idea: free Lapu-Lapu from the stone)
 3. The Lapulapu hero call
 4. Babaylan and Bakunawa
 5. Infiltrators
