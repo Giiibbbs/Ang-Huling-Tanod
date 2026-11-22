@@ -13,7 +13,7 @@ import java.awt.image.BufferedImage;
  * A bamboo-and-rope net stretched across one water tile. Ships cannot sail
  * through it: they stop and cut it, which buys time. It is cheap, so you build many.
  */
-public class Net implements Defense {
+public class Net implements Defense, Durable {
 
     public static final int COST_BAMBOO = 3;
     private static final int MAX_HEALTH = 4;
@@ -48,6 +48,41 @@ public class Net implements Defense {
     @Override
     public boolean isDestroyed() {
         return health <= 0;
+    }
+
+    @Override
+    public int getDurability() {
+        return health;
+    }
+
+    @Override
+    public int getMaxDurability() {
+        return MAX_HEALTH;
+    }
+
+    @Override
+    public void restore(int amount) {
+        health = Math.min(MAX_HEALTH, health + amount);
+    }
+
+    @Override
+    public void wear(int amount) {
+        health = Math.max(1, health - amount);
+    }
+
+    @Override
+    public int repairCostPerPoint() {
+        return 2;
+    }
+
+    @Override
+    public double getCenterX() {
+        return col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
+    }
+
+    @Override
+    public double getCenterY() {
+        return row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
     }
 
     public int getCol() {

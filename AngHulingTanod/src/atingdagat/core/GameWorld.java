@@ -2,11 +2,15 @@ package atingdagat.core;
 
 import atingdagat.defense.LapuLapuStone;
 import atingdagat.defense.Defense;
+import atingdagat.defense.Durable;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
 import atingdagat.defense.PanaTower;
 import atingdagat.defense.Torch;
 import atingdagat.entities.Bangka;
+import atingdagat.entities.Flare;
+import atingdagat.entities.Ghost;
+import atingdagat.entities.Raider;
 import atingdagat.entities.KaInday;
 import atingdagat.entities.Migo;
 import atingdagat.entities.Survivor;
@@ -127,6 +131,12 @@ public class GameWorld {
     private int spawnTimer = 0;
     private int gunCooldown = 0;
     private int shotTimer = 0;           // draws the shot line for a few frames
+    private Flare flare = null;          // the flare in the air or burning, if any
+    private int flareCooldown = 0;       // frames until the next flare
+    private boolean repairHeld = false;  // X is down
+    private int repairProgress = 0;      // frames held on the current point
+    private Durable repairTarget = null; // what is being mended right now (for the drawn line)
+    private final ArrayList<double[]> tracers = new ArrayList<>();   // Raider shots: {fromX, fromY, toX, toY, framesLeft}
     private double shotX, shotY;
 
     // Holding the mouse on a spot or a fish fills a progress ring. Let go, and it drains.
@@ -172,6 +182,8 @@ public class GameWorld {
         beam.update(manual);
 
         updateEclipse();
+        updateFlare();
+        updateRepair();
 
         Phase changed = cycle.update();
         if (changed != null) {
@@ -297,6 +309,12 @@ public class GameWorld {
             case BARGE:
                 ship = new Barge(x, y, post.getX(), post.getY());
                 break;
+            case RAIDER:
+                ship = new Raider(x, y, post.getX(), post.getY());
+                break;
+            case GHOST:
+                ship = new Ghost(x, y, post.getX(), post.getY());
+                break;
             default:
                 ship = new Skiff(x, y, post.getX(), post.getY());
                 break;
@@ -332,6 +350,13 @@ public class GameWorld {
         for (int i = ships.size() - 1; i >= 0; i--) {
             Warship ship = ships.get(i);
             ship.update(map, anyLight, defenses);
+            if (ship instanceof Raider) {   // a Raider's gun: draw the shot and show the hit
+                double[] s = ((Raider) ship).takeShot();
+                if (s != null) {
+                    tracers.add(new double[]{s[0], s[1], s[2], s[3], 8});
+                    popups.add(new Popup(s[2], s[3] - 14, "-1", new Color(255, 120, 100)));
+                }
+            }
             int dealt = ship.takePendingDamage();
             if (dealt > 0) {   // a floating number for every hit, whoever made it
                 popups.add(new Popup(ship.getX(), ship.getY() - 12, "-" + dealt, new Color(255, 235, 150)));
@@ -348,6 +373,97 @@ public class GameWorld {
                 popups.add(new Popup(post.getX(), post.getY() - 30, "-" + hurt + " Post", new Color(255, 110, 100)));
                 addShake(4.5, 16);
             }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // FLARE (key F) and MENDING (hold X)
+    // ------------------------------------------------------------------
+
+    /** Key F: fire a flare at the mouse (night only, 20 s cooldown). */
+    public void fireFlare() {
+        if (outcome != Outcome.PLAYING || !cycle.isNight() || flareCooldown > 0) {
+            return;
+        }
+        double dx = mouseX - player.getX();
+        double dy = mouseY - player.getY();
+        double dist = Math.hypot(dx, dy);
+        double scale = dist > Constants.FLARE_RANGE ? Constants.FLARE_RANGE / dist : 1.0;
+        flare = new Flare(player.getX(), player.getY() - 6, player.getX() + dx * scale, player.getY() + dy * scale);
+        flareCooldown = Constants.FLARE_COOLDOWN;
+    }
+
+    private void updateFlare() {
+        if (flareCooldown > 0) {
+            flareCooldown--;
+        }
+        if (flare != null) {
+            flare.update();
+            if (flare.isDone()) {
+                flare = null;
+            }
+        }
+        for (int i = tracers.size() - 1; i >= 0; i--) {
+            if (--tracers.get(i)[4] <= 0) {
+                tracers.remove(i);
+            }
+        }
+    }
+
+    /** Whole seconds until the next flare (0 = ready). */
+    public int getFlareSecondsLeft() {
+        return (int) Math.ceil(flareCooldown / (double) Constants.TARGET_FPS);
+    }
+
+    /** Called by GamePanel every frame with whether X is held. */
+    public void setRepairHeld(boolean held) {
+        repairHeld = held;
+    }
+
+    /** The damaged net, torch or tower nearest to the player and within reach, or null. */
+    public Durable findRepairTarget() {
+        Durable best = null;
+        double bestDist = Constants.REPAIR_REACH;
+        for (Defense d : defenses) {
+            if (d.isDestroyed() || !(d instanceof Durable) || !((Durable) d).isDamaged()) {
+                continue;
+            }
+            Durable du = (Durable) d;
+            double dist = Math.hypot(du.getCenterX() - player.getX(), du.getCenterY() - player.getY());
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = du;
+            }
+        }
+        return best;
+    }
+
+    /** Holding X next to a damaged defense mends 1 point every REPAIR_FRAMES frames, for bamboo. */
+    private void updateRepair() {
+        repairTarget = null;
+        if (!repairHeld) {
+            repairProgress = 0;
+            return;
+        }
+        Durable target = findRepairTarget();
+        if (target == null) {
+            repairProgress = 0;
+            return;
+        }
+        int cost = target.repairCostPerPoint();
+        if (!inventory.has(ResourceType.BAMBOO, cost)) {
+            if (frame % 60 == 0) {
+                popups.add(new Popup(player.getX(), player.getY() - 14, "Need " + cost + " bamboo", Color.LIGHT_GRAY));
+            }
+            return;
+        }
+        repairTarget = target;
+        repairProgress++;
+        if (repairProgress >= Constants.REPAIR_FRAMES) {
+            repairProgress = 0;
+            inventory.spend(ResourceType.BAMBOO, cost);
+            target.restore(1);
+            popups.add(new Popup(target.getCenterX(), target.getCenterY() - 14, "+1", new Color(150, 240, 150)));
         }
     }
 
@@ -468,6 +584,11 @@ public class GameWorld {
                 }
                 beam.setOn(true);
                 beam.setFog(1.0);
+                for (Defense d : defenses) {   // everything wears a little every night (see Durable)
+                    if (d instanceof Durable) {
+                        ((Durable) d).wear(1);
+                    }
+                }
                 showBanner("DAWN - repair and rebuild");
                 sendBangka(cycle.getNight());
                 monsterEvent(cycle.getNight());
@@ -566,7 +687,7 @@ public class GameWorld {
 
     /** Is this point lit by the beam, the lantern or any torch? Ships ask this every frame. */
     private boolean isLit(double x, double y) {
-        if (beam.lights(x, y) || lantern.lights(x, y)) {
+        if (beam.lights(x, y) || lantern.lights(x, y) || (flare != null && flare.lights(x, y))) {
             return true;
         }
         for (Defense d : defenses) {
@@ -581,6 +702,9 @@ public class GameWorld {
     private ArrayList<GlowSource> glowSources() {
         ArrayList<GlowSource> list = new ArrayList<>();
         list.add(lantern);
+        if (flare != null && flare.hasLanded()) {
+            list.add(flare);
+        }
         if (punso.isAwake()) {
             list.add(punso);
         }
@@ -1489,6 +1613,25 @@ public class GameWorld {
             g.setStroke(new BasicStroke(1.5f));
             g.drawLine((int) player.getX(), (int) player.getY() - 6, (int) shotX, (int) shotY);
             g.setStroke(new BasicStroke(1f));
+        }
+
+        for (double[] t : tracers) {   // a Raider's shot, bright for a few frames
+            g.setColor(new Color(255, 170, 80, 40 + (int) t[4] * 25));
+            g.setStroke(new BasicStroke(1.5f));
+            g.drawLine((int) t[0], (int) t[1], (int) t[2], (int) t[3]);
+            g.setStroke(new BasicStroke(1f));
+            g.setColor(new Color(255, 230, 160, 40 + (int) t[4] * 25));
+            g.fillOval((int) t[0] - 3, (int) t[1] - 3, 6, 6);   // the muzzle flash shows where it is
+        }
+        if (flare != null) {
+            flare.draw(g, frameCount);
+        }
+        if (repairTarget != null) {   // a green line to what you are mending, filling as the point completes
+            double f = repairProgress / (double) Constants.REPAIR_FRAMES;
+            g.setColor(new Color(150, 240, 150, 150));
+            g.drawLine((int) player.getX(), (int) player.getY() - 4,
+                    (int) (player.getX() + (repairTarget.getCenterX() - player.getX()) * f),
+                    (int) (player.getY() - 4 + (repairTarget.getCenterY() - player.getY() + 4) * f));
         }
 
         drawHoldRing(g);

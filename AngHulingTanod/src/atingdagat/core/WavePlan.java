@@ -15,7 +15,7 @@ import java.io.InputStreamReader;
 public class WavePlan {
 
     /** The kinds of enemy ship. The number in each array slot below matches this order. */
-    public enum Kind { SKIFF, CUTTER, BARGE }
+    public enum Kind { SKIFF, CUTTER, BARGE, RAIDER, GHOST }
 
     private final int[][] count = new int[Constants.TOTAL_NIGHTS + 1][Kind.values().length]; // [night][kind]
     private final int[] interval = new int[Constants.TOTAL_NIGHTS + 1];                      // in frames
@@ -26,6 +26,8 @@ public class WavePlan {
             count[n][Kind.SKIFF.ordinal()] = 2 + n * 2;
             count[n][Kind.CUTTER.ordinal()] = n > 1 ? n : 0;
             count[n][Kind.BARGE.ordinal()] = n > 2 ? n - 2 : 0;
+            count[n][Kind.RAIDER.ordinal()] = 0;   // the newer ships come only from the file
+            count[n][Kind.GHOST.ordinal()] = 0;
             interval[n] = (int) ((5.0 - n * 0.3) * Constants.TARGET_FPS);
         }
 
@@ -57,11 +59,15 @@ public class WavePlan {
             int cutters = Integer.parseInt(parts[2]);
             int barges = Integer.parseInt(parts[3]);
             double seconds = Double.parseDouble(parts[4]);
+            int raiders = parts.length > 5 ? Integer.parseInt(parts[5]) : 0;   // optional columns, so old files still work
+            int ghosts = parts.length > 6 ? Integer.parseInt(parts[6]) : 0;
             if (night >= 1 && night <= Constants.TOTAL_NIGHTS
-                    && skiffs >= 0 && cutters >= 0 && barges >= 0 && seconds > 0) {
+                    && skiffs >= 0 && cutters >= 0 && barges >= 0 && raiders >= 0 && ghosts >= 0 && seconds > 0) {
                 count[night][Kind.SKIFF.ordinal()] = skiffs;
                 count[night][Kind.CUTTER.ordinal()] = cutters;
                 count[night][Kind.BARGE.ordinal()] = barges;
+                count[night][Kind.RAIDER.ordinal()] = raiders;
+                count[night][Kind.GHOST.ordinal()] = ghosts;
                 interval[night] = (int) (seconds * Constants.TARGET_FPS);
             }
         } catch (RuntimeException e) {   // bad number or missing column

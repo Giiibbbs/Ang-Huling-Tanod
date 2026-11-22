@@ -18,10 +18,13 @@ import java.awt.image.BufferedImage;
  * and a GlowSource (the night code treats it like any other lamp). One class, three promises.
  * It sits on LAND, so ships cannot attack it and it never blocks them.
  */
-public class Torch implements Defense, Light, GlowSource {
+public class Torch implements Defense, Light, GlowSource, Durable {
 
     private static final String SPRITE_PATH = "/atingdagat/res/buildings/torch.png";
     private final BufferedImage sprite = Assets.get(SPRITE_PATH, 12, 16);
+
+    private static final int MAX_DURABILITY = 3;
+    private int durability = MAX_DURABILITY;
 
     private final int col;
     private final int row;
@@ -47,12 +50,47 @@ public class Torch implements Defense, Light, GlowSource {
 
     @Override
     public void damage(int amount) {
-        // Ships cannot reach it, so nothing happens.
+        durability -= amount;   // only a Raider's gun can reach it
     }
 
     @Override
     public boolean isDestroyed() {
-        return false;
+        return durability <= 0;
+    }
+
+    @Override
+    public int getDurability() {
+        return durability;
+    }
+
+    @Override
+    public int getMaxDurability() {
+        return MAX_DURABILITY;
+    }
+
+    @Override
+    public void restore(int amount) {
+        durability = Math.min(MAX_DURABILITY, durability + amount);
+    }
+
+    @Override
+    public void wear(int amount) {
+        durability = Math.max(1, durability - amount);
+    }
+
+    @Override
+    public int repairCostPerPoint() {
+        return 2;
+    }
+
+    @Override
+    public double getCenterX() {
+        return centerX;
+    }
+
+    @Override
+    public double getCenterY() {
+        return centerY;
     }
 
     @Override
@@ -83,6 +121,7 @@ public class Torch implements Defense, Light, GlowSource {
         g.fillOval(x - 4, y - 2, 8, 4);
         if (sprite != null) {
             g.drawImage(sprite, x - 6, y - 15, null);
+            drawWear(g, x, y + 3);
             return;
         }
         g.setColor(new Color(120, 84, 46));   // bamboo stick
@@ -92,5 +131,6 @@ public class Torch implements Defense, Light, GlowSource {
         g.fillOval(x - 3, y - 17 - flicker / 2, 6, 7 + flicker % 2);
         g.setColor(new Color(255, 225, 120));
         g.fillOval(x - 1, y - 15 - flicker / 2, 3, 4);
+        drawWear(g, x, y + 3);
     }
 }

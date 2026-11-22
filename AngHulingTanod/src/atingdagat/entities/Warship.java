@@ -40,6 +40,8 @@ public abstract class Warship {
     private boolean arrived = false;    // true once it has reached the shore
     private int attackTimer = 0;        // counts frames while the ship is cutting a net
     private double lit = 0;             // 0 = unseen, 1 = fully lit by the beam
+    protected double litRise = 0.3;     // how fast a light shows the ship (a Ghost is slow)
+    protected double litFall = 0.02;    // how fast it fades back into the dark (a Ghost is quick)
 
     // Recent positions, used to draw the wake. A ring buffer built from plain arrays.
     private final double[] wakeX = new double[WAKE_POINTS];
@@ -57,6 +59,14 @@ public abstract class Warship {
         this.maxHealth = health;
     }
 
+    /**
+     * A hook for ships with their own behaviour. Return true if the ship used this frame (so it does
+     * not sail). The default does nothing, so Skiff, Cutter and Barge are unchanged.
+     */
+    protected boolean act(List<Defense> defenses) {
+        return false;
+    }
+
     // What each ship type must provide:
 
     /** Draws the ship at (0, 0), pointing right. The base class moves and rotates it into place. */
@@ -70,7 +80,9 @@ public abstract class Warship {
         if (flash > 0) {
             flash--;
         }
-        move(map, defenses);
+        if (!act(defenses)) {   // a special ship (the Raider) may spend its turn shooting instead of sailing
+            move(map, defenses);
+        }
         updateLight(light);
         updateWake();
     }
@@ -131,9 +143,9 @@ public abstract class Warship {
     /** Lit quickly when any light touches it, then fades slowly: an afterglow of about a second. */
     private void updateLight(Light light) {
         if (light.lights(x, y)) {
-            lit = Math.min(1.0, lit + 0.3);
+            lit = Math.min(1.0, lit + litRise);
         } else {
-            lit = Math.max(0.0, lit - 0.02);
+            lit = Math.max(0.0, lit - litFall);
         }
     }
 

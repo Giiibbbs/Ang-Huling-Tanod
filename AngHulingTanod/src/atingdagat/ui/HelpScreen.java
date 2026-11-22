@@ -32,7 +32,8 @@ public class HelpScreen {
         "SPACE to aim the beam with the mouse.",
         "Left click shoots a LIT ship.",
         "Nets slow ships, mines blow them up.",
-        "Torches and Pana towers fight in the dark.",
+        "F fires a flare. Raiders shoot your towers:",
+        "hold X next to them to mend (bamboo).",
     };
 
     private static final String[][] KEYS = {
@@ -43,6 +44,8 @@ public class HelpScreen {
         {"Right click", "put the tool away"},
         {"U", "Workshop tabs"},
         {"5 to 9", "upgrade your tools"},
+        {"F", "flare (night)"},
+        {"Hold X", "mend nets and towers"},
         {"P / F1", "pause / this page"},
     };
 
@@ -64,11 +67,11 @@ public class HelpScreen {
         keyColumn(g, 430, 100);
 
         g.setColor(new Color(255, 215, 120, 60));
-        g.fillRect(22, 248, w - 44, 1);
+        g.fillRect(22, 260, w - 44, 1);
         g.setColor(new Color(235, 240, 250));
         g.setFont(BODY);
-        centered(g, "Every night has a twist, and each night brings more ships at once.", 272);
-        centered(g, "Watch the post health and the radio signal. Respect the old stories (tabi-tabi po).", 288);
+        centered(g, "Every night has a twist, and each night brings more ships at once.", 278);
+        centered(g, "Watch the post health and the radio signal. Respect the old stories (tabi-tabi po).", 294);
         g.setColor(new Color(255, 232, 140));
         g.setFont(HEAD);
         centered(g, "Press ENTER or F1 to go back", 328);

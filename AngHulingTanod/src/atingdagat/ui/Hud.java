@@ -198,7 +198,7 @@ public class Hud {
     private void drawHint(Graphics2D g, GameWorld world) {
         String hint;
         if (world.getCycle().isNight()) {
-            hint = "WASD walk.  Click a LIT ship to fire.  Hold SPACE next to the lighthouse to steer the beam.";
+            hint = "Click a LIT ship to fire.  SPACE at the lighthouse steers the beam.  F flare.  X mends.";
         } else if (world.getTool() == GameWorld.Tool.NET) {
             hint = "NET: click shallow water (" + Net.COST_BAMBOO + " bamboo).  Right-click or 1 = stop.";
         } else if (world.getTool() == GameWorld.Tool.MINE) {
@@ -213,7 +213,24 @@ public class Hud {
         g.fillRect(0, Constants.INTERNAL_HEIGHT - 14, Constants.INTERNAL_WIDTH, 14);
         g.setColor(Color.WHITE);
         g.drawString(hint, 8, Constants.INTERNAL_HEIGHT - 4);
+        drawGadgets(g, world);
         g.drawString("P pause", Constants.INTERNAL_WIDTH - 44, Constants.INTERNAL_HEIGHT - 4);
+    }
+
+    /** The flare cooldown (night) and the "hold X to mend" prompt when a damaged defense is in reach. */
+    private void drawGadgets(Graphics2D g, GameWorld world) {
+        g.setFont(SMALL);
+        int y = Constants.INTERNAL_HEIGHT - 20;
+        if (world.getCycle().isNight()) {
+            int s = world.getFlareSecondsLeft();
+            g.setColor(s == 0 ? new Color(255, 232, 140) : new Color(190, 190, 200));
+            g.drawString(s == 0 ? "F: flare ready" : "F: flare in " + s + "s", Constants.INTERNAL_WIDTH - 92, y);
+        }
+        atingdagat.defense.Durable near = world.findRepairTarget();
+        if (near != null) {
+            g.setColor(new Color(150, 240, 150));
+            g.drawString("Hold X: mend (" + near.repairCostPerPoint() + " bamboo)", 8, y);
+        }
     }
 
     /** The story line and the gong meter of the Bakunawa event. */

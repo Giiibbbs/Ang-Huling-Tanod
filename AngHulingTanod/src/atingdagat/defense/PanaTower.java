@@ -16,10 +16,13 @@ import java.util.List;
  * by hand what the beam has found. It stands on land, so ships cannot attack it.
  * The fourth Defense. Like Mine it acts by itself in update().
  */
-public class PanaTower implements Defense {
+public class PanaTower implements Defense, Durable {
 
     private static final String SPRITE_PATH = "/atingdagat/res/buildings/pana.png";
     private final BufferedImage sprite = Assets.get(SPRITE_PATH, 14, 20);
+
+    private static final int MAX_DURABILITY = 4;
+    private int durability = MAX_DURABILITY;
 
     private final int col;
     private final int row;
@@ -82,12 +85,47 @@ public class PanaTower implements Defense {
 
     @Override
     public void damage(int amount) {
-        // Ships cannot reach it.
+        durability -= amount;   // only a Raider's gun can reach it
     }
 
     @Override
     public boolean isDestroyed() {
-        return false;
+        return durability <= 0;
+    }
+
+    @Override
+    public int getDurability() {
+        return durability;
+    }
+
+    @Override
+    public int getMaxDurability() {
+        return MAX_DURABILITY;
+    }
+
+    @Override
+    public void restore(int amount) {
+        durability = Math.min(MAX_DURABILITY, durability + amount);
+    }
+
+    @Override
+    public void wear(int amount) {
+        durability = Math.max(1, durability - amount);
+    }
+
+    @Override
+    public int repairCostPerPoint() {
+        return 3;
+    }
+
+    @Override
+    public double getCenterX() {
+        return getX();
+    }
+
+    @Override
+    public double getCenterY() {
+        return getY();
     }
 
     @Override
@@ -98,6 +136,7 @@ public class PanaTower implements Defense {
         g.fillOval(x - 5, y - 2, 10, 4);
         if (sprite != null) {
             g.drawImage(sprite, x - 7, y - 19, null);
+            drawWear(g, x, y + 3);
         } else {
             g.setColor(new Color(120, 84, 46));          // four legs
             g.fillRect(x - 4, y - 12, 1, 12);
@@ -110,6 +149,7 @@ public class PanaTower implements Defense {
             g.setColor(new Color(200, 190, 150));        // the bow
             g.drawArc(x - 3, y - 20, 6, 7, 270, 180);
             g.drawLine(x, y - 20, x, y - 14);
+            drawWear(g, x, y + 3);
         }
         if (shotTimer > 0) {
             g.setColor(new Color(255, 245, 200, 30 * shotTimer));

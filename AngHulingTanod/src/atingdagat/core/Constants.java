@@ -99,6 +99,12 @@ public final class Constants {
     public static final double LAND_REACH = 40;             // how far the tanod can harvest on land
     public static final double FISH_REACH = 120;            // how far a line can be cast for fish
     public static final double BUILD_REACH = 80;            // how far nets, mines and torches can be placed
+    public static final double REPAIR_REACH = 56;           // how close you must be to mend a net, torch or tower (hold X)
+    public static final int REPAIR_FRAMES = 24;             // frames of holding X for each point mended
+    public static final int FLARE_COOLDOWN = 20 * 60;       // 20 seconds between flares
+    public static final int FLARE_LIFE = 6 * 60;            // a flare burns for 6 seconds
+    public static final double FLARE_RADIUS = 70;           // how far a flare lights
+    public static final double FLARE_RANGE = 260;           // how far from you it can be fired
     public static final double FIRE_RANGE = 200;            // how far the gun shoots
     public static final double STEER_RANGE = 30;            // stand this close to the lighthouse to steer the beam
 

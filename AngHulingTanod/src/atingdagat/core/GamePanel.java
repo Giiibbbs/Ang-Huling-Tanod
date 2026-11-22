@@ -195,6 +195,8 @@ public class GamePanel extends JPanel {
                     world.testMonsters();      // test key
                 } else if (code == KeyEvent.VK_J) {
                     world.testSurvivors();     // test key
+                } else if (code == KeyEvent.VK_F) {
+                    world.fireFlare();
                 } else if (code == KeyEvent.VK_U) {
                     market.switchTab();
                 } else if (code == KeyEvent.VK_B) {
@@ -254,6 +256,7 @@ public class GamePanel extends JPanel {
         int moveY = (keys[KeyEvent.VK_S] || keys[KeyEvent.VK_DOWN] ? 1 : 0)
                 - (keys[KeyEvent.VK_W] || keys[KeyEvent.VK_UP] ? 1 : 0);
         world.setInput(moveX, moveY, keys[KeyEvent.VK_SPACE]);
+        world.setRepairHeld(keys[KeyEvent.VK_X]);
         world.update(mouseX, mouseY);
 
         // Did the run end?
