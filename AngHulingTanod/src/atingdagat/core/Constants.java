@@ -45,6 +45,7 @@ public final class Constants {
     // Data files the game reads.
     public static final String NODES_FILE = "/atingdagat/data/nodes.txt";
     public static final String WAVES_FILE = "/atingdagat/data/waves.txt";
+    public static final String VOICES_FILE = "/atingdagat/data/voices.txt";
 
     // How long each part of the day lasts, in frames (60 frames = 1 second).
     public static final int DAY_FRAMES = 75 * TARGET_FPS;
@@ -127,14 +128,10 @@ public final class Constants {
     public static final int TONYO_COOLDOWN = 80;
 
     // Folklore allies (story events at dawn)
-    public static final int KAPRE_NIGHT = 3;                 // after this night the balete tree stirs
-    public static final int MANANANGGAL_NIGHT = 5;           // after this night she arrives
-    public static final int BALETE_COL = 52;                 // the old balete tree on the northeast islet
-    public static final int BALETE_ROW = 8;
-    public static final int OFFERING_MEALS = 2;              // what the kapre asks for
-    public static final double KAPRE_RANGE = 130;
-    public static final int KAPRE_COOLDOWN = 110;
-    public static final int KAPRE_DAMAGE = 2;
+    public static final int STATUE_NIGHT = 3;                // after this night the story tells of the Lapu-Lapu stone
+    public static final int STATUE_COL = 52;                 // the stone statue on the northeast islet
+    public static final int STATUE_ROW = 8;
+    public static final int MANANANGGAL_NIGHT = 5;           // after this night she comes
     public static final double MANANANGGAL_RANGE = 190;
     public static final int MANANANGGAL_COOLDOWN = 240;
     public static final int MANANANGGAL_DAMAGE = 1;

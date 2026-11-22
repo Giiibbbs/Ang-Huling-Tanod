@@ -1,0 +1,10 @@
+# Radio voices: one faint voice from another island on each night's dusk (the ending answers them).
+# night | island | speaker | what you hear on the radio | what they say when their bangka arrives
+# Edit this file in Notepad to change the story. No recompiling needed.
+1 | Isla Verde | Nanay Pacing | ...kung may nakakarinig, Isla Verde ito. Dalawampu kami rito. | Isla Verde: dalawampu kami, may dalang bigas.
+2 | Lubang | Kapitan Berto | Lubang calling. Nakikita namin ang ilaw ng parola ninyo mula rito. | Lubang: nakita namin ang ilaw ninyo, tanod.
+3 | Maricaban | Ate Lorna | Maricaban ito. Nagtatago kami sa simbahan. Huwag kayong bibitaw. | Maricaban: lumabas na kami sa simbahan. Salamat.
+4 | Sibuyan | Mang Kanor | Sibuyan. Apat na bangka kaming mangingisda. Hintayin ninyo kami. | Sibuyan: apat na bangka, apat na ilaw.
+5 | Culion | Dr. Reyes | Culion po. May doktor at gamot kami. Hawak pa namin ang radyo. | Culion: may dala kaming gamot. Sino ang sugatan?
+6 | Burias | Lola Fe | Burias. Nakikinig kami gabi-gabi, anak. Tuloy lang kayo. | Burias: sabi ko na nga ba, hindi kayo bibitaw.
+7 | Fortune Island | Miko | Ako si Miko, labindalawang taon. Sabi ni Tatay, may tanod daw sa Dulo. | Fortune Island: Tatay, ayun po! Ayun po yung tanod!

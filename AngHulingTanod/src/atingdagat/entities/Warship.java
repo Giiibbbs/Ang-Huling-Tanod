@@ -32,6 +32,9 @@ public abstract class Warship {
     protected double speed;        // pixels per frame
     protected int health;
     protected int maxHealth;
+    private static final int FLASH_FRAMES = 8;
+    private int flash = 0;              // counts down after a hit, for the white flash
+    private int pendingDamage = 0;      // damage not yet shown as a floating number
     protected int landingDamage = 3;   // how much it hurts the post if it reaches the shore
 
     private boolean arrived = false;    // true once it has reached the shore
@@ -64,6 +67,9 @@ public abstract class Warship {
     // Shared behaviour:
 
     public void update(TileMap map, Light light, List<Defense> defenses) {
+        if (flash > 0) {
+            flash--;
+        }
         move(map, defenses);
         updateLight(light);
         updateWake();
@@ -192,6 +198,20 @@ public abstract class Warship {
 
     public void hit(int damage) {
         health -= damage;
+        pendingDamage += damage;
+        flash = FLASH_FRAMES;
+    }
+
+    /** How white the ship is right now, 0 to 1 (it flashes when hit). */
+    public double getFlash() {
+        return flash / (double) FLASH_FRAMES;
+    }
+
+    /** Damage taken since the last call, for the floating "-2" number. Reading it clears it. */
+    public int takePendingDamage() {
+        int d = pendingDamage;
+        pendingDamage = 0;
+        return d;
     }
 
     public boolean isDead() {

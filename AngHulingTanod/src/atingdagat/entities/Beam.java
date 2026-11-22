@@ -22,7 +22,7 @@ import java.awt.geom.Point2D;
 public class Beam implements Light {
 
     // Tuning numbers. Change these while playtesting.
-    private static final double TURN_SPEED = 0.045;                  // steering by hand: radians per frame (about 155 degrees a second)
+    private static final double TURN_SPEED = Math.PI;                // steering by hand: as fast as the mouse (a half turn per frame, so it never lags)
     private static final double SWEEP_SPEED = 0.02;                  // turning by itself: one full circle in about 5 seconds
     private static final double BASE_HALF_ANGLE = Math.toRadians(21);     // half the width of the cone
     private static final double BASE_LENGTH = 380;                       // how far the beam reaches (pixels)

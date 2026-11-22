@@ -38,6 +38,8 @@ public class GamePanel extends JPanel {
 
     private final Timer timer;
     private GameState state = GameState.MENU;
+    private GameState helpReturn = GameState.MENU;   // where the help page goes back to
+    private final atingdagat.ui.HelpScreen help = new atingdagat.ui.HelpScreen();
 
     // The map is loaded once. A GameWorld (one run of the game) is created when you press Enter.
     private final TileMap map = new TileMap(Constants.MAP_FILE);
@@ -136,16 +138,31 @@ public class GamePanel extends JPanel {
     // INPUT
     // ------------------------------------------------------------------
 
+    /** Shows the how-to-play page and remembers which screen to go back to. */
+    private void openHelp() {
+        helpReturn = state;
+        state = GameState.HELP;
+    }
+
     private void handleKeyPress(int code) {
         switch (state) {
             case MENU:
                 if (code == KeyEvent.VK_ENTER) {
                     newGame();
+                } else if (code == KeyEvent.VK_H || code == KeyEvent.VK_F1) {
+                    openHelp();
+                }
+                break;
+            case HELP:
+                if (code == KeyEvent.VK_ENTER || code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_F1 || code == KeyEvent.VK_H) {
+                    state = helpReturn;
                 }
                 break;
             case PLAY:
                 if (code == KeyEvent.VK_P || code == KeyEvent.VK_ESCAPE) {
                     state = GameState.PAUSE;
+                } else if (code == KeyEvent.VK_F1) {
+                    openHelp();
                 } else if (code == KeyEvent.VK_N) {
                     world.skipPhase();
                 } else if (code == KeyEvent.VK_L) {
@@ -197,6 +214,8 @@ public class GamePanel extends JPanel {
                     state = GameState.PLAY;
                 } else if (code == KeyEvent.VK_M) {
                     state = GameState.MENU;
+                } else if (code == KeyEvent.VK_F1) {
+                    openHelp();
                 }
                 break;
             case GAME_OVER:
@@ -241,7 +260,7 @@ public class GamePanel extends JPanel {
         if (world.getOutcome() == GameWorld.Outcome.LOST) {
             state = GameState.GAME_OVER;
         } else if (world.getOutcome() == GameWorld.Outcome.WON) {
-            ending = new EndingScene(map, world.getPost().getX(), world.getPost().getY(), world.getSurvivors());
+            ending = new EndingScene(map, world.getPost().getX(), world.getPost().getY(), world.getSurvivors(), world.getVoices());
             state = GameState.VICTORY;
         }
     }
@@ -284,6 +303,15 @@ public class GamePanel extends JPanel {
 
     /** Draws one frame in internal 640x360 coordinates. */
     private void drawGame(Graphics2D g) {
+        if (state == GameState.HELP) {   // the page over whatever was on screen before
+            if (helpReturn == GameState.MENU || world == null) {
+                map.draw(g, frameCount);
+            } else {
+                world.draw(g, frameCount);
+            }
+            help.draw(g);
+            return;
+        }
         if (state == GameState.MENU || world == null) {
             map.draw(g, frameCount);
             dim(g, 140);
@@ -292,7 +320,10 @@ public class GamePanel extends JPanel {
         }
 
         // Every other screen shows the world underneath.
+        double[] shake = world.getShakeOffset();   // a small shake when something explodes
+        g.translate(shake[0], shake[1]);
         world.draw(g, frameCount);
+        g.translate(-shake[0], -shake[1]);
         if (state == GameState.VICTORY && ending != null) {
             ending.draw(g);   // the ending story has no HUD
             return;
@@ -304,7 +335,7 @@ public class GamePanel extends JPanel {
             case PAUSE:
                 dim(g, 120);
                 drawCenteredText(g, "PAUSED", 150, 32, Color.WHITE);
-                drawCenteredText(g, "P - resume     M - main menu", 185, 14, Color.LIGHT_GRAY);
+                drawCenteredText(g, "P - resume     F1 - how to play     M - main menu", 185, 14, Color.LIGHT_GRAY);
                 break;
             case GAME_OVER:
                 dim(g, 170);
@@ -333,7 +364,8 @@ public class GamePanel extends JPanel {
     private void drawMenu(Graphics2D g) {
         drawCenteredText(g, Constants.TITLE, 130, 24, Color.WHITE);
         drawCenteredText(g, "Press ENTER to start", 200, 14, Color.LIGHT_GRAY);
-        drawCenteredText(g, "May natitira pa tayo.", 224, 11, new Color(255, 235, 160));
+        drawCenteredText(g, "H - How to play", 218, 11, new Color(200, 205, 220));
+        drawCenteredText(g, "May natitira pa tayo.", 242, 11, new Color(255, 235, 160));
     }
 
     private void drawCenteredText(Graphics2D g, String text, int y, int size, Color color) {

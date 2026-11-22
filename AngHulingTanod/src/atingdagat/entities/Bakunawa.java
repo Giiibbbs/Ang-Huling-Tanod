@@ -112,6 +112,19 @@ public class Bakunawa {
         eclipse = 0;
     }
 
+    /** Puts the dragon back to sleep (used at every dawn before night 7, so it can still rise on the last night). */
+    public void reset() {
+        stage = Stage.IDLE;
+        timer = 0;
+        noise = 0;
+        eclipse = 0;
+        shipSink = 0;
+        biteReported = false;
+        headX = MOON_X + 95;
+        headY = -70;
+        trail.clear();
+    }
+
     public double getNoise() {
         return noise;
     }

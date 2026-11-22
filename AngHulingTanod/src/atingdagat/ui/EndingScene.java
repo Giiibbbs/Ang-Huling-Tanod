@@ -2,6 +2,7 @@ package atingdagat.ui;
 
 import atingdagat.core.Constants;
 import atingdagat.core.GameWorld;
+import atingdagat.core.RadioVoices;
 import atingdagat.map.TileMap;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -50,15 +51,11 @@ public class EndingScene {
         }
     }
 
-    private static final Line[] STORY = {
-        new Line(0, 190, "Dawn of the eighth day."),
-        new Line(190, 430, "The sea is quiet. The Kordan fleet is gone."),
-        new Line(430, 700, "Then, across the dark water... lights."),
-        new Line(700, 950, "A voice on the radio:  \"May natitira pa kami.\""),
-        new Line(950, 1200, "\"May natitira pa kami.\"   \"May natitira pa kami.\""),
-        new Line(1200, 1480, "Bangkas from every island. They heard you."),
-        new Line(1480, FINAL_CARD, "And above the sea, the sound you waited seven nights for: rotors."),
-    };
+    private static final int VOICES_START = 700;      // the voices answer one by one from here
+    private static final int VOICE_FRAMES = 110;      // how long each voice is shown (7 voices end at frame 1470)
+
+    /** The fixed lines of the story. The voices from the radio are added after these, one per island. */
+    private final ArrayList<Line> story = new ArrayList<>();
 
     private static class Boat {
         double x;
@@ -90,8 +87,23 @@ public class EndingScene {
 
     private final java.util.List<atingdagat.entities.Survivor> crew;   // the survivors who joined you (can be empty)
 
-    public EndingScene(TileMap map, double postX, double postY, java.util.List<atingdagat.entities.Survivor> crew) {
+    public EndingScene(TileMap map, double postX, double postY, java.util.List<atingdagat.entities.Survivor> crew,
+            RadioVoices radioVoices) {
         this.crew = crew;
+        story.add(new Line(0, 190, "Dawn of the eighth day."));
+        story.add(new Line(190, 430, "The sea is quiet. The Kordan fleet is gone."));
+        story.add(new Line(430, VOICES_START, "Then, across the dark water... lights. And the radio, one by one."));
+        int slot = 0;
+        for (RadioVoices.Voice v : radioVoices.getAll()) {   // every voice you heard at dusk answers, by name
+            story.add(new Line(VOICES_START + slot * VOICE_FRAMES, VOICES_START + (slot + 1) * VOICE_FRAMES, v.arrival));
+            slot++;
+        }
+        int voicesEnd = VOICES_START + slot * VOICE_FRAMES;
+        if (slot == 0) {   // no voices file: the old line
+            story.add(new Line(VOICES_START, 1480, "Bangkas from every island. They heard you."));
+            voicesEnd = 1480;
+        }
+        story.add(new Line(voicesEnd, FINAL_CARD, "And above the sea, the sound you waited seven nights for: rotors."));
         this.postX = postX;
         this.postY = postY;
         Random random = new Random(77);   // the same sea every time
@@ -135,7 +147,9 @@ public class EndingScene {
             double len = Math.max(1, Math.hypot(dx, dy));
             double startX = tx + dx / len * 360;    // just outside the screen, straight out from the island
             double startY = ty + dy / len * 360;
-            boats.add(new Boat(startX, startY, tx, ty, 1100 + boats.size() * 20, 1.1 + random.nextDouble() * 0.35));
+            int n = boats.size();   // the first boats are the voices' boats and arrive as each one speaks
+            int appear = n < radioVoices.getAll().size() ? VOICES_START + n * VOICE_FRAMES : 1100 + n * 20;
+            boats.add(new Boat(startX, startY, tx, ty, appear, 1.1 + random.nextDouble() * 0.35));
         }
     }
 
@@ -310,7 +324,7 @@ public class EndingScene {
     }
 
     private void drawCaption(Graphics2D g) {
-        for (Line line : STORY) {
+        for (Line line : story) {
             if (frames < line.from || frames >= line.to) {
                 continue;
             }
