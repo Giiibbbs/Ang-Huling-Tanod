@@ -23,6 +23,7 @@ public class Net implements Defense, Durable {
 
     private final int col;
     private final int row;
+    private int plating = 0;
     private int health = MAX_HEALTH;
 
     public Net(int col, int row) {
@@ -57,12 +58,20 @@ public class Net implements Defense, Durable {
 
     @Override
     public int getMaxDurability() {
-        return MAX_HEALTH;
+        return MAX_HEALTH + plating;
+    }
+
+    @Override
+    public void setPlating(int level) {
+        if (level > plating) {
+            health += level - plating;   // the new plating arrives undamaged
+        }
+        plating = level;
     }
 
     @Override
     public void restore(int amount) {
-        health = Math.min(MAX_HEALTH, health + amount);
+        health = Math.min(MAX_HEALTH + plating, health + amount);
     }
 
     @Override
@@ -100,7 +109,7 @@ public class Net implements Defense, Durable {
         int s = Constants.TILE_SIZE;
         if (sprite != null) {   // a damaged net fades, so the player sees it weakening
             java.awt.Composite old = g.getComposite();
-            float alpha = 0.45f + 0.55f * Math.max(0, health) / MAX_HEALTH;
+            float alpha = 0.45f + 0.55f * Math.max(0, health) / (float) (MAX_HEALTH + plating);
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
             g.drawImage(sprite, x, y, null);
             g.setComposite(old);
@@ -112,7 +121,7 @@ public class Net implements Defense, Durable {
         g.setColor(new Color(235, 220, 170, 200));
         int lines = Math.max(1, health);
         for (int i = 0; i < lines; i++) {
-            int offset = 2 + i * (s - 4) / Math.max(1, MAX_HEALTH - 1);
+            int offset = 2 + i * (s - 4) / Math.max(1, MAX_HEALTH + plating - 1);
             g.drawLine(x + 1, y + offset + sway, x + s - 1, y + offset - sway);
             g.drawLine(x + offset, y + 1, x + offset + sway, y + s - 1);
         }

@@ -84,9 +84,9 @@ Current build:
 | 4 | Pana tower tool on or off (then click free land; 4 bamboo). Shoots ships in range, even in the dark, up to 10 |
 | Right click | Put the tool away |
 | R | Repair the post and radio (2 meals of fish, day only) |
-| C | Rewire the radio (2 copper, +25 signal) |
-| V | Armor the post (3 chromite, +4 max health, up to 3 times) |
-| G | Upgrade the lamp (2 gold, wider and longer beam, up to 2 times) |
+| C | Rewire the radio (2 copper, +25 signal; torches also glow 25% wider, up to 2 times) |
+| V | Armor the post (2 chromite, +4 max health, up to 3 times; also plates nets, torches and towers: +1 durability per level, up to 2) |
+| G | Upgrade the lamp (1 gold, wider and longer beam, and flares burn 40% longer, up to 2 times) |
 | Left click (night) | Fire at a LIT ship (the beam, your lantern or a torch must be lighting it, and it must be within gun range) |
 | N | Skip to the next phase (test key) |
 | L | Jump to the day before the last night (test key) |

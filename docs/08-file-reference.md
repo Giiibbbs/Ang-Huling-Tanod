@@ -150,7 +150,7 @@ Gio: this is the "make it easier or harder" list. Ask Gabriel before changing, t
 | How much you get per harvest, or how fast bamboo regrows | `economy/ResourceType.java` | "yield" and "regrow" | bamboo gives 2, regrows 1 unit per 25 s |
 | Fish speed, depth, how common, school size | `economy/FishKind.java` | the numbers on each line | see the file |
 | How many fish schools at once, how often they appear | `core/Constants.java` | `MAX_FISH_SCHOOLS`, `FISH_SPAWN_FRAMES` | 9, every 3 s |
-| What an ore buys | `core/Constants.java` | `MINE_COST_NICKEL`, `REWIRE_COST_COPPER`, `ARMOR_COST_CHROMITE`, `LAMP_COST_GOLD` and the nearby numbers | 2, 2, 3, 2 |
+| What an ore buys | `core/Constants.java` | `MINE_COST_NICKEL`, `REWIRE_COST_COPPER`, `ARMOR_COST_CHROMITE`, `LAMP_COST_GOLD` and the nearby numbers | 2, 2, 2, 1 |
 | Make the day longer or shorter | `core/Constants.java` | `DAY_FRAMES`, `DUSK_FRAMES`, `DAWN_FRAMES` | 75 s, 8 s, 7 s |
 | Change the starting bamboo | `core/Constants.java` | `START_BAMBOO` | 6 |
 | Net price (bamboo) | `defense/Net.java` | `COST_BAMBOO` | 3 |
@@ -168,6 +168,7 @@ Gio: this is the "make it easier or harder" list. Ask Gabriel before changing, t
 | How long a ship stays visible after the beam leaves | `entities/Warship.java` | the `0.02` in `updateLight` | about 1 s |
 | Move the lighthouse | `core/Constants.java` | `LIGHTHOUSE_COL`, `LIGHTHOUSE_ROW` | 19, 10 |
 | Change the window title | `core/Constants.java` | `TITLE` | Ang Huling Tanod |
+| Ore powers (night) | `core/Constants.java` | `WIRING_MAX_LEVEL`, `WIRING_GLOW_BONUS`, `PLATING_MAX_LEVEL`, `LAMP_FLARE_BONUS` | 2, 0.25, 2, 0.4 |
 | Bamboo carry limit | `core/Constants.java` | `BAMBOO_CAP` | 30 |
 | Flare and repair | `core/Constants.java` | `FLARE_COOLDOWN`, `FLARE_LIFE`, `FLARE_RADIUS`, `FLARE_RANGE`, `REPAIR_REACH`, `REPAIR_FRAMES` | 20 s, 6 s, 70, 260, 56, 24 |
 | Change the number of nights | `core/Constants.java` | `TOTAL_NIGHTS` | 7 |

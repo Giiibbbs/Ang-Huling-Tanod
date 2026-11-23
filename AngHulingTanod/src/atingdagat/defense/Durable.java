@@ -27,6 +27,9 @@ public interface Durable {
     /** Bamboo needed to mend ONE point. */
     int repairCostPerPoint();
 
+    /** Chromite plating: every level adds 1 to the maximum (and mends that point at once). Set by GameWorld. */
+    void setPlating(int level);
+
     double getCenterX();
 
     double getCenterY();

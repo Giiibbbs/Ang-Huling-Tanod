@@ -21,8 +21,10 @@ public class Flare implements Light, GlowSource {
     private final double targetX;
     private final double targetY;
     private int age = 0;
+    private final int life;   // how many frames it burns: gold lamp upgrades make it last longer
 
-    public Flare(double startX, double startY, double targetX, double targetY) {
+    public Flare(double startX, double startY, double targetX, double targetY, double lifeScale) {
+        this.life = (int) Math.round(Constants.FLARE_LIFE * lifeScale);
         this.startX = startX;
         this.startY = startY;
         this.targetX = targetX;
@@ -34,7 +36,7 @@ public class Flare implements Light, GlowSource {
     }
 
     public boolean isDone() {
-        return age > FLIGHT + Constants.FLARE_LIFE;
+        return age > FLIGHT + life;
     }
 
     public boolean hasLanded() {
@@ -48,7 +50,7 @@ public class Flare implements Light, GlowSource {
         }
         int burn = age - FLIGHT;
         double rise = Math.min(1.0, burn / 12.0);
-        double fall = Math.min(1.0, (Constants.FLARE_LIFE - burn) / 60.0);
+        double fall = Math.min(1.0, (life - burn) / 60.0);
         return Math.max(0, Math.min(rise, fall));
     }
 

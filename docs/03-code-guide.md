@@ -972,6 +972,8 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 
 **`Ghost`** only changes two protected fields, `litRise` and `litFall`, so it is slow to become visible and fades fast. **`Flare`** implements `Light` and `GlowSource`, flies an arc for 24 frames, then burns; `GameWorld.isLit` and `glowSources` include it. `waves.txt` has two optional columns, raiders and ghosts (default 0).
 
+**Ore powers (the night side of ores).** `GameWorld.applyOreBonuses()` runs every frame and pushes three ore levels into the defenses: chromite armor level becomes `Durable.setPlating(level)` (max durability +1 per level), copper wiring becomes `Torch.setRadiusScale(...)` (wider light), and the gold lamp level scales the flare's `life`. The lesson is the same as before: the world loops over `Durable` and `Torch`, and each class decides what the number means for itself. Ore hold times in `ResourceType` were cut by a third because a 75 s day was fully used by bamboo and fruit, so ores were never mined.
+
 ## 29. What we plan to add (and what each will teach)
 
 | Feature | Concept it shows | Rubric area |

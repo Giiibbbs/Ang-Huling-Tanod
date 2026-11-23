@@ -269,7 +269,7 @@ schedule in [02-project-plan.md](02-project-plan.md).
 | Trees | Yes | 11 trees on the island. Hold the mouse on one to chop it (3 bamboo each, 3 chops per tree, grows back slowly) |
 | Day, dusk, night, dawn cycle | Yes | Dusk fades the light in. It is not yet a "preview of the night" |
 | Harvesting (bamboo, 4 ores, 5 fish) | Yes | You HOLD the mouse. Bamboo regrows slowly, ore never does, fish schools swim and must be followed |
-| Ore uses | Yes | Nickel: mines. Copper: radio rewire. Chromite: post armor. Gold: lamp upgrade |
+| Ore uses | Yes | Ores power the night. Nickel: mines. Copper (2): radio boost, and torches glow 25% wider per level (2 levels). Chromite (2): Post +4 health, and every net, torch and Pana gets +1 durability per level (up to +2). Gold (1): wider lamp beam, and flares burn 40% longer per level. Ore is finite (27 units on the map, plus crates), and mining is quick (100-160 frames per unit) so it fits inside a 75 s day |
 | Lighthouse beam and darkness | Yes | The beam now sweeps by itself, so there is no more circling to cover blind spots |
 | Walking tanod, lantern, torch posts | Yes | WASD. The lantern lights a small circle. Torches (2 bamboo, up to 20, on land) light fixed patches of shore (radius 50 px) |
 | Day dial and Workshop panel | Yes | The dial shows the sun and moon, the time left in the phase, and ships left at night. The Workshop (left, by day) lists every build and upgrade with cost, what you have, and level. You can click rows or use the keys |

@@ -62,11 +62,16 @@ public final class Constants {
     public static final int MINE_COST_NICKEL = 2;
     public static final int REWIRE_COST_COPPER = 2;       // key C: radio +25
     public static final int REWIRE_RADIO_AMOUNT = 25;
-    public static final int ARMOR_COST_CHROMITE = 3;      // key V: post +4 max health
+    public static final int ARMOR_COST_CHROMITE = 2;      // key V: post +4 max health
     public static final int ARMOR_HEALTH = 4;
     public static final int ARMOR_MAX_LEVEL = 3;
-    public static final int LAMP_COST_GOLD = 2;           // key G: wider, longer beam
+    public static final int LAMP_COST_GOLD = 1;           // key G: wider, longer beam
     public static final int LAMP_MAX_LEVEL = 2;
+    // Ore powers (the night side of ores): copper wiring widens torch light, chromite plates defenses, gold lengthens flares.
+    public static final int WIRING_MAX_LEVEL = 2;
+    public static final double WIRING_GLOW_BONUS = 0.25;   // per level: torch light radius
+    public static final int PLATING_MAX_LEVEL = 2;          // per Armor level, up to this: +1 durability on every net, torch and Pana
+    public static final double LAMP_FLARE_BONUS = 0.4;      // per lamp level: longer-burning flare
     public static final int MAX_FISH_SCHOOLS = 9;
     public static final int FISH_SPAWN_FRAMES = 3 * TARGET_FPS;
     public static final int NET_MAX_DEPTH = 3;      // nets only on shallow water (tiles from shore)

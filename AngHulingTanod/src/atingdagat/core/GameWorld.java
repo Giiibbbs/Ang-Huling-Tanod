@@ -94,6 +94,7 @@ public class GameWorld {
     private final ArrayList<Defense> defenses = new ArrayList<>();
     private final LapuLapuStone statue = new LapuLapuStone(Constants.STATUE_COL, Constants.STATUE_ROW);
     private int giftDay = 0;
+    private int wiring = 0;   // copper rewiring level: wider torch light
     private final Punso punso = new Punso(Constants.PUNSO_COL, Constants.PUNSO_ROW);
     private final ArrayList<ResourceNode> nodes;
     private final ArrayList<FishSchool> fish = new ArrayList<>();
@@ -182,6 +183,7 @@ public class GameWorld {
         beam.update(manual);
 
         updateEclipse();
+        applyOreBonuses();
         updateFlare();
         updateRepair();
 
@@ -389,7 +391,8 @@ public class GameWorld {
         double dy = mouseY - player.getY();
         double dist = Math.hypot(dx, dy);
         double scale = dist > Constants.FLARE_RANGE ? Constants.FLARE_RANGE / dist : 1.0;
-        flare = new Flare(player.getX(), player.getY() - 6, player.getX() + dx * scale, player.getY() + dy * scale);
+        flare = new Flare(player.getX(), player.getY() - 6, player.getX() + dx * scale, player.getY() + dy * scale,
+                1.0 + Constants.LAMP_FLARE_BONUS * beam.getUpgradeLevel());
         flareCooldown = Constants.FLARE_COOLDOWN;
     }
 
@@ -1506,18 +1509,40 @@ public class GameWorld {
         say("Repaired", new Color(140, 235, 150));
     }
 
+    /**
+     * The night side of the ores, applied every frame (cheap): chromite armor plates every net, torch and tower,
+     * and copper wiring widens every torch's light. Gold lengthens flares in fireFlare().
+     */
+    private void applyOreBonuses() {
+        int plating = Math.min(Constants.PLATING_MAX_LEVEL, post.getArmorLevel());
+        double glow = 1.0 + Constants.WIRING_GLOW_BONUS * wiring;
+        for (Defense d : defenses) {
+            if (d instanceof Durable) {
+                ((Durable) d).setPlating(plating);
+            }
+            if (d instanceof Torch) {
+                ((Torch) d).setRadiusScale(glow);
+            }
+        }
+    }
+
     /** Key C: spend copper to rewire the radio (a bigger boost than fish). */
     public void rewire() {
         if (cycle.isNight() || outcome != Outcome.PLAYING) {
             return;
         }
-        if (radio.getSignal() >= Radio.MAX_SIGNAL) {
-            say("Radio is already strong", Color.LIGHT_GRAY);
+        if (radio.getSignal() >= Radio.MAX_SIGNAL && wiring >= Constants.WIRING_MAX_LEVEL) {
+            say("Fully wired", Color.LIGHT_GRAY);
         } else if (!inventory.spend(ResourceType.COPPER, Constants.REWIRE_COST_COPPER)) {
             say("Need " + Constants.REWIRE_COST_COPPER + " copper", new Color(255, 150, 120));
         } else {
             radio.restore(Constants.REWIRE_RADIO_AMOUNT);
-            say("Radio rewired", ResourceType.COPPER.getColor());
+            if (wiring < Constants.WIRING_MAX_LEVEL) {
+                wiring++;
+                say("Radio rewired, torches glow wider", ResourceType.COPPER.getColor());
+            } else {
+                say("Radio rewired", ResourceType.COPPER.getColor());
+            }
         }
     }
 
@@ -1532,7 +1557,7 @@ public class GameWorld {
             say("Need " + Constants.ARMOR_COST_CHROMITE + " chromite", new Color(255, 150, 120));
         } else {
             post.armor(Constants.ARMOR_HEALTH);
-            say("Post armored +" + Constants.ARMOR_HEALTH, ResourceType.CHROMITE.getColor());
+            say("Post armored +" + Constants.ARMOR_HEALTH + (post.getArmorLevel() <= Constants.PLATING_MAX_LEVEL ? ", defenses plated" : ""), ResourceType.CHROMITE.getColor());
         }
     }
 

@@ -33,9 +33,9 @@ public class MarketPanel {
         TORCH("3", "Torch", ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO, "Lights the shore all night. Place on free land."),
         PANA("4", "Pana", ResourceType.BAMBOO, Constants.PANA_COST_BAMBOO, "A bamboo arrow tower. Shoots ships even in the dark. Place on free land."),
         REPAIR("R", "Repair", null, Constants.REPAIR_FISH_COST, "Eat fish to mend the post and boost the radio."),
-        REWIRE("C", "Rewire", ResourceType.COPPER, Constants.REWIRE_COST_COPPER, "Rewire the radio for a stronger signal."),
-        ARMOR("V", "Armor", ResourceType.CHROMITE, Constants.ARMOR_COST_CHROMITE, "Armor the post: more maximum health."),
-        LAMP("G", "Lamp", ResourceType.GOLD, Constants.LAMP_COST_GOLD, "Upgrade the lamp: a wider and longer beam.");
+        REWIRE("C", "Rewire", ResourceType.COPPER, Constants.REWIRE_COST_COPPER, "Rewire: stronger radio, and torches glow wider (2 levels)."),
+        ARMOR("V", "Armor", ResourceType.CHROMITE, Constants.ARMOR_COST_CHROMITE, "Armor the post (+4 health) and plate defenses: +1 durability each level, up to 2."),
+        LAMP("G", "Lamp", ResourceType.GOLD, Constants.LAMP_COST_GOLD, "Upgrade the lamp: wider, longer beam and longer-burning flares.");
 
         private final String key;
         private final String label;

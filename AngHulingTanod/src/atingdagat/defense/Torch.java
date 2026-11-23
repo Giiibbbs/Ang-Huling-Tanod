@@ -24,6 +24,8 @@ public class Torch implements Defense, Light, GlowSource, Durable {
     private final BufferedImage sprite = Assets.get(SPRITE_PATH, 12, 16);
 
     private static final int MAX_DURABILITY = 3;
+    private int plating = 0;
+    private double radiusScale = 1.0;   // copper wiring makes torches glow wider
     private int durability = MAX_DURABILITY;
 
     private final int col;
@@ -65,12 +67,24 @@ public class Torch implements Defense, Light, GlowSource, Durable {
 
     @Override
     public int getMaxDurability() {
-        return MAX_DURABILITY;
+        return MAX_DURABILITY + plating;
+    }
+
+    @Override
+    public void setPlating(int level) {
+        if (level > plating) {
+            durability += level - plating;
+        }
+        plating = level;
+    }
+
+    public void setRadiusScale(double scale) {
+        radiusScale = scale;
     }
 
     @Override
     public void restore(int amount) {
-        durability = Math.min(MAX_DURABILITY, durability + amount);
+        durability = Math.min(MAX_DURABILITY + plating, durability + amount);
     }
 
     @Override
@@ -95,7 +109,7 @@ public class Torch implements Defense, Light, GlowSource, Durable {
 
     @Override
     public boolean lights(double x, double y) {
-        return Math.hypot(x - centerX, y - (centerY - 8)) <= Constants.TORCH_RADIUS;
+        return Math.hypot(x - centerX, y - (centerY - 8)) <= Constants.TORCH_RADIUS * radiusScale;
     }
 
     @Override
@@ -110,7 +124,7 @@ public class Torch implements Defense, Light, GlowSource, Durable {
 
     @Override
     public double getGlowRadius() {
-        return Constants.TORCH_RADIUS;
+        return Constants.TORCH_RADIUS * radiusScale;
     }
 
     @Override

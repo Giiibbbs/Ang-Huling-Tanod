@@ -22,6 +22,7 @@ public class PanaTower implements Defense, Durable {
     private final BufferedImage sprite = Assets.get(SPRITE_PATH, 14, 20);
 
     private static final int MAX_DURABILITY = 4;
+    private int plating = 0;
     private int durability = MAX_DURABILITY;
 
     private final int col;
@@ -100,12 +101,20 @@ public class PanaTower implements Defense, Durable {
 
     @Override
     public int getMaxDurability() {
-        return MAX_DURABILITY;
+        return MAX_DURABILITY + plating;
+    }
+
+    @Override
+    public void setPlating(int level) {
+        if (level > plating) {
+            durability += level - plating;
+        }
+        plating = level;
     }
 
     @Override
     public void restore(int amount) {
-        durability = Math.min(MAX_DURABILITY, durability + amount);
+        durability = Math.min(MAX_DURABILITY + plating, durability + amount);
     }
 
     @Override
