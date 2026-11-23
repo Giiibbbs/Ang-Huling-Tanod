@@ -242,7 +242,7 @@ public class GameWorld {
 
     /** How many ships arrive together in one pulse tonight. Bigger every few nights. */
     private int pulseSize(int night) {
-        int[] base = {1, 1, 2, 2, 3, 3, 4, 4};
+        int[] base = {1, 1, 2, 1, 1, 3, 4, 4};   // index = night (0 unused). Nights 3 and 4 trickle one ship at a time so the pressure never lets up
         int size = base[Math.max(1, Math.min(Constants.TOTAL_NIGHTS, night))];
         return Math.min(4, Twist.forNight(night) == Twist.ASSAULT ? size + 1 : size);   // only 4 sides to come from
     }

@@ -178,7 +178,7 @@ Gio: this is the "make it easier or harder" list. Ask Gabriel before changing, t
 | The radio voices and the ending story | `data/voices.txt` | one line per night | 7 voices |
 | How hard the screen shakes | `core/GameWorld.java` | the `addShake(power, frames)` calls | 2.5 to 4.5 px |
 | When the Lapu-Lapu story appears | `core/Constants.java` | `STATUE_NIGHT` | night 3 |
-| Pulse size and night twists | `core/GameWorld.java`, `core/Twist.java` | `pulseSize()`, `Twist.forNight()` | 1,1,2,2,3,3,4 |
+| Pulse size and night twists | `core/GameWorld.java`, `core/Twist.java` | `pulseSize()`, `Twist.forNight()` | 1,2,1,1,3,4,4 (nights 3-4 steady trickle) |
 | The manananggal | `core/Constants.java` | `MANANANGGAL_NIGHT`, `MANANANGGAL_RANGE`, `MANANANGGAL_DAMAGE` | night 5, 190 px, 2 |
 | The duwende | `core/Constants.java` | `DUWENDE_NIGHT`, `DUWENDE_GIFT_BAMBOO`, `PUNSO_COL`, `PUNSO_ROW` | night 1, 3 bamboo, (15, 28) |
 | Where the Lapu-Lapu stone stands | `core/Constants.java` | `STATUE_COL`, `STATUE_ROW` | (52, 8) |

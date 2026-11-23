@@ -397,7 +397,7 @@ A number was wrong, not a design. Tuning numbers live in `Constants` and `Beam` 
 - **Kapre removed.** The balete tree became a stone statue of Lapu-Lapu, turned to stone, not killed. Freeing him is a future feature.
 - **Trees:** narra, acacia, mango, coconut and banana, each drawn differently. Mango, coconut and banana give fruit, which counts as meals.
 - **Shop** is about 70 px shorter (one-line rows).
-- **Nights escalate (FNAF style):** ships come in pulses from several sides (1,1,2,2,3,3,4) and every night has a twist (`Twist` enum): fog, static, surge, hardened, assault.
+- **Nights escalate (FNAF style):** ships come in pulses from several sides (1, 2, 1, 1, 3, 4, 4; nights 3 and 4 are a steady stream) and every night has a twist (`Twist` enum): fog, static, surge, hardened, assault.
 - **Beam** follows the mouse instantly.
 - A headless **bot test** found a real crash (a pulse of 5 on night 7 needed a fifth side) and told us the first wave numbers were too harsh. We lowered `waves.txt`.
 
