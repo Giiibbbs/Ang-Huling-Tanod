@@ -114,6 +114,7 @@ Planned: more defenses on the number keys. Details are in
 | [docs/09-build-story.md](docs/09-build-story.md) | Why we built it this way, step by step, for beginners |
 | [docs/10-complete-guide.md](docs/10-complete-guide.md) | **Start here if you are new.** Tools, every folder, how it runs, recipes, glossary |
 | [docs/11-future-improvements.md](docs/11-future-improvements.md) | Ideas we cut or have not built yet (day squall, more Bakunawa moments, Filipino touches) |
+| [docs/12-testing.md](docs/12-testing.md) | Proof of testing: 34 unit checks, bot results, and what is NOT tested |
 | [CREDITS.md](CREDITS.md) | Asset sources, licenses, and AI-assistance disclosure |
 
 ## Project structure
@@ -124,8 +125,9 @@ Ang-Huling-Tanod/
 ├── CREDITS.md
 ├── docs/
 └── AngHulingTanod/            NetBeans project
+    ├── test/atingdagat/       GameTests (34 checks, see docs/12-testing.md)
     └── src/atingdagat/
-        ├── core/              Main, GameFrame, GamePanel, GameWorld, DayCycle, Phase, WavePlan, GameState, Constants
+        ├── core/              Main, GameFrame, GamePanel, GameWorld, ShipSpawner, SeaLife, Announcer, DayCycle, Phase, WavePlan, GameState, Constants
         ├── map/               TileMap (island and sea)
         ├── entities/          Lighthouse, Beam, Warship, Skiff, Cutter, Barge, Raider, Ghost, Flare, Post, Radio
         ├── defense/           Defense (interface), Net, Mine
@@ -164,6 +166,6 @@ See [CREDITS.md](CREDITS.md) for all third-party assets, licenses, and the note 
 - Filipino trees: narra, acacia (bamboo) and mango, coconut, banana (fruit = meals).
 - Smaller shop panel; Manananggal weaker; Duwende gives a different gift each day.
 
-- New (Nov 23): mines fixed (1 nickel, bigger blast, chain reactions), ENDLESS MODE (press E on the victory card to keep fighting nights 8+, harder each night, Q in the pause menu to retire and save the score), Tonyo now mends the most worn defense for free every ~12 s, and torches are now PAROL star lanterns.
+- New (Nov 23): Bakunawa visits (a red-moon omen on nights 3 and 5, a small visit on nights 4 and 6 where the moon dims and the lamp goes out until you ring the gongs, and the same every 3rd night of endless mode), mines fixed (1 nickel, bigger blast, chain reactions), ENDLESS MODE (press E on the victory card to keep fighting nights 8+, harder each night, Q in the pause menu to retire and save the score), Tonyo now mends the most worn defense for free every ~12 s, and torches are now PAROL star lanterns.
 - New: wear and tear (nets, torches, Pana towers lose 1 durability each dawn, mend with X for bamboo), Raiders (shoot your towers and torches), Ghost ships (slow to show, quick to vanish in the light), and the flare gun (F) so nights have more to do.
 - New: How to Play page (H on the menu, F1 anytime), radio voices from other islands (one each dusk, they answer in the ending), and combat feel (hit flash, damage numbers, screen shake, a ring around ships lit by the beam).

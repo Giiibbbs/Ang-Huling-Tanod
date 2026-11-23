@@ -30,7 +30,7 @@ import java.util.ArrayList;
  */
 public class Bakunawa {
 
-    public enum Stage { IDLE, RISING, GONGS, SWALLOW, DONE }
+    public enum Stage { IDLE, RISING, GONGS, SWALLOW, RETREAT, DONE }
 
     private static final int RISING_FRAMES = 170;
     private static final int SWALLOW_BITE_FRAME = 75;      // the moment the head hits the flagship
@@ -48,6 +48,14 @@ public class Bakunawa {
     private static final double SHIP_Y = 250;
 
     private static final int GONGS_HELP_FRAMES = 30 * 60;   // after 30 s of gongs the survivors ring too
+    private static final int SMALL_HELP_FRAMES = 8 * 60;    // a small visit never lasts long: they help after 8 s
+    private static final int RETREAT_FRAMES = 100;
+
+    // Optional art (drawn by code when the files are missing): the head faces right.
+    private final java.awt.image.BufferedImage headSprite =
+            atingdagat.util.Assets.get("/atingdagat/res/monsters/bakunawa_head.png", 60, 40);
+    private final java.awt.image.BufferedImage bodySprite =
+            atingdagat.util.Assets.get("/atingdagat/res/monsters/bakunawa_body.png", 20, 20);
     private static final int SEGMENTS = 30;
     private static final int SEGMENT_GAP = 4;              // frames of history between body pieces
 
@@ -56,6 +64,9 @@ public class Bakunawa {
     private double noise = 0;             // the gong meter, 0 to 100
     private boolean biteReported = false;
     private double eclipse = 0;           // 0 = bright moon, 1 = fully eaten
+    private boolean small = false;        // a small visit (nights 4, 6 and every third endless night): no swallow, just a dark spell
+    private double drain = 0.35;          // how fast the gong noise dies away (higher = harder)
+    private boolean omen = false;         // nights 3 and 5: the moon only turns red
 
     private double headX = MOON_X + 95;
     private double headY = -70;
@@ -76,6 +87,26 @@ public class Bakunawa {
         for (int i = 0; i < SEGMENTS * SEGMENT_GAP + 10; i++) {
             trail.add(new double[]{headX, headY});
         }
+    }
+
+    /** A small visit: the moon is eaten and the beam goes out until the gongs drive the dragon back. No flagship. */
+    public void startSmall(boolean harder) {
+        if (stage != Stage.IDLE) {
+            return;
+        }
+        small = true;
+        drain = harder ? 0.5 : 0.35;
+        start();
+    }
+
+    /** Nights 3 and 5: only the moon turns red, as a warning. */
+    public void setOmen(boolean on) {
+        omen = on;
+    }
+
+    /** True while the dragon is on stage, so the night cannot end in the middle of it. */
+    public boolean isBusy() {
+        return stage != Stage.IDLE && stage != Stage.DONE;
     }
 
     /** The player taps the gong. Only counts while the gongs stage is on. */
@@ -119,6 +150,9 @@ public class Bakunawa {
         timer = 0;
         noise = 0;
         eclipse = 0;
+        small = false;
+        drain = 0.35;
+        omen = false;
         shipSink = 0;
         biteReported = false;
         headX = MOON_X + 95;
@@ -134,9 +168,11 @@ public class Bakunawa {
     public String getCaption() {
         switch (stage) {
             case RISING:
-                return "The moon goes dark. The Bakunawa has come.";
+                return small ? "The moon dims. The Bakunawa is hungry." : "The moon goes dark. The Bakunawa has come.";
             case GONGS:
                 return "SOUND THE GONGS!  Tap SPACE as fast as you can.";
+            case RETREAT:
+                return "The Bakunawa sinks back into the sea. The moon returns.";
             case SWALLOW:
                 return timer >= SWALLOW_BITE_FRAME
                         ? "The Bakunawa takes the Kordan flagship into the sea."
@@ -174,15 +210,27 @@ public class Bakunawa {
                 headY = 74 + 7 * Math.sin(frame * 0.07);
                 faceToward(MOON_X, MOON_Y, true);
                 if (noise >= 100) {            // full meter: check BEFORE it can drain
-                    stage = Stage.SWALLOW;
+                    stage = small ? Stage.RETREAT : Stage.SWALLOW;
                     timer = 0;
                 } else {
-                    noise = Math.max(0, noise - 0.35);   // the noise dies away if you stop tapping
-                    if (timer > GONGS_HELP_FRAMES) {      // too slow: the survivors join in so the night cannot stall
+                    noise = Math.max(0, noise - drain);   // the noise dies away if you stop tapping
+                    if (timer > (small ? SMALL_HELP_FRAMES : GONGS_HELP_FRAMES)) {      // too slow: the survivors join in so the night cannot stall
                         noise = Math.min(100, noise + 0.5);
                     }
                 }
                 break;
+            case RETREAT: {   // the small visit ends: it slides up out of the sky and the moon comes back
+                double t = timer / (double) RETREAT_FRAMES;
+                headY -= 2.4;
+                headX += 0.8;
+                headAngle = -Math.PI / 2;
+                eclipse = Math.max(0, 1 - t * 1.4);
+                if (timer >= RETREAT_FRAMES) {
+                    stage = Stage.DONE;
+                    eclipse = 0;
+                }
+                break;
+            }
             default: { // SWALLOW
                 if (timer <= SWALLOW_BITE_FRAME) {              // dive toward the flagship
                     double t = timer / (double) SWALLOW_BITE_FRAME;
@@ -234,6 +282,15 @@ public class Bakunawa {
     // ------------------------------------------------------------------
 
     public void draw(Graphics2D g, int frame) {
+        if (stage == Stage.IDLE && omen) {   // the warning: a blood-red moon, nothing more
+            g.setColor(new Color(120, 10, 20, 30));
+            g.fillRect(0, 0, Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT);
+            double saved = eclipse;
+            eclipse = 0.35;
+            drawMoon(g);
+            eclipse = saved;
+            return;
+        }
         if (stage == Stage.IDLE || stage == Stage.DONE) {
             return;
         }
@@ -242,7 +299,9 @@ public class Bakunawa {
         g.fillRect(0, 0, Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT);
 
         drawMoon(g);
-        drawFlagship(g, frame);
+        if (!small) {
+            drawFlagship(g, frame);
+        }
         drawBody(g);
         drawHead(g);
     }
@@ -320,6 +379,11 @@ public class Bakunawa {
             double[] p = trail.get(index);
             double t = i / (double) SEGMENTS;
             double r = 9.5 - 6.5 * t;
+            if (bodySprite != null) {
+                int size = (int) Math.round(r * 2 + 2);
+                g.drawImage(bodySprite, (int) (p[0] - size / 2.0), (int) (p[1] - size / 2.0), size, size, null);
+                continue;
+            }
             g.setColor(new Color(16, 54, 66));
             g.fill(new Ellipse2D.Double(p[0] - r - 1, p[1] - r - 1, r * 2 + 2, r * 2 + 2));
             g.setColor(i % 2 == 0 ? new Color(26, 92, 98) : new Color(34, 112, 112));
@@ -337,6 +401,11 @@ public class Bakunawa {
         java.awt.Graphics2D gg = (java.awt.Graphics2D) g.create();
         gg.translate(headX, headY);
         gg.rotate(headAngle);
+        if (headSprite != null) {   // art made for the game: faces right, centred on the head
+            gg.drawImage(headSprite, -24, -20, null);
+            gg.dispose();
+            return;
+        }
         // facing along +x. The jaw opens and closes slowly while it hovers
         double open = (stage == Stage.SWALLOW && timer > SWALLOW_BITE_FRAME) ? 0.1
                 : 0.45 + 0.25 * Math.sin(timer * 0.12);

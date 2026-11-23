@@ -439,3 +439,11 @@ A second job for Tonyo came next: he mends the most worn defense every 12 s. We 
 - To find a file or change a number: [08-file-reference.md](08-file-reference.md)
 - To prepare the demo: [04-pitch-and-demo.md](04-pitch-and-demo.md)
 - For everything in one file: [10-complete-guide.md](10-complete-guide.md)
+
+## Step 28: the Bakunawa shows up earlier (Nov 23)
+
+We did not want the dragon to be a one-night surprise. It now warns on nights 3 and 5 (a red moon), makes a small visit on nights 4 and 6 (the lamp goes out until you ring the gongs), and returns every third night of endless mode. One class handles both sizes with a flag. A bot that taps the gongs wins all 7 nights; a bot that never taps loses on night 6, so a real player has to ring.
+
+## Step 29: splitting GameWorld and proof of testing (Nov 23)
+
+Two things the grading cares about. First, `GameWorld.java` had grown past 70 KB, so we moved the ship spawning, the banner and story text, and the fish and crates into `ShipSpawner`, `Announcer` and `SeaLife`. We ran the bots before and after: the same result (a win on all seven nights on three seeds, endless mode to night 10, 0 crashes in the fuzz run). Second, we added `test/atingdagat/GameTests.java` (34 checks) and `docs/12-testing.md`, which also lists what we did NOT test.

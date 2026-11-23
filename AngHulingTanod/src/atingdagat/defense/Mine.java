@@ -21,7 +21,7 @@ public class Mine implements Defense {
     public static final int COST_NICKEL = Constants.MINE_COST_NICKEL;
     private static final double TRIGGER_RADIUS = 18;
     private static final double BLAST_RADIUS = 38;
-    private static final int BLAST_DAMAGE = 4;
+    public static final int BLAST_DAMAGE = 4;
     private static final String SPRITE_PATH = "/atingdagat/res/buildings/mine.png";
 
     private final int col;

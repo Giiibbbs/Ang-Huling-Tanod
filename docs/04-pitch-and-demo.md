@@ -120,3 +120,4 @@ One sentence each, for example:
 - After the ending card, press **E** to show endless mode (night 8 and more, scaling fleets). Press P then **Q** to retire and save the score.
 - Place two mines close together (2 key, click water) and let a ship hit one: the chain reaction.
 - Tonyo's "mended" popup over a worn net or parol.
+- The Bakunawa has three beats: omen (nights 3, 5), small visit (nights 4, 6) and the finale (night 7). With the developer keys on, press **E** at night to start a visit right away and tap **SPACE** to sound the gongs.

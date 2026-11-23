@@ -200,7 +200,7 @@ SUBJECT: a small wooden supply crate with metal corner plates and a rope handle,
 COLOR RULE: the object itself must contain no magenta, hot pink, or purple.
 ```
 
-### Torch
+### Torch (now drawn as a parol, see "Parol" below for the new prompt)
 
 ```
 [STYLE BIBLE]
@@ -342,3 +342,78 @@ magenta background.
 ```
 
 Save as real PNG (not WebP) on flat magenta (255,0,255). Add each to the prompt log when generated. The game draws all three by code if the files are missing.
+
+## Added Nov 23: prompts that were missing (parol, Pana tower, trees, survivors, flagship)
+
+Paste the style bible first, as for every prompt. All of these are **optional**: the game draws each one by code when its file is missing. Save as a real PNG on flat magenta, and log each one in the prompt log.
+
+**Parol** (`res/buildings/torch.png`, 12x16 in the game. The old torch is now a star lantern; the code draws a parol itself unless you want art to replace it)
+```
+SUBJECT: a single Filipino Christmas parol, a five-pointed star lantern made of thin bamboo strips covered
+in glowing coloured paper (use red, or yellow, or green, or blue: make four versions), a small bulb glow in the
+centre, two short paper tails hanging from the bottom points, mounted on a thin bamboo pole. 3/4 top-down angle,
+no ground, no shadow. The object itself must contain no magenta, hot pink, or purple.
+```
+
+**Pana tower** (`res/buildings/pana.png`, 14x20)
+```
+SUBJECT: a small bamboo watchtower, four thin bamboo legs tied with rope, a small square platform, and a
+wooden bow (a pana) with an arrow mounted on top, pointing up-right. Light yellow-green bamboo with darker joints.
+3/4 top-down angle, no ground, no shadow.
+```
+
+**Trees** (`res/nodes/tree.png`, `acacia.png`, `mango.png`, `coconut.png`, `banana.png`, each 20x28, taller than a tile)
+```
+SUBJECT (narra): a tall Philippine narra tree, spreading dark-green crown with small yellow flowers, thick brown trunk.
+SUBJECT (acacia): an acacia rain tree, wide flat umbrella-shaped crown with a few pink puffs, slim grey-brown trunk.
+SUBJECT (mango): a mango tree, round dense crown with a few orange-yellow mangoes, short thick trunk.
+SUBJECT (coconut): a coconut palm, one slim leaning trunk, a fan of long fronds, two brown coconuts under the crown.
+SUBJECT (banana): a banana plant, several big broad light-green leaves and one hanging purple-free yellow-green bunch.
+```
+Generate each one separately (one SUBJECT per image) so they come out as the same size and style.
+
+**Ores** (`res/nodes/ore.png`, 16x16. The game recolours one grey rock into nickel, copper, chromite and gold, so you only need this one)
+```
+SUBJECT: one grey rocky ore outcrop with small bright metallic glints, neutral grey so the game can tint it.
+3/4 top-down angle, no ground, no shadow.
+```
+(Optional: `nodes/nickel.png`, `copper.png`, `chromite.png`, `gold.png`, the same rock with a silver, orange-brown, dark green-black and yellow tint.)
+
+**Survivors** (`res/survivors/kainday.png`, `migo.png`, `tonyo.png`, 18x22 each. See the villager prompt for the style)
+```
+SUBJECT (Ka Inday): an older Filipina in a simple patterned blouse and long skirt, grey-streaked hair in a bun, a radio headset, kind face.
+SUBJECT (Migo): a teenage Filipino boy in a plain shirt and shorts, a small fishing net over one shoulder, barefoot.
+SUBJECT (Tonyo): a strong young Filipino man in a sleeveless shirt, a bamboo bow on his back (a pana), a red headband.
+```
+
+**Kordan flagship** (`res/ships/flagship.png`, 100x50, points right)
+```
+SUBJECT: the huge flagship of the Kordan Dominion seen from above at a 3/4 angle, pointing to the RIGHT. A long
+charcoal-black hull with crimson stripes, a raised command tower in the middle, several small deck guns, angular
+bow, the three-triangle emblem on the tower, red warning lights. Much bigger and more menacing than a barge.
+```
+
+## Bakunawa (head and body)
+
+The Bakunawa is drawn by code today (a chain of teal circles and a code-drawn head). If Jaron makes art, it replaces them. Both files are optional and the game falls back to the code drawing when one is missing.
+
+| File | Size | What |
+|---|---|---|
+| `monsters/bakunawa_head.png` | 60 x 40 | The dragon's head, **facing right**, jaws slightly open. The game rotates it. |
+| `monsters/bakunawa_body.png` | 20 x 20 | One round body segment (teal scales with a pale belly patch). The game repeats it 30 times, smaller toward the tail |
+
+**Head** (`res/monsters/bakunawa_head.png`)
+```
+SUBJECT: the head of the Bakunawa, the moon-eating sea dragon of Philippine folklore, seen from the side at a 3/4
+angle and facing RIGHT. Long snout, jaws slightly open showing a red mouth and two white fangs, two curved red horns
+swept back, glowing amber eyes, teal-green scales with a darker teal outline, a pale cream chin. Majestic and a little
+frightening, not cartoonish and not cute. Roughly 3:2 (wide).
+```
+
+**Body segment** (`res/monsters/bakunawa_body.png`)
+```
+SUBJECT: one round segment of a sea dragon's body seen from above, teal-green scales in a neat overlapping pattern, a
+small pale cream belly patch in the middle, a tiny red spine on the top edge. A flat circle shape, same colours as the
+dragon head. Fills the whole image.
+```
+Save as real PNG on flat magenta (255,0,255), log it in the prompt log, and tell me the sizes if they are not 60x40 and 20x20.

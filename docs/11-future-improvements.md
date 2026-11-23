@@ -10,13 +10,9 @@ Ideas we thought of but did not put in the final version, so the code stays smal
 
 **How to bring it back.** `GameWorld` needs a timer, a side number, `squallBlocks(x, y)` checked in `updateHolding()`, and a `drawSquall()` that tints one half of the screen and draws rain lines. About 90 lines in total. A kinder version: the storm blocks only fishing, or only gives the bamboo a 25% bonus on the dry side.
 
-## 2. More Bakunawa moments
+## 2. More Bakunawa moments (partly done on Nov 23)
 
-Today the Bakunawa appears once, on night 7, after the last ship has set sail. Ideas:
-- **Omen on nights 3 and 5:** the moon turns red and the sea ripples, with a radio line from Ka Inday ("Narinig mo ba ang kulog sa dagat?"). No gameplay change, only foreshadowing.
-- **Small bite on night 4 or 6:** the moon is half eaten for 10 s and the beam goes dim. SPACE gongs end it early. It teaches the gong mechanic before the finale.
-- **Endless mode:** the Bakunawa returns every 3rd night with a bigger gong meter.
-- **Reuse:** `Bakunawa` already has stages IDLE, RISING, GONGS, SWALLOW and DONE. A "small" mode only needs a shorter meter and no swallow.
+Done: the red-moon omen (nights 3 and 5), the small visit (nights 4 and 6, and every third endless night). Still ideas: a different gong rhythm each time (tap on the beat), the dragon biting the Post's radio mast, and a short cutscene at the first omen.
 
 ## 3. Day events and island life
 
@@ -43,7 +39,7 @@ Today the Bakunawa appears once, on night 7, after the last ship has set sail. I
 
 ## 6. Technical
 
-- Split `GameWorld.java` (about 70 KB) into `ShipSpawner`, `StoryTeller` and `SquallSystem`.
-- A `test/` folder with JUnit tests and a `TESTING.md` for proof of testing.
+- Keep splitting `GameWorld.java` (now about 64 KB; `ShipSpawner`, `SeaLife` and `Announcer` are already out): next the folklore events, the survivors and the build tools.
+- Move `GameTests` to JUnit, and add tests for `GameWorld` itself (needs a way to build a world without the map file).
 - Sound (clap, gong, explosions) using `javax.sound.sampled`, after the class covers it.
 - Save and load a run in the middle of the day.

@@ -993,6 +993,18 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 - **Mender (`Survivor.mendsDefenses`, `GameWorld.updateMenders`).** Another virtual method with a default (`false`) that only `Tonyo` overrides, so the world asks every survivor the same question without `instanceof`. It looks for the `Durable` with the lowest `durability / max` and calls `restore(1)`.
 - **Parol (`Torch.draw`).** The star is a 10-point `fillPolygon` that alternates a long and a short radius around the centre; the colour comes from `PAROL_COLORS[(col + row) % 4]`.
 
+## 28h. Splitting GameWorld (`ShipSpawner`, `Announcer`, `SeaLife`)
+
+`GameWorld` had grown to about 72 KB, more than one class should do. On Nov 23 we moved three self-contained jobs into their own classes in `core/`, and changed nothing about how the game plays (the bots gave the same results before and after):
+
+| New class | Job | What GameWorld still does |
+|---|---|---|
+| `ShipSpawner` | Builds tonight's queue from the `WavePlan`, sends ships in pulses from different sides, applies the Twist (stronger ships) | Calls `spawner.startNight(night)` at dusk's end and `spawner.update(...)` every night frame; asks `allSpawned()` and `halfSpawned()` |
+| `Announcer` | The big banner and the story card (text and a fade-out timer) | Calls `announcer.banner(...)` and `announcer.story(...)`; the HUD getters pass through |
+| `SeaLife` | The fish schools and the supply crates: spawn, move, remove, draw, find what is under the mouse | Calls `sea.update(...)`; if something swam away while being harvested it stops the harvest |
+
+The idea is **composition**: GameWorld HAS a spawner, an announcer and a sea, and talks to each through a few public methods, instead of owning all of their fields. `SeaLife` cannot see the inventory or the map nodes, so GameWorld hands it what it needs: a `ToIntFunction<ResourceType>` (`this::oreLeftOnMap`) to ask how much ore is left. A **method reference** like that is a short way to pass a method as an argument. It is still a big class (about 64 KB); the next candidates are the folklore events, the survivors and the build tools (see `11-future-improvements.md`).
+
 ## 29. What we plan to add (and what each will teach)
 
 | Feature | Concept it shows | Rubric area |
@@ -1028,3 +1040,7 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 | Nearest neighbor | Scaling that enlarges pixels without blur. |
 | EDT | Event Dispatch Thread, Swing's one thread. |
 | Enum | A fixed list of named values. |
+
+## 28g. Bakunawa visits (`Bakunawa`, `GameWorld.updateEclipse`)
+
+`Bakunawa` got a new `small` flag, `startSmall(harder)`, a `RETREAT` stage, `setOmen(boolean)` and `isBusy()`. In the GONGS stage a full meter goes to `SWALLOW` normally but to `RETREAT` when `small` is true, so one class runs both events. `GameWorld.updateEclipse()` decides which one: night 7 is the full event once the last ship has set sail; `isSmallVisitNight(night)` (4, 6 and every third endless night) starts a small visit when half of the night's ships have spawned. `checkNightOver()` waits while `dragon.isBusy()`. The omen is set in `onPhaseChange(NIGHT)` on nights 3 and 5 and cleared by `reset()` at dawn. The head and body can be replaced by art (`bakunawa_head.png`, `bakunawa_body.png`); the code falls back to the circle drawing.

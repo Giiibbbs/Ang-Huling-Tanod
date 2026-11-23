@@ -39,7 +39,10 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 | `Main.java` | Starts the program. Creates the window on Swing's own thread | `GameFrame` |
 | `GameFrame.java` | The window. Resizable, centered, holds the panel | `GamePanel`, `Constants` |
 | `GamePanel.java` | The game loop (60 times a second), scaling to fit the window, every key and the mouse, the current screen. Starts a `GameWorld`. Test keys: J, K, H, L, N, E | `GameWorld`, `Hud`, `TileMap` |
-| `GameWorld.java` | One run of the game: the rules, ships, nets, resources, post, radio, clicks | Almost everything |
+| `GameWorld.java` | One run of the game: the rules, nets, resources, post, radio, clicks. It hands ship spawning, messages and sea life to the three classes below | Almost everything |
+| `ShipSpawner.java` | Builds each night's queue of ships and sends them in pulses from different sides; applies the night's Twist | `WavePlan`, `Twist`, `Warship` subclasses |
+| `Announcer.java` | The big banner and the story card (text plus a fade-out timer) | `Constants` |
+| `SeaLife.java` | The fish schools and supply crates: spawn, move, remove, draw, find what is under the mouse | `TileMap`, `FishSchool`, `SupplyCrate` |
 | `DayCycle.java` | The clock: night number, phase, how dark it is | `Phase`, `Constants` |
 | `Phase.java` | The list DAY, DUSK, NIGHT, DAWN | (none) |
 | `ScoreEntry.java` | One high-score line (name, nights survived, Post health); `Comparable` so a list sorts best-first | `Comparable<ScoreEntry>` |
@@ -73,7 +76,7 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 | `Skiff.java` | The first enemy ship. Extends `Warship` | `Warship`, `Assets` |
 | `Cutter.java` | Fast, fragile ship. Extends `Warship` | `Warship`, `Assets` |
 | `Barge.java` | Slow, tough ship that hurts the post most. Extends `Warship` | `Warship`, `Assets` |
-| `Bakunawa.java` | The moon-eating dragon event and the Kordan flagship. The eclipse puts the lamp out | `Beam`, `Assets` |
+| `Bakunawa.java` | The moon-eating dragon: the omen (nights 3 and 5), the small visit (nights 4 and 6, every third endless night) and the night 7 finale with the Kordan flagship. The eclipse puts the lamp out. Optional art: `bakunawa_head.png`, `bakunawa_body.png` | `Beam`, `Assets` |
 | `Post.java` | The grounded ship that is the island's command post. Has health and armor levels | `Constants` |
 | `Radio.java` | The signal bar. Weakens when ships land | (none) |
 | `Survivor.java` | **Abstract parent** of the allies who walk or fly: walking home, day work (chop, carry), drawing | `TileMap`, `ResourceNode`, `Assets` |

@@ -547,7 +547,7 @@ public class GameWorld {
     }
 
     private void checkNightOver() {
-        boolean eventDone = cycle.getNight() != Constants.TOTAL_NIGHTS || dragon.isDone();
+        boolean eventDone = !dragon.isBusy() && (cycle.getNight() != Constants.TOTAL_NIGHTS || dragon.isDone());
         if (cycle.isNight() && spawned >= queue.size() && ships.isEmpty() && eventDone) {
             onPhaseChange(cycle.advance());
         }
@@ -594,16 +594,20 @@ public class GameWorld {
                 spawnTimer = pulseInterval(cycle.getNight()) - 90;   // the first ships in about 1.5 seconds
                 Twist twist = Twist.forNight(cycle.getNight());
                 beam.setFog(twist == Twist.FOG ? 0.7 : 1.0);
+                if (cycle.getNight() == 3 || cycle.getNight() == 5) {   // an omen: the moon turns red
+                    dragon.setOmen(true);
+                    tellStory("The moon turns red", "Ka Inday: \"Hindi ito maganda. Ang Bakunawa ay gutom.\" Something moves under the sea.");
+                }
                 showBanner("NIGHT " + cycle.getNight() + (twist == Twist.NONE ? "" : ": " + twist.getTitle()));
                 if (twist != Twist.NONE) {
                     tellStory("Night " + cycle.getNight() + ": " + twist.getTitle(), twist.getText());
                 }
                 break;
             default: // DAWN
-                if (cycle.getNight() >= Constants.TOTAL_NIGHTS) {
+                if (cycle.getNight() == Constants.TOTAL_NIGHTS && !cycle.isEndless()) {
                     dragon.finish();   // the last night is over (also covers a night skipped in the middle of the event)
                 } else {
-                    dragon.reset();    // asleep again, so it can still rise on night 7
+                    dragon.reset();    // asleep again, so it can still visit on a later night
                 }
                 beam.setOn(true);
                 beam.setFog(1.0);
@@ -634,11 +638,17 @@ public class GameWorld {
 
     /** Starts the event when the last ship of the last night has set sail, runs it, and handles the bite. */
     private void updateEclipse() {
-        if (cycle.isNight() && cycle.getNight() == Constants.TOTAL_NIGHTS && spawned >= queue.size() && !queue.isEmpty()) {
+        int night = cycle.getNight();
+        if (cycle.isNight() && night == Constants.TOTAL_NIGHTS && !cycle.isEndless() && spawned >= queue.size() && !queue.isEmpty()) {
             if (dragon.getStage() == Bakunawa.Stage.IDLE) {
                 showBanner("THE MOON GOES DARK");
             }
             dragon.start();
+        } else if (cycle.isNight() && isSmallVisitNight(night) && !queue.isEmpty()
+                && spawned >= queue.size() / 2 && dragon.getStage() == Bakunawa.Stage.IDLE) {
+            showBanner("THE MOON DIMS - SOUND THE GONGS");
+            tellStory("The Bakunawa is hungry", "It only tests the island tonight. Tap SPACE to ring the gongs and drive it back. Until then the lamp is out: use flares and parols.");
+            dragon.startSmall(night > Constants.TOTAL_NIGHTS);
         }
         dragon.update(frame);
         beam.setOn(!dragon.isEclipse());
@@ -648,6 +658,11 @@ public class GameWorld {
             }
             ships.clear();
         }
+    }
+
+    /** Nights 4 and 6, and every third night of endless mode (10, 13, ...): a small visit from the dragon. */
+    private boolean isSmallVisitNight(int night) {
+        return night == 4 || night == 6 || (night > Constants.TOTAL_NIGHTS && (night - Constants.TOTAL_NIGHTS) % 3 == 0);
     }
 
     /** SPACE: sound the gongs (only matters during the Bakunawa event). */
@@ -668,6 +683,7 @@ public class GameWorld {
             return;
         }
         outcome = Outcome.PLAYING;
+        dragon.reset();
         endReason = "";
         forcedDarkness = -1;
         cycle.continueEndless();
