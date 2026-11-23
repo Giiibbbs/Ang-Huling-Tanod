@@ -30,10 +30,10 @@ public class MarketPanel {
     private enum Offer {
         NET("1", "Net", ResourceType.BAMBOO, Net.COST_BAMBOO, "Ships stop and cut it. Place on shallow water."),
         MINE("2", "Mine", ResourceType.NICKEL, Mine.COST_NICKEL, "Blows up ships that come near. Place on water close to land."),
-        TORCH("3", "Torch", ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO, "Lights the shore all night. Place on free land."),
+        TORCH("3", "Parol", ResourceType.BAMBOO, Constants.TORCH_COST_BAMBOO, "Lights the shore all night. Place on free land."),
         PANA("4", "Pana", ResourceType.BAMBOO, Constants.PANA_COST_BAMBOO, "A bamboo arrow tower. Shoots ships even in the dark. Place on free land."),
         REPAIR("R", "Repair", null, Constants.REPAIR_FISH_COST, "Eat fish to mend the post and boost the radio."),
-        REWIRE("C", "Rewire", ResourceType.COPPER, Constants.REWIRE_COST_COPPER, "Rewire: stronger radio, and torches glow wider (2 levels)."),
+        REWIRE("C", "Rewire", ResourceType.COPPER, Constants.REWIRE_COST_COPPER, "Rewire: stronger radio, and parols glow wider (2 levels)."),
         ARMOR("V", "Armor", ResourceType.CHROMITE, Constants.ARMOR_COST_CHROMITE, "Armor the post (+4 health) and plate defenses: +1 durability each level, up to 2."),
         LAMP("G", "Lamp", ResourceType.GOLD, Constants.LAMP_COST_GOLD, "Upgrade the lamp: wider, longer beam and longer-burning flares.");
 

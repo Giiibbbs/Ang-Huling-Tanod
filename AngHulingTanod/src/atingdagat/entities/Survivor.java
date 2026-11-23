@@ -70,6 +70,16 @@ public abstract class Survivor {
         return false;
     }
 
+    /** Does this survivor mend worn defenses by hand when they have nothing else to do? (Only Tonyo.) */
+    public boolean mendsDefenses() {
+        return false;
+    }
+
+    /** Standing at home with no job at the moment. */
+    public boolean isIdle() {
+        return job == Job.IDLE;
+    }
+
     /** The colour of the shirt, so each person looks different even without art. */
     protected abstract Color getShirt();
 

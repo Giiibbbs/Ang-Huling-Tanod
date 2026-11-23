@@ -77,8 +77,8 @@ Current build:
 | Click a row of the **WORKSHOP** panel (left, day only) | Build or upgrade. Each row shows its cost, what you have, and a progress bar |
 | B | Hide or show the workshop panel |
 | 1 | Net tool on or off (then click shallow water; 3 bamboo) |
-| 2 | Mine tool on or off (then click water near the island; 2 nickel) |
-| 3 | Torch tool on or off (then click free land; 2 bamboo). Lights the shore all night, up to 20 |
+| 2 | Mine tool on or off (then click water near the island; 1 nickel). Mines chain: one blast sets off its neighbours |
+| 3 | Parol tool on or off (a star lantern, the old Torch; then click free land; 2 bamboo). Lights the shore all night, up to 20 |
 | 5, 6, 7, 8, 9 | Buy the next level of the pickaxe, axe, boots, fishing rod or rifle (the rifle adds 70 px of gun range per level) (also click a row in the Workshop UPGRADES tab) |
 | F12 (or the ` key, if F12 needs Fn on your laptop) | Turns the developer keys ON or OFF (they are OFF by default). A red "DEBUG KEYS ON" note shows when they are on |
 | H (in game, F12 on) | Test key: wakes the duwende, and brings the manananggal now |
@@ -113,6 +113,7 @@ Planned: more defenses on the number keys. Details are in
 | [docs/08-file-reference.md](docs/08-file-reference.md) | Every file and folder, plus where to change each number |
 | [docs/09-build-story.md](docs/09-build-story.md) | Why we built it this way, step by step, for beginners |
 | [docs/10-complete-guide.md](docs/10-complete-guide.md) | **Start here if you are new.** Tools, every folder, how it runs, recipes, glossary |
+| [docs/11-future-improvements.md](docs/11-future-improvements.md) | Ideas we cut or have not built yet (day squall, more Bakunawa moments, Filipino touches) |
 | [CREDITS.md](CREDITS.md) | Asset sources, licenses, and AI-assistance disclosure |
 
 ## Project structure
@@ -163,5 +164,6 @@ See [CREDITS.md](CREDITS.md) for all third-party assets, licenses, and the note 
 - Filipino trees: narra, acacia (bamboo) and mango, coconut, banana (fruit = meals).
 - Smaller shop panel; Manananggal weaker; Duwende gives a different gift each day.
 
+- New (Nov 23): mines fixed (1 nickel, bigger blast, chain reactions), ENDLESS MODE (press E on the victory card to keep fighting nights 8+, harder each night, Q in the pause menu to retire and save the score), Tonyo now mends the most worn defense for free every ~12 s, and torches are now PAROL star lanterns.
 - New: wear and tear (nets, torches, Pana towers lose 1 durability each dawn, mend with X for bamboo), Raiders (shoot your towers and torches), Ghost ships (slow to show, quick to vanish in the light), and the flare gun (F) so nights have more to do.
 - New: How to Play page (H on the menu, F1 anytime), radio voices from other islands (one each dusk, they answer in the ending), and combat feel (hit flash, damage numbers, screen shake, a ring around ships lit by the beam).

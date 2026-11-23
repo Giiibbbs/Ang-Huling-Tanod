@@ -130,7 +130,7 @@ public class Hud {
         // Words next to the dial
         g.setFont(BOLD);
         g.setColor(cycle.isNight() ? new Color(160, 190, 255) : new Color(255, 235, 160));
-        g.drawString(phase.getLabel() + " " + cycle.getNight() + "/" + Constants.TOTAL_NIGHTS, 50, 12);
+        g.drawString(phase.getLabel() + " " + cycle.getNight() + (cycle.isEndless() ? "  ENDLESS" : "/" + Constants.TOTAL_NIGHTS), 50, 12);
         g.setFont(SMALL);
         g.setColor(Color.WHITE);
         if (phase == Phase.NIGHT) {
@@ -204,7 +204,7 @@ public class Hud {
         } else if (world.getTool() == GameWorld.Tool.MINE) {
             hint = "MINE: click water near the island (" + Mine.COST_NICKEL + " nickel). It blows up ships that come close.  Right-click or 2 = stop.";
         } else if (world.getTool() == GameWorld.Tool.TORCH) {
-            hint = "TORCH: click free land (" + Constants.TORCH_COST_BAMBOO + " bamboo). It lights the shore all night.  Right-click or 3 = stop.";
+            hint = "PAROL: click free land (" + Constants.TORCH_COST_BAMBOO + " bamboo). The lantern lights the shore all night.  Right-click or 3 = stop.";
         } else {
             hint = "WASD walk.  HOLD the mouse on bamboo, ore or fish.  Click the WORKSHOP (left) to build and upgrade.  B hides it.";
         }

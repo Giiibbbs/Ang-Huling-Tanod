@@ -19,9 +19,9 @@ import java.util.List;
 public class Mine implements Defense {
 
     public static final int COST_NICKEL = Constants.MINE_COST_NICKEL;
-    private static final double TRIGGER_RADIUS = 14;
-    private static final double BLAST_RADIUS = 30;
-    private static final int BLAST_DAMAGE = 3;
+    private static final double TRIGGER_RADIUS = 18;
+    private static final double BLAST_RADIUS = 38;
+    private static final int BLAST_DAMAGE = 4;
     private static final String SPRITE_PATH = "/atingdagat/res/buildings/mine.png";
 
     private final int col;
@@ -53,7 +53,14 @@ public class Mine implements Defense {
                 triggered = true;
             }
         }
-        if (!triggered) {
+        if (triggered) {
+            detonate(ships);
+        }
+    }
+
+    /** Goes off now: every ship in the blast takes damage. Also used by a neighbour's chain reaction. */
+    public void detonate(List<Warship> ships) {
+        if (exploded) {
             return;
         }
         exploded = true;
@@ -62,6 +69,11 @@ public class Mine implements Defense {
                 ship.hit(BLAST_DAMAGE);
             }
         }
+    }
+
+    /** Is another mine close enough to be set off by this one's blast? */
+    public boolean reaches(Mine other) {
+        return Math.hypot(other.getX() - getX(), other.getY() - getY()) <= BLAST_RADIUS;
     }
 
     private double distanceTo(Warship ship) {

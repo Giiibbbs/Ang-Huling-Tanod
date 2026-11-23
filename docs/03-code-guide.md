@@ -986,6 +986,13 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 
 **Night 7 gongs.** The HUD shows a pulsing "TAP SPACE!" while the noise meter is low. If the player is too slow, after 30 seconds the survivors start ringing the gongs themselves (`GONGS_HELP_FRAMES` in `Bakunawa`), so the night can never stall.
 
+## 28f. Mines that chain, endless mode and the mender (`Mine`, `DayCycle`, `WavePlan`, `GameWorld`, `Torch`)
+
+- **Chain reaction (`Mine.detonate`, `Mine.reaches`, `GameWorld.updateDefenses`).** `update()` only decides WHEN a mine goes off; `detonate(ships)` does the blast and can be called by someone else. `updateDefenses()` first updates every defense, then loops: any mine that has exploded sets off every unexploded mine its blast reaches, until nothing new goes off (a `while` loop over two nested `for` loops), then the dead ones are removed. Cost is `Constants.MINE_COST_NICKEL = 1`.
+- **Endless mode.** `DayCycle` got an `endless` flag and `continueEndless()` (night = 8, phase DAY, `finished = false`); `advance()` no longer sets `finished` when `endless` is true. `GameWorld.startEndless()` turns the outcome from WON back to PLAYING. `WavePlan.getCount/getInterval` scale for nights above 7 (a formula, not more lines in `waves.txt`). `Twist.forNight` cycles `all[1 + (night - 2) % 6]` for those nights. `ScoreEntry.getNightsText()` writes "N (endless)". In `GamePanel` the VICTORY case reads E, the PAUSE case reads Q (only when endless) and both call existing methods (`startEndless`, `finishRun`).
+- **Mender (`Survivor.mendsDefenses`, `GameWorld.updateMenders`).** Another virtual method with a default (`false`) that only `Tonyo` overrides, so the world asks every survivor the same question without `instanceof`. It looks for the `Durable` with the lowest `durability / max` and calls `restore(1)`.
+- **Parol (`Torch.draw`).** The star is a 10-point `fillPolygon` that alternates a long and a short radius around the centre; the colour comes from `PAROL_COLORS[(col + row) % 4]`.
+
 ## 29. What we plan to add (and what each will teach)
 
 | Feature | Concept it shows | Rubric area |

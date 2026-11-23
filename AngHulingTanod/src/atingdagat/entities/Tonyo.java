@@ -22,6 +22,12 @@ public class Tonyo extends Survivor {
         super("Tonyo", "Sentry", startX, startY, homeX, homeY);
     }
 
+    /** Between shots he keeps the post tidy: he mends the most worn defense for free (see GameWorld.updateMenders). */
+    @Override
+    public boolean mendsDefenses() {
+        return true;
+    }
+
     @Override
     public void act(Post post, Radio radio, List<Warship> ships, int frame) {
         if (cooldown > 0) {

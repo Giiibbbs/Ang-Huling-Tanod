@@ -36,6 +36,9 @@ public enum Twist {
     /** Night 1 is calm. Nights 2 to 7 each have their own rule. */
     public static Twist forNight(int night) {
         Twist[] all = values();
+        if (night > Constants.TOTAL_NIGHTS) {   // endless mode: the seven rules come round again
+            return all[1 + (night - 2) % (all.length - 1)];
+        }
         return all[Math.max(0, Math.min(all.length - 1, night - 1))];
     }
 }

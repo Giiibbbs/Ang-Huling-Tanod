@@ -281,7 +281,7 @@ schedule in [02-project-plan.md](02-project-plan.md).
 | Supply crates | Yes | A crate floats in about every 24 s (every 14 s if the radio is 70 or more). Cast a line and hold the mouse on it to get 1-2 ore. Ore that has run out on the map is 3 times as likely to be inside, so the player is never stuck. Drifts away at night or after 45 s |
 | Reach limits | Yes | Land things 40 px, fish 120 px (cast from the shore), building 80 px, gun 200 px |
 | Net barrier | Yes | 3 bamboo, shallow water. Ships stop and cut it |
-| Mine buoy | Yes | 2 ore. Explodes when a ship comes near |
+| Mine buoy | Yes | 1 nickel. Explodes when a ship comes within 18 px, 4 damage in 38 px, and sets off any mine within its blast (chain reaction) |
 | Skiff, cutter, landing barge | Yes | Waves in `data/waves.txt` |
 | Post and radio, win and lose | Yes | Post health and radio signal. There is no separate "island health" bar yet |
 | Gun | Simplified | Click a lit ship to fire. The aimed deck gun and the coastal gun are planned |
@@ -291,3 +291,10 @@ schedule in [02-project-plan.md](02-project-plan.md).
 | Bakunawa eclipse (night 7) | Yes | A scripted event: moon eaten, lamp out, tap Space for the gongs, the flagship is swallowed. Not a boss fight with health |
 | Ending scene | Yes | Lights across the sea, a radio voice, bangkas, sunrise, helicopter, title card. Replaces the plain victory text |
 | Infiltrators, babaylan, frigate, dreadnought | Not yet | See the cut order in the plan |
+
+
+## Added Nov 23: endless mode, the mender and the parol
+
+- **Endless mode.** After the ending card, press E to keep playing. Night 8 starts with a fresh day and half the Post healed. From night 8 the fleet is 15% bigger per night (on night 7's plan) and arrives up to 40% faster, and the seven twists repeat (Two Fronts, Fog, Static, Surge, Hardened, All-out Assault). The run ends when the Post falls or the radio dies (or Q in the pause menu), and the nights survived go to the high-score table as "N (endless)". It exists because the first win otherwise ends the game: the high-score table now has a reason to replay.
+- **Tonyo the mender.** Besides shooting, when he is at home he mends the most worn net, parol or Pana by 1 point every 12 s, free. It gives the third survivor a second job and lowers the bamboo pressure of upkeep.
+- **Parol.** The torches are drawn as parols, the star lanterns of a Filipino Christmas (four colours, twinkling). It is the same Defense in code (`Torch`); only the look and the words changed.

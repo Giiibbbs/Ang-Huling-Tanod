@@ -62,7 +62,7 @@ public final class Constants {
     public static final int NAME_MAX = 12;
     public static final int START_BAMBOO = 6;
     public static final int BAMBOO_CAP = 30;              // most bamboo the tanod can carry, so it cannot be hoarded
-    public static final int MINE_COST_NICKEL = 2;
+    public static final int MINE_COST_NICKEL = 1;
     public static final int REWIRE_COST_COPPER = 2;       // key C: radio +25
     public static final int REWIRE_RADIO_AMOUNT = 25;
     public static final int ARMOR_COST_CHROMITE = 2;      // key V: post +4 max health
@@ -156,4 +156,9 @@ public final class Constants {
     public static final int PUNSO_COL = 15;                  // the anthill on the west shore
     public static final int PUNSO_ROW = 28;
     public static final int DUWENDE_GIFT_BAMBOO = 3;         // what he asks for
+
+    // Mender and endless mode
+    public static final int MENDER_INTERVAL = 12 * 60;        // Tonyo mends one point of wear this often
+    public static final int ENDLESS_FIRST_NIGHT = TOTAL_NIGHTS + 1;
+    public static final int MAX_SCORE_NIGHTS = 99;
 }

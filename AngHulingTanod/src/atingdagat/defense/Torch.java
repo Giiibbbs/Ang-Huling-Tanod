@@ -3,10 +3,8 @@ package atingdagat.defense;
 import atingdagat.core.Constants;
 import atingdagat.entities.GlowSource;
 import atingdagat.entities.Light;
-import atingdagat.util.Assets;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 
 /**
  * Torch.java
@@ -20,8 +18,6 @@ import java.awt.image.BufferedImage;
  */
 public class Torch implements Defense, Light, GlowSource, Durable {
 
-    private static final String SPRITE_PATH = "/atingdagat/res/buildings/torch.png";
-    private final BufferedImage sprite = Assets.get(SPRITE_PATH, 12, 16);
 
     private static final int MAX_DURABILITY = 3;
     private int plating = 0;
@@ -127,24 +123,45 @@ public class Torch implements Defense, Light, GlowSource, Durable {
         return Constants.TORCH_RADIUS * radiusScale;
     }
 
+    /** The parol colours (red, yellow, green, blue): each lantern on the shore gets its own by its tile. */
+    private static final Color[] PAROL_COLORS = {
+        new Color(235, 60, 55), new Color(250, 200, 50), new Color(70, 190, 90), new Color(70, 140, 235)
+    };
+
+    /**
+     * Drawn as a parol, the star lantern of a Filipino Christmas: a bamboo pole, a five-pointed star and two
+     * little tails, and it twinkles. (The class is still called Torch because it is the same Defense and Light.)
+     */
     @Override
     public void draw(Graphics2D g, int frame) {
         int x = (int) centerX;
-        int y = (int) centerY + 5;   // the bottom of the stick
+        int y = (int) centerY + 5;   // the bottom of the pole
+        Color body = PAROL_COLORS[(col + row) % PAROL_COLORS.length];
         g.setColor(new Color(0, 0, 0, 55));
         g.fillOval(x - 4, y - 2, 8, 4);
-        if (sprite != null) {
-            g.drawImage(sprite, x - 6, y - 15, null);
-            drawWear(g, x, y + 3);
-            return;
+        g.setColor(new Color(120, 84, 46));   // bamboo pole
+        g.fillRect(x - 1, y - 9, 2, 9);
+        int cy = y - 14;                      // centre of the star
+        double twinkle = 0.85 + 0.15 * Math.sin(frame * 0.12 + col);
+        int[] px = new int[10];
+        int[] py = new int[10];
+        for (int i = 0; i < 10; i++) {        // alternate long and short points to make a star
+            double ang = -Math.PI / 2 + i * Math.PI / 5;
+            double r = (i % 2 == 0 ? 7.0 : 3.2);
+            px[i] = x + (int) Math.round(Math.cos(ang) * r);
+            py[i] = cy + (int) Math.round(Math.sin(ang) * r);
         }
-        g.setColor(new Color(120, 84, 46));   // bamboo stick
-        g.fillRect(x - 1, y - 11, 2, 11);
-        int flicker = (frame / 5) % 3;        // the flame wobbles
-        g.setColor(new Color(255, 120, 40));
-        g.fillOval(x - 3, y - 17 - flicker / 2, 6, 7 + flicker % 2);
-        g.setColor(new Color(255, 225, 120));
-        g.fillOval(x - 1, y - 15 - flicker / 2, 3, 4);
+        g.setColor(new Color(255, 245, 190, 70));
+        g.fillOval(x - 9, cy - 9, 18, 18);    // soft glow around it
+        g.setColor(new Color((int) (body.getRed() * twinkle), (int) (body.getGreen() * twinkle), (int) (body.getBlue() * twinkle)));
+        g.fillPolygon(px, py, 10);
+        g.setColor(body.darker().darker());
+        g.drawPolygon(px, py, 10);
+        g.setColor(new Color(255, 250, 215));
+        g.fillOval(x - 1, cy - 1, 3, 3);      // the bulb inside
+        g.setColor(body);                     // the tails
+        g.drawLine(x - 2, cy + 6, x - 3, cy + 9);
+        g.drawLine(x + 2, cy + 6, x + 3, cy + 9);
         drawWear(g, x, y + 3);
     }
 }

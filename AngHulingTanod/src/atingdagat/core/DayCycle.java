@@ -15,6 +15,7 @@ public class DayCycle {
     private Phase phase = Phase.DAY;
     private int timer = 0;           // frames spent in this phase
     private boolean finished = false; // true when night 7 has ended
+    private boolean endless = false;  // true after the player chose to keep fighting past night 7
 
     /** Call once per frame. Returns the new Phase if it just changed, otherwise null. */
     public Phase update() {
@@ -40,7 +41,7 @@ public class DayCycle {
                 break;
             case NIGHT:
                 phase = Phase.DAWN;
-                if (night >= Constants.TOTAL_NIGHTS) {
+                if (night >= Constants.TOTAL_NIGHTS && !endless) {
                     finished = true;   // the last night is over: the player has won
                 }
                 break;
@@ -113,6 +114,19 @@ public class DayCycle {
 
     public boolean isNight() {
         return phase == Phase.NIGHT;
+    }
+
+    /** After the win: keep going. The next day is night 8's day, and the game never "finishes" again. */
+    public void continueEndless() {
+        endless = true;
+        finished = false;
+        phase = Phase.DAY;
+        night = Constants.ENDLESS_FIRST_NIGHT;
+        timer = 0;
+    }
+
+    public boolean isEndless() {
+        return endless;
     }
 
     public boolean isFinished() {

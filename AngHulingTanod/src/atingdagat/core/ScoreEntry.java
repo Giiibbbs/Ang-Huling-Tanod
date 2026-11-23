@@ -27,6 +27,11 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
         return nights;
     }
 
+    /** "5/7" for a normal run; just the number once the run went past night 7 (endless mode). */
+    public String getNightsText() {
+        return nights > Constants.TOTAL_NIGHTS ? nights + " (endless)" : nights + "/" + Constants.TOTAL_NIGHTS;
+    }
+
     public int getPostHealth() {
         return postHealth;
     }
@@ -54,7 +59,7 @@ public class ScoreEntry implements Comparable<ScoreEntry> {
         try {
             int nights = Integer.parseInt(parts[1].trim());
             int hp = Integer.parseInt(parts[2].trim());
-            if (nights < 0 || nights > Constants.TOTAL_NIGHTS || hp < 0) {
+            if (nights < 0 || nights > Constants.MAX_SCORE_NIGHTS || hp < 0) {
                 return null;
             }
             return new ScoreEntry(parts[0].trim(), nights, hp);

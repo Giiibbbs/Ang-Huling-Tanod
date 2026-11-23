@@ -425,6 +425,14 @@ Three loose ends from the review. The **high-score file** (`HighScores`, `ScoreE
 
 **Lesson:** the score formula was one decision (nights survived, then Post health) and the file format is one line per run, so everything stayed small and testable. A headless test checked loading, sorting, trimming to 5, damaged lines, the name flow and the gong rescue.
 
+## Step 27: mines that finally work, endless mode, the mender and the parol (Nov 23)
+
+The bot never built a mine (2 nickel was too much for a 75 s day), so mines were dead weight. Now a mine costs 1 nickel, the trigger and blast are bigger, and a blast sets off nearby mines. A direct test put three mines 20 px apart and one skiff on the first: all three went off and the skiff took 12 damage.
+
+We also made the win less final. Pressing E on the ending card continues into night 8 and beyond: the same plan scaled by a formula, the twists cycling, and the score table showing "(endless)". A bot played nights 8 to 10 on three seeds (two survived to night 11, one fell on night 9), which shows the scaling is hard but fair.
+
+A second job for Tonyo came next: he mends the most worn defense every 12 s. We tried a day squall that closed half the island to harvesting, but cut it to keep the day simple; it is in the future-improvements notes. The torches became parols, star lanterns, to make the island feel more Filipino.
+
 ## Where to read next
 
 - To understand the code line by line: [03-code-guide.md](03-code-guide.md)

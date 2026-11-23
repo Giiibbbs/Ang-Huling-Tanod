@@ -352,7 +352,7 @@ public class EndingScene {
         centered(g, "You were never the last tanod.", 182, new Font("SansSerif", Font.PLAIN, 14),
                 new Color(255, 255, 255, (int) (230 * fade)));
         if ((frames / 30) % 2 == 0 && fade >= 1.0) {
-            centered(g, "Press ENTER", 232, new Font("SansSerif", Font.BOLD, 13), new Color(210, 215, 230));
+            centered(g, "ENTER - finish          E - keep fighting (endless)", 232, new Font("SansSerif", Font.BOLD, 13), new Color(210, 215, 230));
         }
     }
 

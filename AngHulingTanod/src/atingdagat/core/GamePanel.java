@@ -239,6 +239,8 @@ public class GamePanel extends JPanel {
                     state = GameState.MENU;
                 } else if (code == KeyEvent.VK_F1) {
                     openHelp();
+                } else if (code == KeyEvent.VK_Q && world.getCycle().isEndless()) {
+                    finishRun();   // retire from endless mode: the nights survived so far are saved
                 }
                 break;
             case NAME:
@@ -258,7 +260,11 @@ public class GamePanel extends JPanel {
                 }
                 break;
             case VICTORY:
-                if (code == KeyEvent.VK_ENTER) {
+                if (code == KeyEvent.VK_E && ending != null && ending.isFinished()) {
+                    world.startEndless();   // keep fighting: night 8 and beyond
+                    ending = null;
+                    state = GameState.PLAY;
+                } else if (code == KeyEvent.VK_ENTER) {
                     if (ending != null && !ending.isFinished()) {
                         ending.skip();   // jump to the title card
                     } else {
@@ -383,18 +389,21 @@ public class GamePanel extends JPanel {
                 dim(g, 120);
                 drawCenteredText(g, "PAUSED", 150, 32, Color.WHITE);
                 drawCenteredText(g, "P - resume     F1 - how to play     M - main menu", 185, 14, Color.LIGHT_GRAY);
+                if (world.getCycle().isEndless()) {
+                    drawCenteredText(g, "Q - end this run and save the score", 210, 12, new Color(255, 215, 120));
+                }
                 break;
             case GAME_OVER:
                 dim(g, 170);
                 drawCenteredText(g, "GAME OVER", 150, 32, Color.RED);
                 drawCenteredText(g, world.getEndReason(), 178, 13, Color.WHITE);
-                drawCenteredText(g, "You reached night " + world.getCycle().getNight() + " of " + Constants.TOTAL_NIGHTS, 198, 12, Color.LIGHT_GRAY);
+                drawCenteredText(g, "You reached night " + world.getCycle().getNight() + (world.getCycle().isEndless() ? " in endless mode" : " of " + Constants.TOTAL_NIGHTS), 198, 12, Color.LIGHT_GRAY);
                 drawCenteredText(g, "Press ENTER", 226, 14, Color.LIGHT_GRAY);
                 break;
             case NAME:
                 dim(g, 185);
                 drawCenteredText(g, "NEW HIGH SCORE", 130, 28, Color.YELLOW);
-                drawCenteredText(g, "Survived " + pendingScore.getNights() + " of " + Constants.TOTAL_NIGHTS
+                drawCenteredText(g, "Survived " + pendingScore.getNightsText()
                         + " nights   |   Post " + pendingScore.getPostHealth() + "/" + world.getPost().getMaxHealth(), 158, 13, Color.WHITE);
                 drawCenteredText(g, "Your name:", 192, 12, Color.LIGHT_GRAY);
                 String shown = nameBuffer + ((frameCount / 30) % 2 == 0 ? "_" : " ");
@@ -438,7 +447,7 @@ public class GamePanel extends JPanel {
             drawCenteredText(g, "TOP TANODS", 268, 11, new Color(255, 215, 120));
             for (int i = 0; i < top.size(); i++) {
                 ScoreEntry e = top.get(i);
-                String line = (i + 1) + ".  " + e.getName() + "   " + e.getNights() + "/" + Constants.TOTAL_NIGHTS + " nights   Post " + e.getPostHealth();
+                String line = (i + 1) + ".  " + e.getName() + "   " + e.getNightsText() + " nights   Post " + e.getPostHealth();
                 drawCenteredText(g, line, 282 + i * 13, 10, new Color(215, 220, 235));
             }
         }

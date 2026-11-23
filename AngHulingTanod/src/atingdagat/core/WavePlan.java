@@ -76,11 +76,21 @@ public class WavePlan {
     }
 
     public int getCount(int night, Kind kind) {
-        return count[clamp(night)][kind.ordinal()];
+        int base = count[clamp(night)][kind.ordinal()];
+        if (night <= Constants.TOTAL_NIGHTS) {
+            return base;
+        }
+        // Endless mode: night 7's fleet, 15% bigger for every night past it.
+        return (int) Math.round(base * (1.0 + 0.15 * (night - Constants.TOTAL_NIGHTS)));
     }
 
     public int getInterval(int night) {
-        return interval[clamp(night)];
+        int base = interval[clamp(night)];
+        if (night <= Constants.TOTAL_NIGHTS) {
+            return base;
+        }
+        // ...and 4% faster each night, but never faster than 60% of night 7's pace.
+        return (int) (base * Math.max(0.6, 1.0 - 0.04 * (night - Constants.TOTAL_NIGHTS)));
     }
 
     private int clamp(int night) {

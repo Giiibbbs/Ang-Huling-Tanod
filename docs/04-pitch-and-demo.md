@@ -42,7 +42,7 @@ Run from the JAR, not from the IDE. Narrate what you do and *why*.
    "Harvesting takes time, ore never grows back, and fish swim away. Fish repair, bamboo makes nets, nickel makes mines, copper fixes the radio, chromite armors the post, gold upgrades the lamp. The day is short, so I have to choose."
    Mention the story: "Survivors from the blockade escape by bangka. Press **J** to bring all three: Ka Inday heals the post, Migo keeps the radio strong, and Tonyo shoots lit ships. We built them from one abstract `Survivor` class." Show the **Pana tower** (key 4).
    Open the **UPGRADES** tab (key U) and buy one level of a tool: "five tools go to level 3 for bamboo and a little ore, and the survivors even work for meals by day." Press **F1** to show the How to Play page, then **H** (in game) for the folklore allies: the **Lapu-Lapu stone** tells the island's old story, the **manananggal** flies out at night, and the **duwende** leaves ore every morning. "Respect is rewarded: the duwende answers a gift. All of them plug into the same `Survivor` and `Defense` classes, so the main loop did not change."
-3. **Dusk, then night.** Let the screen fade, or press **F12** (or the **`** key) once (turns the developer keys on), then **N** to skip. Point at the beam sweeping by itself, the lantern, and the torch.
+3. **Dusk, then night.** Let the screen fade, or press **F12** (or the **`** key) once (turns the developer keys on), then **N** to skip. Point at the beam sweeping by itself, the lantern, and the parol (the star lantern).
    "Only lit things are visible. The beam sweeps by itself, my lantern lights a small circle, and torches light fixed spots. I can also stand at the lighthouse and hold Space to steer the beam by hand."
 4. **A ship appears in the beam.** Click it to shoot. Show a net stopping a ship, and a mine going off. From night 2 a **Raider** stops and shoots your tower or torch: show the red tracer and the "-1". Press **F** to fire a flare and light a second side. By day, stand next to a damaged defense and **hold X** to mend it (it costs bamboo). "Everything wears down, so bamboo is for building and for upkeep."
    "I can only shoot what the beam has found."
@@ -113,3 +113,10 @@ One sentence each, for example:
 - [ ] Check sound before starting (volume on, speakers connected).
 - [ ] Know the **fastest way to restart** the game if it breaks.
 - [ ] Everyone reads the code guide, so anyone can answer a code question.
+
+
+## Extra demo beats (Nov 23)
+
+- After the ending card, press **E** to show endless mode (night 8 and more, scaling fleets). Press P then **Q** to retire and save the score.
+- Place two mines close together (2 key, click water) and let a ship hit one: the chain reaction.
+- Tonyo's "mended" popup over a worn net or parol.

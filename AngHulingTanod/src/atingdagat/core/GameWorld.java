@@ -46,6 +46,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,6 +143,7 @@ public class GameWorld {
 
     // Holding the mouse on a spot or a fish fills a progress ring. Let go, and it drains.
     private boolean holding = false;
+    private int menderTimer = 0;
     private Harvestable holdTarget = null;
     private int holdProgress = 0;
     private int fishTimer = 0;
@@ -209,6 +211,7 @@ public class GameWorld {
         updateFish();
         updateCrates();
         updateSurvivors();
+        updateMenders();
         updateHolding();
         for (int i = explosions.size() - 1; i >= 0; i--) {
             explosions.get(i).update();
@@ -512,9 +515,26 @@ public class GameWorld {
     }
 
     private void updateDefenses() {
+        for (Defense d : defenses) {
+            d.update(ships);
+        }
+        // Chain reaction: a mine that went off sets off any mine inside its blast.
+        boolean spread = true;
+        while (spread) {
+            spread = false;
+            for (Defense a : defenses) {
+                if (a instanceof Mine && ((Mine) a).hasExploded()) {
+                    for (Defense b : defenses) {
+                        if (b instanceof Mine && !((Mine) b).hasExploded() && ((Mine) a).reaches((Mine) b)) {
+                            ((Mine) b).detonate(ships);
+                            spread = true;
+                        }
+                    }
+                }
+            }
+        }
         for (int i = defenses.size() - 1; i >= 0; i--) {
             Defense d = defenses.get(i);
-            d.update(ships);
             if (d.isDestroyed()) {
                 if (d instanceof Mine) {   // a mine is "destroyed" because it went off
                     Mine mine = (Mine) d;
@@ -527,7 +547,7 @@ public class GameWorld {
     }
 
     private void checkNightOver() {
-        boolean eventDone = cycle.getNight() < Constants.TOTAL_NIGHTS || dragon.isDone();
+        boolean eventDone = cycle.getNight() != Constants.TOTAL_NIGHTS || dragon.isDone();
         if (cycle.isNight() && spawned >= queue.size() && ships.isEmpty() && eventDone) {
             onPhaseChange(cycle.advance());
         }
@@ -640,6 +660,24 @@ public class GameWorld {
         if (cycle.isNight() && outcome == Outcome.PLAYING) {
             dragon.start();
         }
+    }
+
+    /** After the win: keep defending. Night 8 starts with a fresh day, and every night after is harder. */
+    public void startEndless() {
+        if (outcome != Outcome.WON) {
+            return;
+        }
+        outcome = Outcome.PLAYING;
+        endReason = "";
+        forcedDarkness = -1;
+        cycle.continueEndless();
+        ships.clear();
+        beam.setOn(true);
+        beam.setFog(1.0);
+        post.repair(post.getMaxHealth() / 2);   // a little rest before the next fight
+        showBanner("ENDLESS - DAY " + cycle.getNight());
+        tellStory("The relief fleet is late",
+                "The helicopter turned back. The Kordans are still coming, more every night. Hold as long as you can.");
     }
 
     /** Test key L: jump to the start of the last night's day. */
@@ -1131,7 +1169,7 @@ public class GameWorld {
             return;
         }
         if (torchCount() >= Constants.TORCH_MAX) {
-            popups.add(new Popup(x, y - 6, "Only " + Constants.TORCH_MAX + " torches", Color.LIGHT_GRAY));
+            popups.add(new Popup(x, y - 6, "Only " + Constants.TORCH_MAX + " parols", Color.LIGHT_GRAY));
             return;
         }
         if (!tileInBuildReach(col, row)) {
@@ -1213,6 +1251,44 @@ public class GameWorld {
             }
             sv.update(map);
             sv.act(post, radio, ships, frame);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // MENDER (Tonyo)
+    // ------------------------------------------------------------------
+
+    /** A survivor who mends fixes the most worn Durable defense for free, one point every few seconds. */
+    private void updateMenders() {
+        boolean anyMender = false;
+        for (Survivor sv : survivors) {
+            if (sv.mendsDefenses() && sv.isIdle()) {
+                anyMender = true;
+            }
+        }
+        if (!anyMender) {
+            return;
+        }
+        menderTimer = Math.min(Constants.MENDER_INTERVAL, menderTimer + 1);
+        if (menderTimer < Constants.MENDER_INTERVAL) {
+            return;
+        }
+        Durable worst = null;
+        double worstRatio = 1.0;
+        for (Defense d : defenses) {
+            if (d instanceof Durable) {
+                Durable du = (Durable) d;
+                double ratio = du.getDurability() / (double) du.getMaxDurability();
+                if (ratio < worstRatio) {
+                    worstRatio = ratio;
+                    worst = du;
+                }
+            }
+        }
+        if (worst != null) {
+            worst.restore(1);
+            popups.add(new Popup(worst.getCenterX(), worst.getCenterY() - 14, "mended", new Color(150, 240, 150)));
+            menderTimer = 0;
         }
     }
 
@@ -1539,7 +1615,7 @@ public class GameWorld {
             radio.restore(Constants.REWIRE_RADIO_AMOUNT);
             if (wiring < Constants.WIRING_MAX_LEVEL) {
                 wiring++;
-                say("Radio rewired, torches glow wider", ResourceType.COPPER.getColor());
+                say("Radio rewired, parols glow wider", ResourceType.COPPER.getColor());
             } else {
                 say("Radio rewired", ResourceType.COPPER.getColor());
             }
@@ -1729,7 +1805,7 @@ public class GameWorld {
         } else if (tool == Tool.PANA) {
             label = "Pana tower " + Constants.PANA_COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
         } else {
-            label = "Torch " + Constants.TORCH_COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
+            label = "Parol " + Constants.TORCH_COST_BAMBOO + " bamboo (you have " + inventory.get(ResourceType.BAMBOO) + ")";
         }
         g.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 9));
         int lx = Math.min(mouseX + 12, Constants.INTERNAL_WIDTH - g.getFontMetrics().stringWidth(label) - 6);
@@ -1765,7 +1841,7 @@ public class GameWorld {
 
     /** Nights fully survived this run: all of them on a win, otherwise the nights before the one that broke us. */
     public int getNightsSurvived() {
-        if (outcome == Outcome.WON) {
+        if (outcome == Outcome.WON && !cycle.isEndless()) {
             return Constants.TOTAL_NIGHTS;
         }
         return Math.max(0, cycle.getNight() - 1);

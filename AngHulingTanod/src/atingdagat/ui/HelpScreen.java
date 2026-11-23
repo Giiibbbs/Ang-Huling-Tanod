@@ -21,7 +21,7 @@ public class HelpScreen {
         "Walk close and HOLD left click on",
         "bamboo, trees, ore and fish.",
         "Spend it in the Workshop (left):",
-        "1 Net  2 Mine  3 Torch  4 Pana",
+        "1 Net  2 Mine  3 Parol  4 Pana",
         "R repairs the post. Fish are meals.",
         "Survivors who join work for meals.",
     };
