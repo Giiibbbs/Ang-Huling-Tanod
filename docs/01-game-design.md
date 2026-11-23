@@ -85,7 +85,7 @@ and [MGB, Minerals Industry at a Glance (April 2025)](https://mgb.gov.ph/images/
 
 ## Wear, repair and the flare
 
-Nets, torches and Pana towers have durability (4, 3, 4). Each dawn every one loses 1 (never below 1), and Raider shots take more. Hold X near a damaged defense to mend one point at a time (nets and torches cost 2 bamboo per point, Pana 3). This is the tension on resources: bamboo is for building AND upkeep. At night press F to fire a flare at the mouse (range 260 px, burns 6 s, 20 s cooldown); it lights ships like the beam does, so you can cover a second side.
+Nets, torches and Pana towers have durability (4, 3, 4). Each dawn every one loses 1 (never below 1), and Raider shots take more. Hold X near a damaged defense to mend one point at a time (nets and torches cost 2 bamboo per point, Pana 3). You can carry at most **30 bamboo** (`BAMBOO_CAP`); extra is lost and a full pack shows "Bamboo full (30)" without using up the node. This is the tension on resources: bamboo is for building AND upkeep. At night press F to fire a flare at the mouse (range 260 px, burns 6 s, 20 s cooldown); it lights ships like the beam does, so you can cover a second side.
 
 ## Enemies
 

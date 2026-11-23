@@ -168,6 +168,7 @@ Gio: this is the "make it easier or harder" list. Ask Gabriel before changing, t
 | How long a ship stays visible after the beam leaves | `entities/Warship.java` | the `0.02` in `updateLight` | about 1 s |
 | Move the lighthouse | `core/Constants.java` | `LIGHTHOUSE_COL`, `LIGHTHOUSE_ROW` | 19, 10 |
 | Change the window title | `core/Constants.java` | `TITLE` | Ang Huling Tanod |
+| Bamboo carry limit | `core/Constants.java` | `BAMBOO_CAP` | 30 |
 | Flare and repair | `core/Constants.java` | `FLARE_COOLDOWN`, `FLARE_LIFE`, `FLARE_RADIUS`, `FLARE_RANGE`, `REPAIR_REACH`, `REPAIR_FRAMES` | 20 s, 6 s, 70, 260, 56, 24 |
 | Change the number of nights | `core/Constants.java` | `TOTAL_NIGHTS` | 7 |
 | How many torches or Pana towers you may build | `core/Constants.java` | `TORCH_MAX`, `PANA_MAX` | 20, 10 |

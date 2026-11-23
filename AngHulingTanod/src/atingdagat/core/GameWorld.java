@@ -849,6 +849,11 @@ public class GameWorld {
             giveGift();
             return;
         }
+        ResourceType carried = target.getType().getStock();   // a tree gives bamboo
+        if (carried == ResourceType.BAMBOO && inventory.get(ResourceType.BAMBOO) >= Constants.BAMBOO_CAP) {
+            popups.add(new Popup(target.getX(), target.getY() - 14, "Bamboo full (" + Constants.BAMBOO_CAP + ")", new Color(255, 200, 120)));
+            return;   // the node keeps its bamboo
+        }
         int gained = target.harvest();
         if (gained <= 0) {
             return;

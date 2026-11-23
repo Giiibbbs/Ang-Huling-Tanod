@@ -58,6 +58,7 @@ public final class Constants {
 
     // Starting stock, and the price of things.
     public static final int START_BAMBOO = 6;
+    public static final int BAMBOO_CAP = 30;              // most bamboo the tanod can carry, so it cannot be hoarded
     public static final int MINE_COST_NICKEL = 2;
     public static final int REWIRE_COST_COPPER = 2;       // key C: radio +25
     public static final int REWIRE_RADIO_AMOUNT = 25;

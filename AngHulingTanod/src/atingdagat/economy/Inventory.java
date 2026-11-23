@@ -1,5 +1,7 @@
 package atingdagat.economy;
 
+import atingdagat.core.Constants;
+
 /**
  * Inventory.java
  *
@@ -12,6 +14,9 @@ public class Inventory {
 
     public void add(ResourceType type, int n) {
         amount[type.ordinal()] += n;
+        if (type == ResourceType.BAMBOO && amount[type.ordinal()] > Constants.BAMBOO_CAP) {
+            amount[type.ordinal()] = Constants.BAMBOO_CAP;   // carry limit: spend it or lose the extra
+        }
     }
 
     public int get(ResourceType type) {
