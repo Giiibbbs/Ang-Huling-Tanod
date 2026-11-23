@@ -40,7 +40,8 @@ Work in progress. Current build: **playable core**. Harvest by day, build nets, 
 | Final ship art by Jaron: skiff, cutter, barge and the Kordan flagship | Done |
 | Hold-to-harvest, 4 ores with different uses, 5 kinds of swimming fish, finite ore | Done (first version) |
 | Sprites: all file names wired, art arrives from Jaron | In progress (shapes shown until then) |
-| Sound, high-score file, infiltrators, babaylan, Bakunawa, bosses | Next |
+| High-score table (`highscores.txt`, name entry, top 5 on the menu), developer keys hidden behind F12, "TAP SPACE" prompt on night 7 | Done |
+| Sound, infiltrators, babaylan, bosses | Not planned (sound was not covered in class) |
 
 The full list lives in [docs/02-project-plan.md](docs/02-project-plan.md).
 
@@ -79,7 +80,8 @@ Current build:
 | 2 | Mine tool on or off (then click water near the island; 2 nickel) |
 | 3 | Torch tool on or off (then click free land; 2 bamboo). Lights the shore all night, up to 20 |
 | 5, 6, 7, 8, 9 | Buy the next level of the pickaxe, axe, boots, fishing rod or rifle (the rifle adds 70 px of gun range per level) (also click a row in the Workshop UPGRADES tab) |
-| H (in game) | Test key: wakes the duwende, and brings the manananggal now |
+| F12 (or the ` key, if F12 needs Fn on your laptop) | Turns the developer keys ON or OFF (they are OFF by default). A red "DEBUG KEYS ON" note shows when they are on |
+| H (in game, F12 on) | Test key: wakes the duwende, and brings the manananggal now |
 | U | Switch the Workshop between the BUILD and UPGRADES tabs |
 | 4 | Pana tower tool on or off (then click free land; 4 bamboo). Shoots ships in range, even in the dark, up to 10 |
 | Right click | Put the tool away |
@@ -88,11 +90,11 @@ Current build:
 | V | Armor the post (2 chromite, +4 max health, up to 3 times; also plates nets, torches and towers: +1 durability per level, up to 2) |
 | G | Upgrade the lamp (1 gold, wider and longer beam, and flares burn 40% longer, up to 2 times) |
 | Left click (night) | Fire at a LIT ship (the beam, your lantern or a torch must be lighting it, and it must be within gun range) |
-| N | Skip to the next phase (test key) |
-| L | Jump to the day before the last night (test key) |
-| E | Start the Bakunawa eclipse right now, at night (test key) |
-| K | Drop a supply crate now, in the day (test key) |
-| J | Bring all three survivors to the post now (test key) |
+| N (F12 on) | Skip to the next phase (test key) |
+| L (F12 on) | Jump to the day before the last night (test key) |
+| E (F12 on) | Start the Bakunawa eclipse right now, at night (test key) |
+| K (F12 on) | Drop a supply crate now, in the day (test key) |
+| J (F12 on) | Bring all three survivors to the post now (test key) |
 
 Planned: more defenses on the number keys. Details are in
 [docs/01-game-design.md](docs/01-game-design.md).

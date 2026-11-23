@@ -974,6 +974,18 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 
 **Ore powers (the night side of ores).** `GameWorld.applyOreBonuses()` runs every frame and pushes three ore levels into the defenses: chromite armor level becomes `Durable.setPlating(level)` (max durability +1 per level), copper wiring becomes `Torch.setRadiusScale(...)` (wider light), and the gold lamp level scales the flare's `life`. The lesson is the same as before: the world loops over `Durable` and `Torch`, and each class decides what the number means for itself. Ore hold times in `ResourceType` were cut by a third because a 75 s day was fully used by bamboo and fruit, so ores were never mined.
 
+## 28e. The high-score table (`ScoreEntry`, `HighScores`, `Debug`, the NAME screen)
+
+**File I/O.** `HighScores` reads `highscores.txt` with a `BufferedReader` when the game starts and writes it with a `PrintWriter` every time a score is added. Both are in try-with-resources and `try-catch`: a missing file just means an empty table, and a damaged line is skipped (`ScoreEntry.fromLine` returns `null`), so the file can never crash the game. Format, one run per line: `name|nightsSurvived|postHealth`.
+
+**Data structure.** An `ArrayList<ScoreEntry>` kept sorted and cut to `MAX_SCORES` (5). `ScoreEntry implements Comparable<ScoreEntry>`: more nights first, then more Post health, so `Collections.sort` puts the best run at index 0. `getTop()` returns a copy, so other classes cannot change the real list (encapsulation).
+
+**The flow.** A new `GameState.NAME` screen. When a run ends (GAME_OVER, or the end of the VICTORY story) `GamePanel.finishRun()` builds a `ScoreEntry`. If `qualifies()` says it made the table, the player types a name (`keyTyped`, letters, digits, space, - and _, up to 12 characters) and presses ENTER; ESC skips. The menu then shows the top 5. `GameWorld.getNightsSurvived()` gives the score: all 7 on a win, otherwise the nights before the one that broke us.
+
+**`Debug`.** The developer keys (N, L, E, K, H, J) only work after F12 (or the ` key) turns them on, so a player cannot skip nights by accident. A red note shows while they are on.
+
+**Night 7 gongs.** The HUD shows a pulsing "TAP SPACE!" while the noise meter is low. If the player is too slow, after 30 seconds the survivors start ringing the gongs themselves (`GONGS_HELP_FRAMES` in `Bakunawa`), so the night can never stall.
+
 ## 29. What we plan to add (and what each will teach)
 
 | Feature | Concept it shows | Rubric area |

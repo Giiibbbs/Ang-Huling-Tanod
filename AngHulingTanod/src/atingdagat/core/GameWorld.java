@@ -1763,6 +1763,14 @@ public class GameWorld {
         return tool;
     }
 
+    /** Nights fully survived this run: all of them on a win, otherwise the nights before the one that broke us. */
+    public int getNightsSurvived() {
+        if (outcome == Outcome.WON) {
+            return Constants.TOTAL_NIGHTS;
+        }
+        return Math.max(0, cycle.getNight() - 1);
+    }
+
     public Outcome getOutcome() {
         return outcome;
     }

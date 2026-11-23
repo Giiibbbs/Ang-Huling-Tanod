@@ -27,7 +27,7 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 | `src/atingdagat/entities/` | Things that exist in the game world (lighthouse, beam, ships, the tanod, survivors, folklore allies) | Gabriel |
 | `src/atingdagat/ui/` | What is drawn on top of the world: night darkness, HUD, the Workshop panel, the ending | Gabriel |
 | `src/atingdagat/util/` | Small helpers used by many classes (art loader) | Gabriel |
-| `src/atingdagat/data/` | Text files the game reads (the map, waves, resource spots; later high scores) | Gabriel and Gio |
+| `src/atingdagat/data/` | Text files the game reads (the map, waves, resource spots, voices). The high scores are written to `highscores.txt` next to the game | Gabriel and Gio |
 | `src/atingdagat/res/` | Art (PNG) in subfolders: `ships/`, `fish/`, `player/`, `nodes/`, `buildings/`, `items/`, `survivors/`, `monsters/`, `ui/`. Every file is optional: if one is missing the code draws a shape. Sound is not added yet | Jaron |
 
 ## Every code file
@@ -42,6 +42,9 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 | `GameWorld.java` | One run of the game: the rules, ships, nets, resources, post, radio, clicks | Almost everything |
 | `DayCycle.java` | The clock: night number, phase, how dark it is | `Phase`, `Constants` |
 | `Phase.java` | The list DAY, DUSK, NIGHT, DAWN | (none) |
+| `ScoreEntry.java` | One high-score line (name, nights survived, Post health); `Comparable` so a list sorts best-first | `Comparable<ScoreEntry>` |
+| `HighScores.java` | Reads and writes `highscores.txt`; keeps the top 5 in a sorted `ArrayList` | |
+| `Debug.java` | The F12 switch for the developer keys (N, L, E, K, H, J) | |
 | `Durable.java` | Interface: durability, wear, repair cost | Net, Torch, PanaTower |
 | `Raider.java` | Ship that shoots towers and torches (`act` hook) | `Warship` |
 | `Ghost.java` | Ship that is slow to show, quick to vanish | `Warship` |

@@ -264,6 +264,16 @@ public class Hud {
             g.setFont(SMALL);
             g.setColor(Color.WHITE);
             g.drawString("NOISE", bx - 34, y + 17);
+            if (fill < 0.9) {   // a pulsing prompt so nobody misses what to do
+                int pulse = (int) (150 + 100 * Math.sin(System.nanoTime() / 1.5e8));
+                g.setFont(new Font("SansSerif", Font.BOLD, 26));
+                FontMetrics big = g.getFontMetrics();
+                String tap = "TAP  SPACE  !";
+                g.setColor(new Color(0, 0, 0, 150));
+                g.drawString(tap, cx - big.stringWidth(tap) / 2 + 2, 227);
+                g.setColor(new Color(255, 230, 120, Math.max(0, Math.min(255, pulse))));
+                g.drawString(tap, cx - big.stringWidth(tap) / 2, 225);
+            }
         }
     }
 

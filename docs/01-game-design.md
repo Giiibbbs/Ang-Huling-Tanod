@@ -286,7 +286,8 @@ schedule in [02-project-plan.md](02-project-plan.md).
 | Post and radio, win and lose | Yes | Post health and radio signal. There is no separate "island health" bar yet |
 | Gun | Simplified | Click a lit ship to fire. The aimed deck gun and the coastal gun are planned |
 | Repair | Simplified | Press R in the day (2 meals of fish). No resource-depletion penalty yet |
-| Sound, high-score file | Not yet | Never-cut items |
+| High-score file | Yes | Top 5 by nights survived, ties broken by Post health left; name typed after the run |
+| Sound | No | Not covered in class, so left out |
 | Bakunawa eclipse (night 7) | Yes | A scripted event: moon eaten, lamp out, tap Space for the gongs, the flagship is swallowed. Not a boss fight with health |
 | Ending scene | Yes | Lights across the sea, a radio voice, bangkas, sunrise, helicopter, title card. Replaces the plain victory text |
 | Infiltrators, babaylan, frigate, dreadnought | Not yet | See the cut order in the plan |

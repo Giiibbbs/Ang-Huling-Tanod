@@ -47,6 +47,7 @@ public class Bakunawa {
     private static final double SHIP_X = 505;              // where the Kordan flagship waits
     private static final double SHIP_Y = 250;
 
+    private static final int GONGS_HELP_FRAMES = 30 * 60;   // after 30 s of gongs the survivors ring too
     private static final int SEGMENTS = 30;
     private static final int SEGMENT_GAP = 4;              // frames of history between body pieces
 
@@ -177,6 +178,9 @@ public class Bakunawa {
                     timer = 0;
                 } else {
                     noise = Math.max(0, noise - 0.35);   // the noise dies away if you stop tapping
+                    if (timer > GONGS_HELP_FRAMES) {      // too slow: the survivors join in so the night cannot stall
+                        noise = Math.min(100, noise + 0.5);
+                    }
                 }
                 break;
             default: { // SWALLOW

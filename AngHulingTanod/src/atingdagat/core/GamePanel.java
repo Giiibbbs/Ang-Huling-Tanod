@@ -48,6 +48,11 @@ public class GamePanel extends JPanel {
     private final MarketPanel market = new MarketPanel();
     private EndingScene ending;   // the story shown after surviving night 7
 
+    // High scores: the table (read from a file), this run's result, and the name being typed.
+    private final HighScores scores = new HighScores(Constants.SCORE_FILE);
+    private ScoreEntry pendingScore;
+    private final StringBuilder nameBuffer = new StringBuilder();
+
     // Where the mouse is, in game (640x360) coordinates.
     private int mouseX = Constants.INTERNAL_WIDTH / 2;
     private int mouseY = 40;
@@ -73,6 +78,18 @@ public class GamePanel extends JPanel {
                     keys[code] = true;
                 }
                 handleKeyPress(code);
+            }
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+                // Typing a name for the high-score table: letters, digits, space, - and _
+                if (state == GameState.NAME) {
+                    char c = e.getKeyChar();
+                    boolean ok = Character.isLetterOrDigit(c) || c == ' ' || c == '-' || c == '_';
+                    if (ok && nameBuffer.length() < Constants.NAME_MAX) {
+                        nameBuffer.append(c);
+                    }
+                }
             }
 
             @Override
@@ -145,6 +162,10 @@ public class GamePanel extends JPanel {
     }
 
     private void handleKeyPress(int code) {
+        if (code == KeyEvent.VK_F12 || code == KeyEvent.VK_BACK_QUOTE) {
+            Debug.toggle();   // the developer keys are off unless you press F12 (or ` on laptops where F12 needs Fn)
+            return;
+        }
         switch (state) {
             case MENU:
                 if (code == KeyEvent.VK_ENTER) {
@@ -163,13 +184,13 @@ public class GamePanel extends JPanel {
                     state = GameState.PAUSE;
                 } else if (code == KeyEvent.VK_F1) {
                     openHelp();
-                } else if (code == KeyEvent.VK_N) {
+                } else if (Debug.isKeysOn() && code == KeyEvent.VK_N) {
                     world.skipPhase();
-                } else if (code == KeyEvent.VK_L) {
+                } else if (Debug.isKeysOn() && code == KeyEvent.VK_L) {
                     world.jumpToLastNight();   // test key
-                } else if (code == KeyEvent.VK_E) {
+                } else if (Debug.isKeysOn() && code == KeyEvent.VK_E) {
                     world.testEclipse();       // test key
-                } else if (code == KeyEvent.VK_K) {
+                } else if (Debug.isKeysOn() && code == KeyEvent.VK_K) {
                     world.testCrate();         // test key
                 } else if (code == KeyEvent.VK_SPACE) {
                     world.gong();
@@ -191,9 +212,9 @@ public class GamePanel extends JPanel {
                     world.buyUpgrade(atingdagat.economy.Upgrades.Gear.ROD);
                 } else if (code == KeyEvent.VK_9) {
                     world.buyUpgrade(atingdagat.economy.Upgrades.Gear.RIFLE);
-                } else if (code == KeyEvent.VK_H) {
+                } else if (Debug.isKeysOn() && code == KeyEvent.VK_H) {
                     world.testMonsters();      // test key
-                } else if (code == KeyEvent.VK_J) {
+                } else if (Debug.isKeysOn() && code == KeyEvent.VK_J) {
                     world.testSurvivors();     // test key
                 } else if (code == KeyEvent.VK_F) {
                     world.fireFlare();
@@ -220,9 +241,20 @@ public class GamePanel extends JPanel {
                     openHelp();
                 }
                 break;
+            case NAME:
+                if (code == KeyEvent.VK_ENTER) {
+                    String name = nameBuffer.toString().trim();
+                    scores.add(new ScoreEntry(name.isEmpty() ? "Tanod" : name, pendingScore.getNights(), pendingScore.getPostHealth()));
+                    state = GameState.MENU;
+                } else if (code == KeyEvent.VK_ESCAPE) {
+                    state = GameState.MENU;   // skip: nothing is saved
+                } else if (code == KeyEvent.VK_BACK_SPACE && nameBuffer.length() > 0) {
+                    nameBuffer.deleteCharAt(nameBuffer.length() - 1);
+                }
+                break;
             case GAME_OVER:
                 if (code == KeyEvent.VK_ENTER) {
-                    state = GameState.MENU;
+                    finishRun();
                 }
                 break;
             case VICTORY:
@@ -230,10 +262,21 @@ public class GamePanel extends JPanel {
                     if (ending != null && !ending.isFinished()) {
                         ending.skip();   // jump to the title card
                     } else {
-                        state = GameState.MENU;
+                        finishRun();
                     }
                 }
                 break;
+        }
+    }
+
+    /** The run is over: if it made the table, ask for a name; otherwise go back to the menu. */
+    private void finishRun() {
+        pendingScore = new ScoreEntry("", world.getNightsSurvived(), world.getPost().getHealth());
+        if (scores.qualifies(pendingScore)) {
+            nameBuffer.setLength(0);
+            state = GameState.NAME;
+        } else {
+            state = GameState.MENU;
         }
     }
 
@@ -319,6 +362,7 @@ public class GamePanel extends JPanel {
             map.draw(g, frameCount);
             dim(g, 140);
             drawMenu(g);
+            drawDebugNote(g);
             return;
         }
 
@@ -347,6 +391,16 @@ public class GamePanel extends JPanel {
                 drawCenteredText(g, "You reached night " + world.getCycle().getNight() + " of " + Constants.TOTAL_NIGHTS, 198, 12, Color.LIGHT_GRAY);
                 drawCenteredText(g, "Press ENTER", 226, 14, Color.LIGHT_GRAY);
                 break;
+            case NAME:
+                dim(g, 185);
+                drawCenteredText(g, "NEW HIGH SCORE", 130, 28, Color.YELLOW);
+                drawCenteredText(g, "Survived " + pendingScore.getNights() + " of " + Constants.TOTAL_NIGHTS
+                        + " nights   |   Post " + pendingScore.getPostHealth() + "/" + world.getPost().getMaxHealth(), 158, 13, Color.WHITE);
+                drawCenteredText(g, "Your name:", 192, 12, Color.LIGHT_GRAY);
+                String shown = nameBuffer + ((frameCount / 30) % 2 == 0 ? "_" : " ");
+                drawCenteredText(g, shown, 216, 20, new Color(255, 235, 160));
+                drawCenteredText(g, "ENTER - save     ESC - skip", 248, 11, Color.LIGHT_GRAY);
+                break;
             case VICTORY:
                 dim(g, 150);
                 drawCenteredText(g, "MAY NATITIRA PA TAYO", 150, 28, Color.YELLOW);
@@ -355,6 +409,16 @@ public class GamePanel extends JPanel {
                 break;
             default:
                 break;
+        }
+        drawDebugNote(g);
+    }
+
+    /** A reminder that the developer keys are live. */
+    private void drawDebugNote(Graphics2D g) {
+        if (Debug.isKeysOn()) {
+            g.setFont(new Font("SansSerif", Font.BOLD, 9));
+            g.setColor(new Color(255, 120, 120));
+            g.drawString("DEBUG KEYS ON  (F12 or ` to turn off)", 6, Constants.INTERNAL_HEIGHT - 4);
         }
     }
 
@@ -369,6 +433,15 @@ public class GamePanel extends JPanel {
         drawCenteredText(g, "Press ENTER to start", 200, 14, Color.LIGHT_GRAY);
         drawCenteredText(g, "H - How to play", 218, 11, new Color(200, 205, 220));
         drawCenteredText(g, "May natitira pa tayo.", 242, 11, new Color(255, 235, 160));
+        java.util.List<ScoreEntry> top = scores.getTop();
+        if (!top.isEmpty()) {   // the high-score table: best runs first
+            drawCenteredText(g, "TOP TANODS", 268, 11, new Color(255, 215, 120));
+            for (int i = 0; i < top.size(); i++) {
+                ScoreEntry e = top.get(i);
+                String line = (i + 1) + ".  " + e.getName() + "   " + e.getNights() + "/" + Constants.TOTAL_NIGHTS + " nights   Post " + e.getPostHealth();
+                drawCenteredText(g, line, 282 + i * 13, 10, new Color(215, 220, 235));
+            }
+        }
     }
 
     private void drawCenteredText(Graphics2D g, String text, int y, int size, Color color) {

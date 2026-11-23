@@ -419,6 +419,12 @@ A headless bot played the game and found three problems: resources had no tensio
 
 **Lesson:** playtest with a bot early; it finds balance problems faster than opinions do. Smallest safe scope: new behavior goes through one hook (`act`) and one interface (`Durable`).
 
+## Step 26: high scores, hidden test keys and the gong hint
+
+Three loose ends from the review. The **high-score file** (`HighScores`, `ScoreEntry`, a NAME screen) covers file I/O. The **developer keys** now sit behind F12 (`Debug`). On night 7 the HUD now shows a big **TAP SPACE** prompt, and after 30 seconds the survivors ring the gongs for you, so a player who never taps cannot stall the game.
+
+**Lesson:** the score formula was one decision (nights survived, then Post health) and the file format is one line per run, so everything stayed small and testable. A headless test checked loading, sorting, trimming to 5, damaged lines, the name flow and the gong rescue.
+
 ## Where to read next
 
 - To understand the code line by line: [03-code-guide.md](03-code-guide.md)

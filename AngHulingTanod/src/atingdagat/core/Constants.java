@@ -57,6 +57,9 @@ public final class Constants {
     public static final int POST_ROW = 18;
 
     // Starting stock, and the price of things.
+    public static final String SCORE_FILE = "highscores.txt";   // next to the game; one line per run
+    public static final int MAX_SCORES = 5;
+    public static final int NAME_MAX = 12;
     public static final int START_BAMBOO = 6;
     public static final int BAMBOO_CAP = 30;              // most bamboo the tanod can carry, so it cannot be hoarded
     public static final int MINE_COST_NICKEL = 2;

@@ -42,7 +42,7 @@ Run from the JAR, not from the IDE. Narrate what you do and *why*.
    "Harvesting takes time, ore never grows back, and fish swim away. Fish repair, bamboo makes nets, nickel makes mines, copper fixes the radio, chromite armors the post, gold upgrades the lamp. The day is short, so I have to choose."
    Mention the story: "Survivors from the blockade escape by bangka. Press **J** to bring all three: Ka Inday heals the post, Migo keeps the radio strong, and Tonyo shoots lit ships. We built them from one abstract `Survivor` class." Show the **Pana tower** (key 4).
    Open the **UPGRADES** tab (key U) and buy one level of a tool: "five tools go to level 3 for bamboo and a little ore, and the survivors even work for meals by day." Press **F1** to show the How to Play page, then **H** (in game) for the folklore allies: the **Lapu-Lapu stone** tells the island's old story, the **manananggal** flies out at night, and the **duwende** leaves ore every morning. "Respect is rewarded: the duwende answers a gift. All of them plug into the same `Survivor` and `Defense` classes, so the main loop did not change."
-3. **Dusk, then night.** Let the screen fade, or press **N** to skip. Point at the beam sweeping by itself, the lantern, and the torch.
+3. **Dusk, then night.** Let the screen fade, or press **F12** (or the **`** key) once (turns the developer keys on), then **N** to skip. Point at the beam sweeping by itself, the lantern, and the torch.
    "Only lit things are visible. The beam sweeps by itself, my lantern lights a small circle, and torches light fixed spots. I can also stand at the lighthouse and hold Space to steer the beam by hand."
 4. **A ship appears in the beam.** Click it to shoot. Show a net stopping a ship, and a mine going off. From night 2 a **Raider** stops and shoots your tower or torch: show the red tracer and the "-1". Press **F** to fire a flare and light a second side. By day, stand next to a damaged defense and **hold X** to mend it (it costs bamboo). "Everything wears down, so bamboo is for building and for upkeep."
    "I can only shoot what the beam has found."
@@ -53,7 +53,7 @@ Run from the JAR, not from the IDE. Narrate what you do and *why*.
 7. **HUD.** Point at the two bars: **Post** health and **Radio** signal. Say how you lose (either hits zero) and how you win (survive night 7).
    Show that the three ship types need different answers: the fast cutter, the tough barge, the common skiff.
 
-If time is short, press **N** to skip phases (it also ends the night early). It is the demo's debug key.
+If time is short, press **F12** (or **`**, the key above Tab) to turn on the developer keys, then **N** to skip phases (it also ends the night early). The developer keys are OFF by default so a tester cannot skip nights by accident.
 
 ### 3. Art and assets (Jaron, 1 minute)
 
@@ -70,7 +70,7 @@ Show the UML and **two** short code moments. Do not scroll through code.
 - **OOP:** "`Warship` is an abstract class. `Skiff`, `Cutter`, and `Barge` extend it and change how they move and attack.
   `Defense` is an interface, so a net and a mine are kept in one list and treated the same by the game, even though a net waits and a mine acts by itself."
 - **Data structures and file I/O:** "The island map is a 2D array loaded from a text file. The wave plan and the harvest spots are text files too,
-  with try-catch around every read, so a missing file never crashes the game. High scores will be a file too." **[UPDATE: high-score file]**
+  with try-catch around every read, so a missing file never crashes the game. High scores are a file too: `highscores.txt`, top 5, read when the game starts and written when you finish a run."
 - **Game loop:** "A Swing Timer calls `update()` then `repaint()` sixty times a second. The game draws on a small
   640x360 screen and scales it, so the window can be any size."
 
@@ -97,7 +97,7 @@ One sentence each, for example:
 | Which genre is it? | Tower defense with survival and resource management. |
 | Where is inheritance? | `Warship` is abstract. `Skiff`, `Cutter` and `Barge` extend it and only set speed, health, landing damage and looks. |
 | Where is an interface? | `Defense`, with `Net` and `Mine`. `NightEvent` is planned for the folklore events. |
-| Where is file I/O? | The map (`island.txt`), waves (`waves.txt`) and harvest spots (`nodes.txt`) are read from text files. High scores will be read and written. **[UPDATE]** |
+| Where is file I/O? | The map (`island.txt`), waves (`waves.txt`) and harvest spots (`nodes.txt`) are read from text files. The high scores (`highscores.txt`) are read at start-up and written after each run: `HighScores` keeps a sorted `ArrayList` of `ScoreEntry` objects (`Comparable`), and skips damaged lines instead of crashing. |
 | What if the file is missing? | We catch the exception and fall back to defaults or show a message. The game does not crash. |
 | Why Swing Timer, not a thread? | It was taught in class, and it runs on the Swing thread, so drawing is safe. |
 | Who did what? | Gabriel: code. Gio: slides, demo, playtesting. Jaron: art, README, UML. See the README. |
