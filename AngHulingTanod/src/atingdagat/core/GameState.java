@@ -7,6 +7,7 @@ package atingdagat.core;
  * GamePanel looks at the current state to decide what to update and what to draw.
  */
 public enum GameState {
+    INTRO,      // the opening comic, before the menu
     MENU,       // title screen
     PLAY,       // the game itself (day and night happen inside this state)
     HELP,       // the how-to-play page (the game is frozen behind it)

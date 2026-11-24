@@ -41,6 +41,7 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 | `GamePanel.java` | The game loop (60 times a second), scaling to fit the window, every key and the mouse, the current screen. Starts a `GameWorld`. Test keys: J, K, H, L, N, E | `GameWorld`, `Hud`, `TileMap` |
 | `GameWorld.java` | One run of the game: the rules, nets, resources, post, radio, clicks. It hands ship spawning, messages and sea life to the three classes below | Almost everything |
 | `ShipSpawner.java` | Builds each night's queue of ships and sends them in pulses from different sides; applies the night's Twist | `WavePlan`, `Twist`, `Warship` subclasses |
+| `IntroScene.java` (in `ui/`) | The opening comic: 6 pictures, captions, fade and zoom. ENTER next, ESC skip | `ImageIO`, `res/intro/panel1..6.png` |
 | `Announcer.java` | The big banner and the story card (text plus a fade-out timer) | `Constants` |
 | `SeaLife.java` | The fish schools and supply crates: spawn, move, remove, draw, find what is under the mouse | `TileMap`, `FishSchool`, `SupplyCrate` |
 | `DayCycle.java` | The clock: night number, phase, how dark it is | `Phase`, `Constants` |

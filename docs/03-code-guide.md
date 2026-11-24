@@ -1005,6 +1005,10 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 
 The idea is **composition**: GameWorld HAS a spawner, an announcer and a sea, and talks to each through a few public methods, instead of owning all of their fields. `SeaLife` cannot see the inventory or the map nodes, so GameWorld hands it what it needs: a `ToIntFunction<ResourceType>` (`this::oreLeftOnMap`) to ask how much ore is left. A **method reference** like that is a short way to pass a method as an argument. It is still a big class (about 64 KB); the next candidates are the folklore events, the survivors and the build tools (see `11-future-improvements.md`).
 
+## 28i. The opening comic (`IntroScene`, `GameState.INTRO`)
+
+The game now starts in a new state, `INTRO`, before `MENU`. `IntroScene` (in `ui/`) holds six pictures and two arrays of text (English captions and Filipino lines), and a counter `index` for the current panel and `timer` for how long it has been shown. `update()` adds 1 to `timer` every frame and calls `next()` after 7 seconds; ENTER or SPACE calls `next()` and ESC calls `skip()`. `draw()` shows the picture with a fade-in (an `AlphaComposite`) and a slow zoom (it crops a slightly smaller part of the picture each frame and stretches it to the screen), then a dark band with the caption, wrapped by a small `wrap()` method that measures words with `FontMetrics`. The pictures are read with `ImageIO.read` from `res/intro/panel1.png` to `panel6.png`; a missing file gives `null` and a dark blue background, so the game never crashes. The pictures contain no letters because the code draws the text. `GamePanel` only needed three small changes: the starting state, a `case INTRO` in the key handler, and a call in `update()` and `drawGame()`.
+
 ## 29. What we plan to add (and what each will teach)
 
 | Feature | Concept it shows | Rubric area |

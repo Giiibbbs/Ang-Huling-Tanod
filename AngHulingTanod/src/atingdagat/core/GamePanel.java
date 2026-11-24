@@ -3,6 +3,7 @@ package atingdagat.core;
 import atingdagat.map.TileMap;
 import atingdagat.ui.EndingScene;
 import atingdagat.ui.Hud;
+import atingdagat.ui.IntroScene;
 import atingdagat.ui.MarketPanel;
 import java.awt.Color;
 import java.awt.Font;
@@ -37,7 +38,7 @@ public class GamePanel extends JPanel {
             new BufferedImage(Constants.INTERNAL_WIDTH, Constants.INTERNAL_HEIGHT, BufferedImage.TYPE_INT_ARGB);
 
     private final Timer timer;
-    private GameState state = GameState.MENU;
+    private GameState state = GameState.INTRO;      // the game starts with the comic
     private GameState helpReturn = GameState.MENU;   // where the help page goes back to
     private final atingdagat.ui.HelpScreen help = new atingdagat.ui.HelpScreen();
 
@@ -47,6 +48,7 @@ public class GamePanel extends JPanel {
     private final Hud hud = new Hud();
     private final MarketPanel market = new MarketPanel();
     private EndingScene ending;   // the story shown after surviving night 7
+    private final IntroScene intro = new IntroScene();   // the comic shown once when the game starts
 
     // High scores: the table (read from a file), this run's result, and the name being typed.
     private final HighScores scores = new HighScores(Constants.SCORE_FILE);
@@ -167,6 +169,16 @@ public class GamePanel extends JPanel {
             return;
         }
         switch (state) {
+            case INTRO:
+                if (code == KeyEvent.VK_ESCAPE) {
+                    intro.skip();
+                } else if (code == KeyEvent.VK_ENTER || code == KeyEvent.VK_SPACE) {
+                    intro.next();
+                }
+                if (intro.isFinished()) {
+                    state = GameState.MENU;
+                }
+                break;
             case MENU:
                 if (code == KeyEvent.VK_ENTER) {
                     newGame();
@@ -292,6 +304,13 @@ public class GamePanel extends JPanel {
 
     private void update() {
         frameCount++;
+        if (state == GameState.INTRO) {
+            intro.update();
+            if (intro.isFinished()) {
+                state = GameState.MENU;
+            }
+            return;
+        }
         if (state == GameState.VICTORY && ending != null) {
             ending.update(world);
         }
@@ -355,6 +374,10 @@ public class GamePanel extends JPanel {
 
     /** Draws one frame in internal 640x360 coordinates. */
     private void drawGame(Graphics2D g) {
+        if (state == GameState.INTRO) {
+            intro.draw(g);
+            return;
+        }
         if (state == GameState.HELP) {   // the page over whatever was on screen before
             if (helpReturn == GameState.MENU || world == null) {
                 map.draw(g, frameCount);

@@ -121,3 +121,5 @@ One sentence each, for example:
 - Place two mines close together (2 key, click water) and let a ship hit one: the chain reaction.
 - Tonyo's "mended" popup over a worn net or parol.
 - The Bakunawa has three beats: omen (nights 3, 5), small visit (nights 4, 6) and the finale (night 7). With the developer keys on, press **E** at night to start a visit right away and tap **SPACE** to sound the gongs.
+
+- **Opening comic:** the game opens with a 6-panel comic (about 40 s). For the demo press **ESC** to skip it, or let it play for the first 20 seconds of the pitch as the story hook.

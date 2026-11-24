@@ -417,3 +417,74 @@ small pale cream belly patch in the middle, a tiny red spine on the top edge. A 
 dragon head. Fills the whole image.
 ```
 Save as real PNG on flat magenta (255,0,255), log it in the prompt log, and tell me the sizes if they are not 60x40 and 20x20.
+
+## Intro comic: 5 panels (Nov 24)
+
+The opening comic plays before the main menu. These are **full scenes**, not sprites: no magenta background, 16:9, saved as `res/intro/panel1.png` to `panel5.png`. The game draws the caption text itself, so the pictures must contain **no words at all**.
+
+**Rules for the whole set**
+- Use one Gemini chat for all five panels, in order, so the style stays the same. If panel 2 drifts from panel 1, say "same style and palette as the previous image".
+- Ask for 16:9 (1920x1080 is plenty; the game scales it to 640x360).
+- Leave the **bottom 18% of every panel calm and dark** (sea or sky only): the caption goes there.
+- No real flags, logos, or country names. The invaders are the fictional Kordan Dominion only.
+
+**Comic style bible (paste at the start of every panel prompt)**
+```
+STYLE: detailed pixel-art illustration in the style of a 16-bit adventure game cut-scene, 16:9 widescreen,
+limited palette of about 32 colors, warm tropical Philippine setting, dusk-blue sea and sky with warm
+lantern-yellow accents, thin dark outlines, soft pixel dithering for gradients, cinematic composition.
+RULES: no text, no letters, no numbers, no speech bubbles, no logos, no watermark, no border or frame.
+The bottom 18% of the image is calm, dark and empty (open sea or night sky) so a caption can be placed there.
+FACTION: the invaders are the fictional "Kordan Dominion": charcoal-black and crimson colors, angular
+geometric shapes, a simple invented three-triangle emblem. It must not look like any real country's flag or
+insignia.
+```
+
+**Panel 1: the Philippines is falling**
+```
+[COMIC STYLE BIBLE]
+SUBJECT: a stylised aerial view of the Philippine archipelago at night, drawn as a simple map of dark-green
+islands on a deep-blue sea, with no labels. Red-orange glowing patches and thin red arrows spread across
+the northern and central islands, showing an invasion. At the far southern tip of the map there is one small
+island that is NOT glowing red: a single tiny dot of calm green with a faint warm-yellow light on it, easy to
+miss. The red zones cover most of the map and the tiny island is alone.
+```
+
+**Panel 2: the island's secret**
+```
+[COMIC STYLE BIBLE]
+SUBJECT: a close, warm view of a small tropical island (Isla Dulo) at golden dusk, seen from the sea at a
+slight angle. A white lighthouse on a rock, a tall bamboo grove, a few palm and mango trees, gleaming ore
+outcrops in grey-silver, copper-orange and a hint of gold on the rocky shore, and glittering schools of fish
+in the shallow blue water. A couple of small wooden fishing boats (bangka) rest on the sand. Peaceful,
+rich and abundant, a hidden treasure. No people.
+```
+
+**Panel 3: the Kordans find it**
+```
+[COMIC STYLE BIBLE]
+SUBJECT: night. A dark Kordan Dominion scout boat (narrow charcoal-black hull, crimson accents, the invented
+three-triangle emblem) glides across a calm sea in the foreground on the left, looking toward a distant small
+island on the right whose lighthouse beam sweeps across the water. A red searchlight from the scout boat
+touches the island's shore. Tense, quiet, a feeling of being discovered. In the sky a pale full moon.
+```
+
+**Panel 4: the last bangka leaves**
+```
+[COMIC STYLE BIBLE]
+SUBJECT: dawn-blue early morning at the island's wooden pier. A crowded bangka (outrigger boat) with a
+few villagers, silhouetted, heading out to sea on the right. On the pier in the foreground, seen from behind,
+stands one lone tanod (a village watchman), a young Filipino in a plain shirt holding a lantern and a long
+bamboo staff, watching the boat go. The lighthouse stands behind him. Sad but determined.
+```
+
+**Panel 5: the post (title card background)**
+```
+[COMIC STYLE BIBLE]
+SUBJECT: night, a wide view of the island's lighthouse standing on a rock, its beam cutting through the dark
+sea and sky toward the horizon. Below the lighthouse a tiny figure, the tanod, holds a lantern. Faint small
+red shapes of enemy ships are visible far away on the horizon. A big pale moon over the sea. Heroic and
+lonely. Leave the upper-middle sky area fairly clear and dark, because the game title will be drawn there.
+```
+
+**After generating:** check that no panel has any readable letters (AI often adds fake text), crop to 16:9 if needed, log each one in the prompt log, and tell me the file names.
