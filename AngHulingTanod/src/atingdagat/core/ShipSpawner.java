@@ -71,7 +71,7 @@ public class ShipSpawner {
         return !queue.isEmpty();
     }
 
-    /** Has at least this fraction of tonight's ships been sent? (The small Bakunawa visit starts at one half.) */
+    /** Has at least this fraction of tonight's ships been sent? */
     public boolean halfSpawned() {
         return spawned >= queue.size() / 2;
     }

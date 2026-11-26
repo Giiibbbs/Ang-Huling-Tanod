@@ -45,7 +45,7 @@ public class NightOverlay {
         d.setComposite(AlphaComposite.DstOut);
 
         // Several cones, wide and faint to narrow and strong, so the edge of the beam is soft.
-        if (beam.isOn()) {   // (the eclipse puts the lamp out)
+        if (beam.isOn()) {
             eraseCone(d, beam, 1.8, 0.14);
             eraseCone(d, beam, 1.5, 0.20);
             eraseCone(d, beam, 1.25, 0.28);

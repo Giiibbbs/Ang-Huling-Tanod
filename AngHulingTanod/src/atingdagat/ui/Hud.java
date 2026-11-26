@@ -41,7 +41,7 @@ public class Hud {
         drawBar(g, 530, "RADIO", world.getRadio().getSignal(), Radio.MAX_SIGNAL, new Color(110, 190, 245), new Color(235, 90, 80));
 
         drawHint(g, world);
-        drawEvent(g, world);
+        drawStory(g, world);
         drawBanner(g, world);
     }
 
@@ -230,50 +230,6 @@ public class Hud {
         if (near != null) {
             g.setColor(new Color(150, 240, 150));
             g.drawString("Hold X: mend (" + near.repairCostPerPoint() + " bamboo)", 8, y);
-        }
-    }
-
-    /** The story line and the gong meter of the Bakunawa event. */
-    private void drawEvent(Graphics2D g, GameWorld world) {
-        atingdagat.entities.Bakunawa dragon = world.getDragon();
-        String caption = dragon.getCaption();
-        if (caption.isEmpty()) {
-            drawStory(g, world);
-            return;
-        }
-        int cx = Constants.INTERNAL_WIDTH / 2;
-        int y = 292;
-        g.setFont(BOLD);
-        FontMetrics fm = g.getFontMetrics();
-        int w = Math.max(fm.stringWidth(caption) + 24, 250);
-        g.setColor(new Color(10, 4, 8, 200));
-        g.fillRoundRect(cx - w / 2, y - 14, w, 42, 8, 8);
-        g.setColor(new Color(255, 215, 120));
-        g.drawString(caption, cx - fm.stringWidth(caption) / 2, y);
-
-        if (dragon.getStage() == atingdagat.entities.Bakunawa.Stage.GONGS) {   // the noise meter
-            int bw = 200;
-            int bx = cx - bw / 2;
-            double fill = dragon.getNoise() / 100.0;
-            g.setColor(new Color(255, 255, 255, 50));
-            g.fillRect(bx, y + 8, bw, 10);
-            g.setColor(fill > 0.66 ? new Color(255, 215, 90) : fill > 0.33 ? new Color(255, 160, 70) : new Color(230, 90, 70));
-            g.fillRect(bx, y + 8, (int) (bw * fill), 10);
-            g.setColor(new Color(0, 0, 0, 170));
-            g.drawRect(bx, y + 8, bw, 10);
-            g.setFont(SMALL);
-            g.setColor(Color.WHITE);
-            g.drawString("NOISE", bx - 34, y + 17);
-            if (fill < 0.9) {   // a pulsing prompt so nobody misses what to do
-                int pulse = (int) (150 + 100 * Math.sin(System.nanoTime() / 1.5e8));
-                g.setFont(new Font("SansSerif", Font.BOLD, 26));
-                FontMetrics big = g.getFontMetrics();
-                String tap = "TAP  SPACE  !";
-                g.setColor(new Color(0, 0, 0, 150));
-                g.drawString(tap, cx - big.stringWidth(tap) / 2 + 2, 227);
-                g.setColor(new Color(255, 230, 120, Math.max(0, Math.min(255, pulse))));
-                g.drawString(tap, cx - big.stringWidth(tap) / 2, 225);
-            }
         }
     }
 

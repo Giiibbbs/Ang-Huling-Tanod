@@ -9,7 +9,6 @@ import atingdagat.core.Twist;
 import atingdagat.core.WavePlan;
 import atingdagat.defense.Mine;
 import atingdagat.defense.Net;
-import atingdagat.entities.Bakunawa;
 import atingdagat.entities.Skiff;
 import atingdagat.entities.Warship;
 import atingdagat.economy.Inventory;
@@ -54,7 +53,6 @@ public class GameTests {
         durability();
         highScores();
         mines();
-        bakunawa();
         System.out.println();
         System.out.println(passed + " passed, " + failed + " failed");
         if (failed > 0) {
@@ -166,24 +164,4 @@ public class GameTests {
         check("mine: costs 1 nickel", Constants.MINE_COST_NICKEL == 1);
     }
 
-    private static void bakunawa() {
-        Bakunawa dragon = new Bakunawa();
-        check("bakunawa: starts asleep", dragon.getStage() == Bakunawa.Stage.IDLE && !dragon.isBusy());
-        dragon.startSmall(false);
-        for (int i = 0; i < 400; i++) {
-            dragon.update(i);
-        }
-        check("bakunawa: a small visit reaches the gongs", dragon.getStage() == Bakunawa.Stage.GONGS && dragon.isEclipse());
-        for (int i = 0; i < 30; i++) {
-            dragon.gong();
-        }
-        dragon.update(500);
-        check("bakunawa: a full meter sends a small visit back (no swallow)", dragon.getStage() == Bakunawa.Stage.RETREAT);
-        for (int i = 0; i < 200; i++) {
-            dragon.update(600 + i);
-        }
-        check("bakunawa: the visit ends and the moon is back", dragon.isDone() && !dragon.isEclipse());
-        dragon.reset();
-        check("bakunawa: reset puts it back to sleep for another night", dragon.getStage() == Bakunawa.Stage.IDLE);
-    }
 }

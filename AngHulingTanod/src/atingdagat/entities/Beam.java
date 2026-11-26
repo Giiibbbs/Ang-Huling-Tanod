@@ -28,7 +28,7 @@ public class Beam implements Light {
     private static final double BASE_LENGTH = 380;                       // how far the beam reaches (pixels)
     private static final double LAMP_GLOW = 44;                      // always-lit circle around the lamp
 
-    private boolean on = true;                // the Bakunawa's eclipse switches the lamp off
+    private boolean on = true;             
 
     private double halfAngle = BASE_HALF_ANGLE;   // grows with lamp upgrades
     private double length = BASE_LENGTH;

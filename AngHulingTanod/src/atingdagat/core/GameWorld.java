@@ -23,7 +23,6 @@ import atingdagat.economy.ResourceNode;
 import atingdagat.economy.ResourceType;
 import atingdagat.economy.SupplyCrate;
 import atingdagat.economy.Upgrades;
-import atingdagat.entities.Bakunawa;
 import atingdagat.entities.Barge;
 import atingdagat.entities.Beam;
 import atingdagat.entities.Cutter;
@@ -70,7 +69,6 @@ public class GameWorld {
     /** What a click does in the day. */
     public enum Tool { HARVEST, NET, MINE, TORCH, PANA }
 
-    private static final int BANNER_FRAMES = 150;
     private static final int GUN_DAMAGE = 1;
 
     // The ground and the fixed things on it
@@ -80,7 +78,6 @@ public class GameWorld {
     private final Radio radio = new Radio();
     private final Beam beam = new Beam(lighthouse.getLampX(), lighthouse.getLampY());
     private final NightOverlay overlay = new NightOverlay();
-    private final Bakunawa dragon = new Bakunawa();   // the big event of the last night
     private double forcedDarkness = -1;               // the ending scene sets this (-1 = follow the day cycle)
 
     // The walking tanod, and the lights that make ships visible at night
@@ -88,7 +85,7 @@ public class GameWorld {
             Constants.PLAYER_START_COL * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0,
             Constants.PLAYER_START_ROW * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0 + 4);
     private final Lantern lantern = new Lantern(player);
-    private final Light anyLight = this::isLit;   // "is this spot lit by ANY light?" (see isLit)
+    private final Light anyLight = (x, y) -> isLit(x, y);   // "is this spot lit by ANY light?" (see isLit)
 
     // Things that come and go
     private final ArrayList<Warship> ships = new ArrayList<>();
@@ -98,21 +95,18 @@ public class GameWorld {
     private int wiring = 0;   // copper rewiring level: wider torch light
     private final Punso punso = new Punso(Constants.PUNSO_COL, Constants.PUNSO_ROW);
     private final ArrayList<ResourceNode> nodes;
-    private final ArrayList<FishSchool> fish = new ArrayList<>();
-    private final ArrayList<SupplyCrate> crates = new ArrayList<>();
+    private final SeaLife sea;   // the fish schools and the supply crates
     private final ArrayList<Survivor> survivors = new ArrayList<>();   // people who joined the post (a mix of subclasses)
     private final ArrayList<Bangka> boats = new ArrayList<>();         // boats bringing them in
     private static final int[] ARRIVAL_NIGHTS = {2, 4, 6};              // the dawn after these nights, a bangka lands
-    private String storyTitle = "";
-    private String storyText = "";
-    private int storyTimer = 0;
+    private final Announcer announcer = new Announcer();   // the banner and the story card
     private final ArrayList<Popup> popups = new ArrayList<>();
     private final ArrayList<Explosion> explosions = new ArrayList<>();
-    private final ArrayList<WavePlan.Kind> queue = new ArrayList<>();   // tonight's ships, in the order they come
 
     // Rules and the clock
     private final DayCycle cycle = new DayCycle();
     private final WavePlan plan = new WavePlan(Constants.WAVES_FILE);
+    private final ShipSpawner spawner;
     private final RadioVoices voices = new RadioVoices(Constants.VOICES_FILE);
     private final Inventory inventory = new Inventory();
     private final Upgrades upgrades = new Upgrades();
@@ -129,8 +123,6 @@ public class GameWorld {
     private boolean steering = false;   // SPACE held
 
     private Tool tool = Tool.HARVEST;
-    private int spawned = 0;             // ships sent so far tonight
-    private int spawnTimer = 0;
     private int gunCooldown = 0;
     private int shotTimer = 0;           // draws the shot line for a few frames
     private Flare flare = null;          // the flare in the air or burning, if any
@@ -146,20 +138,16 @@ public class GameWorld {
     private int menderTimer = 0;
     private Harvestable holdTarget = null;
     private int holdProgress = 0;
-    private int fishTimer = 0;
-    private int crateTimer = Constants.CRATE_INTERVAL - 6 * Constants.TARGET_FPS;   // the first crate comes after about 6 seconds
 
-    private String bannerText = "";
-    private int bannerTimer = 0;
 
     public GameWorld(TileMap map) {
         this.map = map;
+        this.spawner = new ShipSpawner(plan, random);
+        this.sea = new SeaLife(map, random);
         this.nodes = ResourceNode.load(Constants.NODES_FILE, map);
         defenses.add(statue);
         inventory.add(ResourceType.BAMBOO, Constants.START_BAMBOO);
-        for (int i = 0; i < 6; i++) {
-            spawnFish();
-        }
+        sea.startWithFish(6);
         showBanner("DAY 1");
     }
 
@@ -184,7 +172,6 @@ public class GameWorld {
         }
         beam.update(manual);
 
-        updateEclipse();
         applyOreBonuses();
         updateFlare();
         updateRepair();
@@ -195,7 +182,7 @@ public class GameWorld {
         }
 
         if (cycle.isNight()) {
-            spawnShips();
+            spawner.update(cycle.getNight(), post.getX(), post.getY(), ships);
             // STATIC night: interference slowly drains the radio while ships are still out there
             if (Twist.forNight(cycle.getNight()) == Twist.STATIC && frame % (6 * Constants.TARGET_FPS) == 0
                     && getShipsLeftTonight() > 0) {
@@ -208,8 +195,7 @@ public class GameWorld {
         for (ResourceNode node : nodes) {
             node.update();
         }
-        updateFish();
-        updateCrates();
+        updateSeaLife();
         updateSurvivors();
         updateMenders();
         updateHolding();
@@ -234,120 +220,10 @@ public class GameWorld {
         if (shakeFrames > 0) {
             shakeFrames--;
         }
-        if (bannerTimer > 0) {
-            bannerTimer--;
-        }
-        if (storyTimer > 0) {
-            storyTimer--;
-        }
+        announcer.tick();
 
         checkNightOver();
         checkLoss();
-    }
-
-    /** How many ships arrive together in one pulse tonight. Bigger every few nights. */
-    private int pulseSize(int night) {
-        int[] base = {1, 1, 2, 1, 1, 3, 4, 4};   // index = night (0 unused). Nights 3 and 4 trickle one ship at a time so the pressure never lets up
-        int size = base[Math.max(1, Math.min(Constants.TOTAL_NIGHTS, night))];
-        return Math.min(4, Twist.forNight(night) == Twist.ASSAULT ? size + 1 : size);   // only 4 sides to come from
-    }
-
-    /** Frames between pulses. A pulse of 3 waits 3 times as long as one ship would, so the average pace matches waves.txt. */
-    private int pulseInterval(int night) {
-        double factor = Twist.forNight(night) == Twist.ASSAULT ? 0.8 : 1.0;
-        return (int) (plan.getInterval(night) * pulseSize(night) * factor);
-    }
-
-    private void spawnShips() {
-        int night = cycle.getNight();
-        spawnTimer++;
-        if (spawned < queue.size() && spawnTimer >= pulseInterval(night)) {
-            spawnTimer = 0;
-            ArrayList<Integer> sides = new ArrayList<>(java.util.Arrays.asList(0, 1, 2, 3));
-            Collections.shuffle(sides, random);   // a pulse comes from different sides
-            for (int k = 0; k < pulseSize(night) && spawned < queue.size(); k++) {
-                spawnShip(queue.get(spawned), sides.get(k));
-                spawned++;
-            }
-        }
-    }
-
-    /** Builds tonight's list of ships from the wave plan, then shuffles it. */
-    private void buildQueue() {
-        queue.clear();
-        for (WavePlan.Kind kind : WavePlan.Kind.values()) {
-            for (int i = 0; i < plan.getCount(cycle.getNight(), kind); i++) {
-                queue.add(kind);
-            }
-        }
-        Collections.shuffle(queue, random);
-    }
-
-    /** A ship appears just outside the screen, in a lane that points at the post. */
-    private void spawnShip(WavePlan.Kind kind, int side) {
-        double band = 110;   // how far from the post's line the skiff may start
-        double x;
-        double y;
-        switch (side) {
-            case 0:  // left
-                x = -12;
-                y = laneY(band);
-                break;
-            case 1:  // right
-                x = Constants.INTERNAL_WIDTH + 12;
-                y = laneY(band);
-                break;
-            case 2:  // top
-                x = laneX(band);
-                y = -12;
-                break;
-            default: // bottom
-                x = laneX(band);
-                y = Constants.INTERNAL_HEIGHT + 12;
-                break;
-        }
-        Warship ship;
-        switch (kind) {
-            case CUTTER:
-                ship = new Cutter(x, y, post.getX(), post.getY());
-                break;
-            case BARGE:
-                ship = new Barge(x, y, post.getX(), post.getY());
-                break;
-            case RAIDER:
-                ship = new Raider(x, y, post.getX(), post.getY());
-                break;
-            case GHOST:
-                ship = new Ghost(x, y, post.getX(), post.getY());
-                break;
-            default:
-                ship = new Skiff(x, y, post.getX(), post.getY());
-                break;
-        }
-        switch (Twist.forNight(cycle.getNight())) {   // tonight's rule
-            case SURGE:
-                ship.powerUp(1.25, 0);
-                break;
-            case HARDENED:
-                ship.powerUp(1.0, 1);
-                break;
-            case ASSAULT:
-                ship.powerUp(1.1, 0);
-                break;
-            default:
-                break;
-        }
-        ships.add(ship);
-    }
-
-    private double laneX(double band) {
-        double v = post.getX() + (random.nextDouble() * 2 - 1) * band;
-        return Math.max(20, Math.min(Constants.INTERNAL_WIDTH - 20, v));
-    }
-
-    private double laneY(double band) {
-        double v = post.getY() + (random.nextDouble() * 2 - 1) * band;
-        return Math.max(20, Math.min(Constants.INTERNAL_HEIGHT - 20, v));
     }
 
     /** Moves ships. Goes backwards so removing one does not skip the next. */
@@ -547,8 +423,7 @@ public class GameWorld {
     }
 
     private void checkNightOver() {
-        boolean eventDone = !dragon.isBusy() && (cycle.getNight() != Constants.TOTAL_NIGHTS || dragon.isDone());
-        if (cycle.isNight() && spawned >= queue.size() && ships.isEmpty() && eventDone) {
+        if (cycle.isNight() && spawner.allSpawned() && ships.isEmpty()) {
             onPhaseChange(cycle.advance());
         }
     }
@@ -584,31 +459,19 @@ public class GameWorld {
                 for (Survivor sv : survivors) {
                     sv.newNight();
                 }
-                fish.clear();            // the fish go deep in the dark
-                crates.clear();          // and any crate left floating drifts away
+                sea.clear();             // the fish go deep in the dark and any crate drifts away
                 holding = false;
                 holdTarget = null;
                 holdProgress = 0;
-                buildQueue();
-                spawned = 0;
-                spawnTimer = pulseInterval(cycle.getNight()) - 90;   // the first ships in about 1.5 seconds
+                spawner.startNight(cycle.getNight());   // the first ships come in about 1.5 seconds
                 Twist twist = Twist.forNight(cycle.getNight());
                 beam.setFog(twist == Twist.FOG ? 0.7 : 1.0);
-                if (cycle.getNight() == 3 || cycle.getNight() == 5) {   // an omen: the moon turns red
-                    dragon.setOmen(true);
-                    tellStory("The moon turns red", "Ka Inday: \"Hindi ito maganda. Ang Bakunawa ay gutom.\" Something moves under the sea.");
-                }
                 showBanner("NIGHT " + cycle.getNight() + (twist == Twist.NONE ? "" : ": " + twist.getTitle()));
                 if (twist != Twist.NONE) {
                     tellStory("Night " + cycle.getNight() + ": " + twist.getTitle(), twist.getText());
                 }
                 break;
             default: // DAWN
-                if (cycle.getNight() == Constants.TOTAL_NIGHTS && !cycle.isEndless()) {
-                    dragon.finish();   // the last night is over (also covers a night skipped in the middle of the event)
-                } else {
-                    dragon.reset();    // asleep again, so it can still visit on a later night
-                }
                 beam.setOn(true);
                 beam.setFog(1.0);
                 for (Defense d : defenses) {   // everything wears a little every night (see Durable)
@@ -628,53 +491,7 @@ public class GameWorld {
     }
 
     private void showBanner(String text) {
-        bannerText = text;
-        bannerTimer = BANNER_FRAMES;
-    }
-
-    // ------------------------------------------------------------------
-    // THE BAKUNAWA (night 7)
-    // ------------------------------------------------------------------
-
-    /** Starts the event when the last ship of the last night has set sail, runs it, and handles the bite. */
-    private void updateEclipse() {
-        int night = cycle.getNight();
-        if (cycle.isNight() && night == Constants.TOTAL_NIGHTS && !cycle.isEndless() && spawned >= queue.size() && !queue.isEmpty()) {
-            if (dragon.getStage() == Bakunawa.Stage.IDLE) {
-                showBanner("THE MOON GOES DARK");
-            }
-            dragon.start();
-        } else if (cycle.isNight() && isSmallVisitNight(night) && !queue.isEmpty()
-                && spawned >= queue.size() / 2 && dragon.getStage() == Bakunawa.Stage.IDLE) {
-            showBanner("THE MOON DIMS - SOUND THE GONGS");
-            tellStory("The Bakunawa is hungry", "It only tests the island tonight. Tap SPACE to ring the gongs and drive it back. Until then the lamp is out: use flares and parols.");
-            dragon.startSmall(night > Constants.TOTAL_NIGHTS);
-        }
-        dragon.update(frame);
-        beam.setOn(!dragon.isEclipse());
-        if (dragon.consumeBite()) {   // everything still afloat goes down with the flagship
-            for (Warship ship : ships) {
-                explosions.add(new Explosion(ship.getX(), ship.getY()));
-            }
-            ships.clear();
-        }
-    }
-
-    /** Nights 4 and 6, and every third night of endless mode (10, 13, ...): a small visit from the dragon. */
-    private boolean isSmallVisitNight(int night) {
-        return night == 4 || night == 6 || (night > Constants.TOTAL_NIGHTS && (night - Constants.TOTAL_NIGHTS) % 3 == 0);
-    }
-
-    /** SPACE: sound the gongs (only matters during the Bakunawa event). */
-    public void gong() {
-        dragon.gong();
-    }
-
-    /** Test key E: start the Bakunawa event right now (night only). */
-    public void testEclipse() {
-        if (cycle.isNight() && outcome == Outcome.PLAYING) {
-            dragon.start();
-        }
+        announcer.banner(text);
     }
 
     /** After the win: keep defending. Night 8 starts with a fresh day, and every night after is harder. */
@@ -683,7 +500,6 @@ public class GameWorld {
             return;
         }
         outcome = Outcome.PLAYING;
-        dragon.reset();
         endReason = "";
         forcedDarkness = -1;
         cycle.continueEndless();
@@ -708,10 +524,6 @@ public class GameWorld {
     /** The ending scene uses this to bring the sun up (0 = day, 1 = night). A negative value gives control back. */
     public void setForcedDarkness(double value) {
         forcedDarkness = value;
-    }
-
-    public Bakunawa getDragon() {
-        return dragon;
     }
 
     /** Test/debug key (N): jump to the next phase. Ends the night early and removes the ships. */
@@ -826,15 +638,9 @@ public class GameWorld {
 
     /** Finds the first thing under the mouse that can be harvested: fish first, then spots on land. */
     private Harvestable findHarvestable(double x, double y) {
-        for (FishSchool school : fish) {
-            if (school.isAvailable() && school.isNear(x, y)) {
-                return school;
-            }
-        }
-        for (SupplyCrate crate : crates) {
-            if (crate.isAvailable() && crate.isNear(x, y)) {
-                return crate;
-            }
+        Harvestable atSea = sea.findHarvestable(x, y);
+        if (atSea != null) {
+            return atSea;
         }
         for (ResourceNode node : nodes) {
             if (node.isNear(x, y)) {
@@ -925,97 +731,20 @@ public class GameWorld {
     }
 
     // ------------------------------------------------------------------
-    // FISH: schools swim around the sea in the day
+    // SEA LIFE (fish and supply crates live in SeaLife; the world only connects it to the rest)
     // ------------------------------------------------------------------
 
-    private void updateFish() {
+    private void updateSeaLife() {
         if (cycle.isNight()) {
             return;
         }
-        fishTimer++;
-        if (fishTimer >= Constants.FISH_SPAWN_FRAMES && fish.size() < Constants.MAX_FISH_SCHOOLS) {
-            fishTimer = 0;
-            spawnFish();
-        }
-        for (int i = fish.size() - 1; i >= 0; i--) {
-            fish.get(i).update(map);
-            if (fish.get(i).isGone()) {
-                if (fish.get(i) == holdTarget) {
-                    holdTarget = null;
-                    holdProgress = 0;
-                }
-                fish.remove(i);
+        boolean fast = radio.getSignal() >= Constants.CRATE_RADIO_STRONG || crateBoosted();
+        for (Harvestable gone : sea.update(fast, type -> oreLeftOnMap(type))) {
+            if (gone == holdTarget) {   // it swam away while you were harvesting it
+                holdTarget = null;
+                holdProgress = 0;
             }
         }
-    }
-
-    // ------------------------------------------------------------------
-    // SUPPLY CRATES: ore that floats in, so the island never runs completely dry
-    // ------------------------------------------------------------------
-
-    private void updateCrates() {
-        if (cycle.isNight()) {
-            return;
-        }
-        crateTimer++;
-        int interval = radio.getSignal() >= Constants.CRATE_RADIO_STRONG || crateBoosted()
-                ? Constants.CRATE_INTERVAL_STRONG : Constants.CRATE_INTERVAL;
-        if (crateTimer >= interval && crates.size() < Constants.MAX_CRATES) {
-            crateTimer = 0;
-            spawnCrate();
-        }
-        for (int i = crates.size() - 1; i >= 0; i--) {
-            crates.get(i).update(map);
-            if (crates.get(i).isGone()) {
-                if (crates.get(i) == holdTarget) {
-                    holdTarget = null;
-                    holdProgress = 0;
-                }
-                crates.remove(i);
-            }
-        }
-    }
-
-    /** A crate appears at sea. What is inside favors the ores that have run out on the island. */
-    private void spawnCrate() {
-        ResourceType contents = pickCrateContents();
-        int units = (contents == ResourceType.GOLD) ? 1 : 2;
-        for (int attempt = 0; attempt < 80; attempt++) {
-            int col = random.nextInt(Constants.MAP_COLS);
-            int row = 2 + random.nextInt(Constants.MAP_ROWS - 4);
-            if (!map.isWater(row, col) || map.getDepth(row, col) < 3 || map.getDepth(row, col) > 6) {
-                continue;
-            }
-            double x = col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
-            double y = row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
-            if (y < 40 || y > Constants.INTERNAL_HEIGHT - 24) {
-                continue;
-            }
-            crates.add(new SupplyCrate(contents, units, x, y));
-            popups.add(new Popup(x, y - 14, "Supply crate!", new Color(255, 225, 120)));
-            return;
-        }
-    }
-
-    /** Nickel and copper are common, gold is rare. An ore that is gone from the map is 3 times as likely, so you are never stuck. */
-    private ResourceType pickCrateContents() {
-        ResourceType[] ores = {ResourceType.NICKEL, ResourceType.COPPER, ResourceType.CHROMITE, ResourceType.GOLD};
-        double[] weight = {4, 4, 2, 1};
-        double total = 0;
-        for (int i = 0; i < ores.length; i++) {
-            if (oreLeftOnMap(ores[i]) == 0) {
-                weight[i] *= 3;
-            }
-            total += weight[i];
-        }
-        double roll = random.nextDouble() * total;
-        for (int i = 0; i < ores.length; i++) {
-            roll -= weight[i];
-            if (roll <= 0) {
-                return ores[i];
-            }
-        }
-        return ResourceType.NICKEL;
     }
 
     /** How many units of this ore are still in the ground on the island. */
@@ -1032,48 +761,15 @@ public class GameWorld {
     /** Test key: drop a crate near the shore now. */
     public void testCrate() {
         if (!cycle.isNight()) {
-            spawnCrate();
+            SupplyCrate crate = sea.spawnCrate(type -> oreLeftOnMap(type));
+            if (crate != null) {
+                popups.add(new Popup(crate.getX(), crate.getY() - 14, "Supply crate!", new Color(255, 225, 120)));
+            }
         }
     }
 
     public int getCrateCount() {
-        return crates.size();
-    }
-
-    /** Picks a kind (rare ones less often), then looks for a spot at the right depth. */
-    private void spawnFish() {
-        FishKind kind = pickFishKind();
-        for (int attempt = 0; attempt < 60; attempt++) {
-            int col = random.nextInt(Constants.MAP_COLS);
-            int row = 2 + random.nextInt(Constants.MAP_ROWS - 4);
-            if (!map.isWater(row, col)) {
-                continue;
-            }
-            int depth = map.getDepth(row, col);
-            if (depth < kind.getMinDepth() || depth > kind.getMaxDepth()) {
-                continue;
-            }
-            double x = col * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
-            double y = row * Constants.TILE_SIZE + Constants.TILE_SIZE / 2.0;
-            fish.add(new FishSchool(kind, x, y, random));
-            return;
-        }
-    }
-
-    /** A weighted random pick: tamban is common, lapu-lapu is rare. */
-    private FishKind pickFishKind() {
-        double total = 0;
-        for (FishKind kind : FishKind.values()) {
-            total += kind.getWeight();
-        }
-        double roll = random.nextDouble() * total;
-        for (FishKind kind : FishKind.values()) {
-            roll -= kind.getWeight();
-            if (roll <= 0) {
-                return kind;
-            }
-        }
-        return FishKind.TAMBAN;
+        return sea.getCrateCount();
     }
 
     /** Can a net go on this tile? (shallow water only) */
@@ -1249,9 +945,7 @@ public class GameWorld {
             Survivor passenger = boat.releaseCargo();
             if (passenger != null) {
                 survivors.add(passenger);
-                storyTitle = passenger.getArrivalTitle();
-                storyText = passenger.getArrivalLine();
-                storyTimer = 8 * Constants.TARGET_FPS;
+                announcer.story(passenger.getArrivalTitle(), passenger.getArrivalLine(), 8);
             }
             if (boat.isGone()) {
                 boats.remove(i);
@@ -1386,9 +1080,7 @@ public class GameWorld {
     }
 
     private void tellStory(String title, String text) {
-        storyTitle = title;
-        storyText = text;
-        storyTimer = 8 * Constants.TARGET_FPS;
+        announcer.story(title, text, 8);
     }
 
     /** The hold on the punso is full: pay the gift of bamboo. Not enough: nothing is taken. */
@@ -1440,7 +1132,7 @@ public class GameWorld {
                 color = ResourceType.FRUIT.getColor();
                 break;
             case 2:
-                spawnCrate();
+                sea.spawnCrate(type -> oreLeftOnMap(type));
                 text = "A crate washes ashore";
                 break;
             default:
@@ -1534,9 +1226,7 @@ public class GameWorld {
         for (int i = 0; i < ARRIVAL_NIGHTS.length; i++) {
             survivors.add(makeSurvivor(i, post.getX(), post.getY() + 6));   // they step out from the post to their spots
         }
-        storyTitle = "Everyone made it";
-        storyText = "Ka Inday, Migo and Tonyo are at the post.";
-        storyTimer = 4 * Constants.TARGET_FPS;
+        announcer.story("Everyone made it", "Ka Inday, Migo and Tonyo are at the post.", 4);
     }
 
     public ArrayList<Survivor> getSurvivors() {
@@ -1544,15 +1234,15 @@ public class GameWorld {
     }
 
     public String getStoryTitle() {
-        return storyTimer > 0 ? storyTitle : "";
+        return announcer.getStoryTitle();
     }
 
     public String getStoryText() {
-        return storyTimer > 0 ? storyText : "";
+        return announcer.getStoryText();
     }
 
     public double getStoryFade() {
-        return Math.min(1.0, storyTimer / 40.0);
+        return announcer.getStoryFade();
     }
 
     /** Click a LIT ship to shoot it. You cannot hit what the beam has not found. */
@@ -1685,12 +1375,7 @@ public class GameWorld {
         for (ResourceNode node : nodes) {
             node.draw(g, frameCount);
         }
-        for (FishSchool school : fish) {
-            school.draw(g, frameCount);
-        }
-        for (SupplyCrate crate : crates) {
-            crate.draw(g, frameCount);
-        }
+        sea.draw(g, frameCount);
         for (Defense d : defenses) {
             d.draw(g, frameCount);
         }
@@ -1726,8 +1411,6 @@ public class GameWorld {
             }
             g.setComposite(old);
         }
-
-        dragon.draw(g, frameCount);   // the Bakunawa and its moon, on top of the darkness
 
         // The gun's shot (on top of the darkness so it is seen)
         if (shotTimer > 0) {
@@ -1872,20 +1555,20 @@ public class GameWorld {
     }
 
     public String getBannerText() {
-        return bannerText;
+        return announcer.getBannerText();
     }
 
     /** 0 to 1: how visible the banner is (fades out at the end). */
     public double getBannerFade() {
-        return Math.min(1.0, bannerTimer / 40.0);
+        return announcer.getBannerFade();
     }
 
     public int getShipsLeftTonight() {
-        return Math.max(0, queue.size() - spawned) + ships.size();
+        return spawner.getRemaining() + ships.size();
     }
 
     public int getShipsTotalTonight() {
-        return queue.size();
+        return spawner.getTotal();
     }
 
     public int getShipCount() {

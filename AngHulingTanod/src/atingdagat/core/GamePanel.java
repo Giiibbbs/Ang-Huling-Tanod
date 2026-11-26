@@ -200,12 +200,8 @@ public class GamePanel extends JPanel {
                     world.skipPhase();
                 } else if (Debug.isKeysOn() && code == KeyEvent.VK_L) {
                     world.jumpToLastNight();   // test key
-                } else if (Debug.isKeysOn() && code == KeyEvent.VK_E) {
-                    world.testEclipse();       // test key
                 } else if (Debug.isKeysOn() && code == KeyEvent.VK_K) {
                     world.testCrate();         // test key
-                } else if (code == KeyEvent.VK_SPACE) {
-                    world.gong();
                 } else if (code == KeyEvent.VK_1) {
                     world.toggleTool(GameWorld.Tool.NET);
                 } else if (code == KeyEvent.VK_2) {

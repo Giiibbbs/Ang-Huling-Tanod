@@ -15,7 +15,7 @@ public enum Twist {
     STATIC      ("STATIC",              "Interference on the radio. The signal slowly drains while ships are out there."),
     SURGE       ("SURGE",               "The tide pulls them in. Every ship is 25% faster tonight."),
     HARDENED    ("HARDENED HULLS",      "The Kordans bolted armor on. Every ship has one more health."),
-    ASSAULT     ("ALL-OUT ASSAULT",     "Their last push: bigger groups, faster, and the Bakunawa is watching.");
+    ASSAULT     ("ALL-OUT ASSAULT",     "Their last push: bigger groups, faster, no mercy.");
 
     private final String title;
     private final String text;

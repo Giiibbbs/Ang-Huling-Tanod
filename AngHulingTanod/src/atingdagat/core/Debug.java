@@ -3,7 +3,7 @@ package atingdagat.core;
 /**
  * Debug.java
  *
- * The developer keys (N skip phase, L last night, E eclipse, K crate, H monsters, J survivors) are
+ * The developer keys (N skip phase, L last night, K crate, H monsters, J survivors) are
  * switched OFF in the real game so a player cannot skip nights by accident. F12 toggles them for
  * testing and for the demo.
  */
