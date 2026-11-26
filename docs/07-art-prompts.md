@@ -141,7 +141,7 @@ with no code change. Missing ones show simple shapes. Generate **larger** than t
 | `ships/barge.png` | 58 x 25 | Points right. Wide, flat landing barge. **Done** |
 | `ships/raider.png` | 40 x 14 | OPTIONAL. Points right. Dark red hull with a gun deck. The game draws it by code if the file is missing |
 | `ships/ghost.png` | 38 x 12 | OPTIONAL. Points right. Pale, ghostly hull with cyan glowing eyes. Drawn by code if missing |
-| `ships/flagship.png` | 100 x 50 | Points right. The Kordan flagship the Bakunawa swallows on night 7. **Done**. Tip: the magenta must be one flat colour. The first flagship had a darker magenta (228, 2, 204), so we flattened it to 255, 0, 255 |
+| `ships/flagship.png` | 100 x 50 | Points right. Not used since the Bakunawa was removed (Nov 26); kept for a future boss. **Done**. Tip: the magenta must be one flat colour. The first flagship had a darker magenta (228, 2, 204), so we flattened it to 255, 0, 255 |
 | `buildings/lighthouse.png` | 32 x 48 | Base of the tower at the bottom of the image |
 | `buildings/post.png` | 40 x 32 | Grounded ship with a cabin and a radio mast |
 | `buildings/net.png` | 16 x 16 | One tile of net between two bamboo posts |
@@ -393,34 +393,13 @@ charcoal-black hull with crimson stripes, a raised command tower in the middle, 
 bow, the three-triangle emblem on the tower, red warning lights. Much bigger and more menacing than a barge.
 ```
 
-## Bakunawa (head and body)
+## Bakunawa (head and body): not needed since Nov 26
 
-The Bakunawa is drawn by code today (a chain of teal circles and a code-drawn head). If Jaron makes art, it replaces them. Both files are optional and the game falls back to the code drawing when one is missing.
+The Bakunawa was removed from the game, so `bakunawa_head.png` and `bakunawa_body.png` are no longer needed. The prompts are in git history if it returns.
 
-| File | Size | What |
-|---|---|---|
-| `monsters/bakunawa_head.png` | 60 x 40 | The dragon's head, **facing right**, jaws slightly open. The game rotates it. |
-| `monsters/bakunawa_body.png` | 20 x 20 | One round body segment (teal scales with a pale belly patch). The game repeats it 30 times, smaller toward the tail |
+## Intro comic: 6 panels (Nov 24)
 
-**Head** (`res/monsters/bakunawa_head.png`)
-```
-SUBJECT: the head of the Bakunawa, the moon-eating sea dragon of Philippine folklore, seen from the side at a 3/4
-angle and facing RIGHT. Long snout, jaws slightly open showing a red mouth and two white fangs, two curved red horns
-swept back, glowing amber eyes, teal-green scales with a darker teal outline, a pale cream chin. Majestic and a little
-frightening, not cartoonish and not cute. Roughly 3:2 (wide).
-```
-
-**Body segment** (`res/monsters/bakunawa_body.png`)
-```
-SUBJECT: one round segment of a sea dragon's body seen from above, teal-green scales in a neat overlapping pattern, a
-small pale cream belly patch in the middle, a tiny red spine on the top edge. A flat circle shape, same colours as the
-dragon head. Fills the whole image.
-```
-Save as real PNG on flat magenta (255,0,255), log it in the prompt log, and tell me the sizes if they are not 60x40 and 20x20.
-
-## Intro comic: 5 panels (Nov 24)
-
-The opening comic plays before the main menu. These are **full scenes**, not sprites: no magenta background, 16:9, saved as `res/intro/panel1.png` to `panel5.png`. The game draws the caption text itself, so the pictures must contain **no words at all**.
+The opening comic plays before the main menu. These are **full scenes**, not sprites: no magenta background, 16:9, saved as `res/intro/panel1.png` to `panel6.png`. The game draws the caption text itself, so the pictures must contain **no words at all**.
 
 **Rules for the whole set**
 - Use one Gemini chat for all five panels, in order, so the style stays the same. If panel 2 drifts from panel 1, say "same style and palette as the previous image".
@@ -478,7 +457,13 @@ stands one lone tanod (a village watchman), a young Filipino in a plain shirt ho
 bamboo staff, watching the boat go. The lighthouse stands behind him. Sad but determined.
 ```
 
-**Panel 5: the post (title card background)**
+**Panel 5: the old spirits and the treasure**
+```
+[COMIC STYLE BIBLE]
+SUBJECT: night, a mystical view of a small tropical island's rocky shore, glowing with old Filipino folklore. In the foreground a chest-high outcrop of ore glints in silver, copper-orange and gold, with a small pile of treasure-like ore chunks, lit by a soft warm light. Behind it, a carved chibi-style stone statue of a Filipino warrior with a spear (a Lapu-Lapu stone shrine) stands on a grassy patch. In the sky above, a pale moon with a giant teal sea dragon (the Bakunawa, a long serpentine sea dragon, not a Western dragon with wings) coiling around it, its jaws near the moon. A manananggal, a winged woman spirit whose upper body floats alone with bat-like wings and trailing tendrils, hovers over the island, pale and eerie but not gory. Mysterious, magical and proud of Filipino myth. No text.
+```
+
+**Panel 6: the post (title card background)**
 ```
 [COMIC STYLE BIBLE]
 SUBJECT: night, a wide view of the island's lighthouse standing on a rock, its beam cutting through the dark
@@ -488,3 +473,11 @@ lonely. Leave the upper-middle sky area fairly clear and dark, because the game 
 ```
 
 **After generating:** check that no panel has any readable letters (AI often adds fake text), crop to 16:9 if needed, log each one in the prompt log, and tell me the file names.
+
+**Captions (drawn by the game, in this order):**
+1. "The Kordan Dominion has swept across the Philippines. One by one, the islands have fallen." / "Isa-isang bumagsak ang mga isla."
+2. "All but one. Isla Dulo, at the edge of the map, still has its bamboo, its ore, its fish." / "Ang huling isla na may natitirang yaman."
+3. "Then a lone scout saw the lighthouse light, and the Kordans knew they had found it." / "Natagpuan na nila ang isla."
+4. "The people were sent away on the last bangka. One tanod stayed behind." / "May isang tanod na nanatili."
+5. "But Isla Dulo is not alone. The old spirits still watch: the manananggal, the Bakunawa, and the stone of Lapu-Lapu." / "Hindi nag-iisa ang isla. Binabantayan ito ng mga sinaunang kuwento."
+6. Title card ANG HULING TANOD, "Seven nights until the relief fleet arrives. Hold the light." / "Pitong gabi. Ipaglaban ang liwanag."

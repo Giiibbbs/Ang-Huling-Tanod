@@ -12,7 +12,7 @@ What makes it different:
 
 - **A lighthouse beam you steer.** At night you only see what the beam lights.
 - **Resources that double as weapons.** Overharvesting the island weakens your defenses.
-- **Philippine folklore in the mix:** Bakunawa, the babaylan, the tikbalang, and the engkanto.
+- **Philippine folklore in the mix:** the babaylan, the tikbalang, and the engkanto.
 - **A radio you must keep alive** to broadcast "May natitira pa tayo" every night.
 
 ## Story and setting
@@ -24,14 +24,14 @@ You are the last tanod. The Dominion wants the island's fish, timber, and ore. T
 your radio is the only link to the outside.
 
 When the Dominion's guns shook the seabed, the island's old guardians woke up. That is why a modern fleet can meet
-Bakunawa and the babaylan in the same game.
+the babaylan in the same game.
 
 The Dominion, its flag, its language, and its ships are invented, and no real country is shown. Combat is stylized, and
 blood effects stay off by default.
 
 ## The loop
 
-One night is one pass through the loop. Surviving night 7 triggers the Bakunawa eclipse, and then the ending (see "The ending" below).
+One night is one pass through the loop. Surviving night 7 triggers the ending (see "The ending" below).
 
 1. **Day: harvest and build.** Send villagers to gather fish, bamboo, and ore, and spend resources on defenses.
 2. **Dusk: preview and prepare.** A preview shows what the next wave looks like, so you can adjust.
@@ -118,7 +118,7 @@ Every ship has weak points: hitting the engine makes it drift, and hitting the b
 |---|---|
 | 1 to 2 | Skiffs only |
 | 3 | Cutters, and the first infiltrator |
-| 4 | The Bakunawa eclipse |
+| 4 | Bigger mixed fleets |
 | 5 | Landing barges and raiders |
 | 6 | The signal frigate |
 | 7 | The dreadnought boss and the final broadcast |
@@ -129,12 +129,11 @@ The island's guardians wake up as the invasion deepens. Each one adds a tactical
 
 | Guardian | When | Effect |
 |---|---|---|
-| Bakunawa | Eclipse night (night 4) | Rises from the sea and attacks everything, including the Kordan fleet. Drive it off with noise (gongs and pots, as in the myth) or bait ships into its path. |
 | Babaylan | Always available | A healer who restores crew and defenses, blesses one tower per night, calms the sea to slow ships, and reads omens at dusk to preview the next wave. |
 | Tikbalang | Forest zone | Raiders that enter the forest are misdirected and walk in circles. |
 | Engkanto | Tied to island health | Overharvesting angers them, and they withdraw their blessing, which weakens your towers. |
 
-Bakunawa and the babaylan are **should-haves**. The tikbalang zone and the engkanto favor are **nice-to-haves**.
+The babaylan is a **should-have**. The tikbalang zone and the engkanto favor are **nice-to-haves**.
 
 ## Heroes and cameos
 
@@ -170,7 +169,7 @@ Controls are mouse-first, so anyone can learn them in a minute.
 | W A S D | Walk the island (the tanod cannot enter the sea) |
 | Hold Space at the lighthouse | Steer the beam by hand at night. Otherwise it sweeps by itself |
 | Left click | Harvest, build, or fire at a lit ship, all within the tanod's reach |
-| Space | Sound the horn and gongs (noise) |
+| Space | Steer the beam by hand (at the lighthouse) |
 | 1 to 5 | Choose a defense |
 | P | Pause |
 | Esc | Back to the menu |
@@ -187,12 +186,7 @@ You **win** by surviving 7 nights. The ending is a story told in two parts.
 
 ### The ending
 
-**Night 7: the Bakunawa.** When the last wave of night 7 has set sail, the moon goes dark (an eclipse) and the Bakunawa, the
-moon-eating dragon of Filipino folklore, rises from the sea. **The lighthouse lamp goes out**, so only the lantern and the
-torches give light. The Kordan flagship waits at sea in a red glow. In the old stories people drove the Bakunawa away by making
-noise with pots and gongs, so the player must **tap Space to sound the gongs** and fill a noise meter (it drains if you stop). When
-it is full the dragon dives, swallows the Kordan flagship, and every ship still afloat goes down with it. Then it sinks away and the
-moon returns.
+**Night 7.** The last night is the biggest. When its last ship is gone and the dawn comes, the Post still stands and the relief fleet arrives: you win. After the title card you can press E to keep fighting in endless mode.
 
 **The radio voices.** Every dusk the radio catches one faint voice from another island (Isla Verde, Lubang, Maricaban, Sibuyan, Culion, Burias, Fortune Island), shown in the story box. They are read from `data/voices.txt`, one line per night. Seven nights, seven voices.
 
@@ -229,7 +223,7 @@ Build the must-haves first, and cut from the bottom if time runs short.
 | Tier | Features |
 |---|---|
 | Must-have | Island tile map loaded from a file, harvesting by day, day and night cycle with a dusk preview, lighthouse beam and fog, net barrier, mine buoy, coastal gun, deck gun, skiff, cutter, and landing barge, post integrity, radio signal, and island health bars, Menu, Play, Pause, Victory, and Game Over screens, sound, high-score file |
-| Should-have | Infiltrators and the identify mechanic, signal frigate and dreadnought boss, babaylan, Bakunawa eclipse event, watchtower, decoy light, overharvesting effects, relief fleet ending |
+| Should-have | Infiltrators and the identify mechanic, signal frigate and dreadnought boss, babaylan, watchtower, decoy light, overharvesting effects, relief fleet ending |
 | Nice-to-have | Raiders and saboteur divers, recon drone and flak tower, tikbalang zone, engkanto favor, optional blood effects setting |
 
 ## Java notes and open decisions
@@ -241,7 +235,7 @@ Everything uses basic Java, Swing, and AWT, with no external libraries. The full
 - **Game states:** an enum (`GameState`): MENU, PLAY, PAUSE, GAME_OVER, VICTORY. Day and night are phases *inside* PLAY.
 - **Core classes (planned):** `Island` (tile map from a text file), an abstract `Warship` with subclasses and
   `WeakPoint`, a `Defense` interface, `Beam` (a rotating cone that lights ships), `Radio`, `Post`, `ResourceNode`, and a
-  `NightEvent` interface for the Bakunawa eclipse.
+  `NightEvent` interface for a future scripted night event.
 - **Pathing:** BFS along sea lanes for ships and along land tiles for raiders.
 - **Files:** high scores and settings in plain text, with try-catch around every read and write.
 - **Sound:** `javax.sound.sampled` with royalty-free WAV files.
@@ -288,7 +282,6 @@ schedule in [02-project-plan.md](02-project-plan.md).
 | Repair | Simplified | Press R in the day (2 meals of fish). No resource-depletion penalty yet |
 | High-score file | Yes | Top 5 by nights survived, ties broken by Post health left; name typed after the run |
 | Sound | No | Not covered in class, so left out |
-| Bakunawa eclipse (night 7) | Yes | A scripted event: moon eaten, lamp out, tap Space for the gongs, the flagship is swallowed. Not a boss fight with health |
 | Ending scene | Yes | Lights across the sea, a radio voice, bangkas, sunrise, helicopter, title card. Replaces the plain victory text |
 | Infiltrators, babaylan, frigate, dreadnought | Not yet | See the cut order in the plan |
 
@@ -299,10 +292,7 @@ schedule in [02-project-plan.md](02-project-plan.md).
 - **Tonyo the mender.** Besides shooting, when he is at home he mends the most worn net, parol or Pana by 1 point every 12 s, free. It gives the third survivor a second job and lowers the bamboo pressure of upkeep.
 - **Parol.** The torches are drawn as parols, the star lanterns of a Filipino Christmas (four colours, twinkling). It is the same Defense in code (`Torch`); only the look and the words changed.
 
-## Added Nov 23: more Bakunawa moments
+## Removed Nov 26: the Bakunawa
 
-The Bakunawa used to appear only on night 7. Now it teaches and returns:
-- **Nights 3 and 5, the omen:** the moon turns red and Ka Inday warns on the radio. Nothing else changes.
-- **Nights 4 and 6, a small visit:** halfway through the night the moon dims and the lamp goes out. Tap SPACE to sound the gongs until the meter is full, and the dragon sinks back (no swallow, no flagship). If the player is too slow the survivors join in after 8 s. This teaches the gong before the finale and makes the player use flares and parols in the dark.
-- **Night 7:** the full event, unchanged.
-- **Endless mode:** a small visit every 3rd night (10, 13, ...) with a faster-draining meter.
+The Bakunawa (omen, small visits, the night 7 finale and its gongs) was taken out of the game. The Bakunawa was removed on Nov 26 (see docs/11-future-improvements.md). Night 7 is now a normal, bigger night, and the win comes at the dawn after it. The Bakunawa still appears in the opening comic as part of the folklore.
+

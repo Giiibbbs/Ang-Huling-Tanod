@@ -845,39 +845,9 @@ The panel only draws in the day, and **B** hides it.
 
 ---
 
-## 24. Night 7: the Bakunawa and the ending (`Bakunawa`, `EndingScene`)
+## 24. Night 7 and the ending (`EndingScene`)
 
-**`Bakunawa` is a small state machine.** A state machine means the object is always in exactly one *stage*, and each stage has its own
-rules. The stages are an enum: `IDLE`, `RISING`, `GONGS`, `SWALLOW`, `DONE`. `update()` does a `switch` on the stage, and when a stage's
-condition is met it sets the next stage and resets `timer`.
-
-| Stage | What happens | Moves on when |
-|---|---|---|
-| RISING | The moon is eaten, the dragon comes down from the top of the screen | 170 frames pass |
-| GONGS | The dragon hovers. The player taps Space (`gong()` adds to `noise`, `update()` drains it) | `noise` reaches 100 |
-| SWALLOW | It dives at the flagship, bites, the flagship sinks, it leaves | 230 frames pass |
-| DONE | The moon is back, the night may end | |
-
-**How the world uses it.** `GameWorld.updateEclipse()` starts it when night 7's queue is empty, calls `update`, switches the beam
-with `beam.setOn(!dragon.isEclipse())`, and when `consumeBite()` says "true" (it returns true exactly once, so the explosion happens once)
-it blows up every ship and clears the list. `checkNightOver` waits for `dragon.isDone()` on the last night.
-A subtle bug we fixed: the meter was capped at 100 and then drained BEFORE the "is it full?" check, so it could never read 100.
-Check first, then drain.
-
-**How the dragon is drawn.** The head moves along a path made with `sin` and easing. The body is 30 circles, and each one is placed where the head
-was a few frames ago (`trail` is a list of the head's last positions, newest first). That is why the body follows the head like a snake with no
-extra maths. The jaws are two polygons that open and close with `sin`.
-
-**`EndingScene` is a timeline.** One counter `frames`, and each thing starts at its own frame: captions (`Line` objects with `from` and `to`),
-lights (each has an appear frame), bangkas (each starts moving at its own frame toward a target), and the helicopter (starts at frame 1500).
-It sets the sky through `world.setForcedDarkness(...)`, so the sun rises by fading the darkness from 1 to 0.
-`skip()` just runs `advance()` in a loop until the title card, so skipping never leaves things in the wrong place.
-`GamePanel` shows it in the `VICTORY` state, without the HUD.
-
-**OOP and concepts to point at:** an enum as a state machine, one class owning its own timing and drawing (encapsulation), a timeline instead of many
-timers, and a small private class (`Line`, `Boat`) inside another class.
-
----
+The Bakunawa event that used to live here was removed on Nov 26. Night 7 now ends like any other night: `checkNightOver` sees the spawner is done and the sea is empty, `onPhaseChange` advances the `DayCycle`, and the win is detected at the dawn after night 7. The `Debug` keys are now N, L, K, H and J.
 
 ## 25. Supply crates (`SupplyCrate`)
 
@@ -984,8 +954,6 @@ wait 100 frames. It does **not** check `isLit()`, so it works in the dark, which
 
 **`Debug`.** The developer keys (N, L, E, K, H, J) only work after F12 (or the ` key) turns them on, so a player cannot skip nights by accident. A red note shows while they are on.
 
-**Night 7 gongs.** The HUD shows a pulsing "TAP SPACE!" while the noise meter is low. If the player is too slow, after 30 seconds the survivors start ringing the gongs themselves (`GONGS_HELP_FRAMES` in `Bakunawa`), so the night can never stall.
-
 ## 28f. Mines that chain, endless mode and the mender (`Mine`, `DayCycle`, `WavePlan`, `GameWorld`, `Torch`)
 
 - **Chain reaction (`Mine.detonate`, `Mine.reaches`, `GameWorld.updateDefenses`).** `update()` only decides WHEN a mine goes off; `detonate(ships)` does the blast and can be called by someone else. `updateDefenses()` first updates every defense, then loops: any mine that has exploded sets off every unexploded mine its blast reaches, until nothing new goes off (a `while` loop over two nested `for` loops), then the dead ones are removed. Cost is `Constants.MINE_COST_NICKEL = 1`.
@@ -1045,6 +1013,7 @@ The game now starts in a new state, `INTRO`, before `MENU`. `IntroScene` (in `ui
 | EDT | Event Dispatch Thread, Swing's one thread. |
 | Enum | A fixed list of named values. |
 
-## 28g. Bakunawa visits (`Bakunawa`, `GameWorld.updateEclipse`)
+## 28g. Bakunawa visits (removed Nov 26)
 
-`Bakunawa` got a new `small` flag, `startSmall(harder)`, a `RETREAT` stage, `setOmen(boolean)` and `isBusy()`. In the GONGS stage a full meter goes to `SWALLOW` normally but to `RETREAT` when `small` is true, so one class runs both events. `GameWorld.updateEclipse()` decides which one: night 7 is the full event once the last ship has set sail; `isSmallVisitNight(night)` (4, 6 and every third endless night) starts a small visit when half of the night's ships have spawned. `checkNightOver()` waits while `dragon.isBusy()`. The omen is set in `onPhaseChange(NIGHT)` on nights 3 and 5 and cleared by `reset()` at dawn. The head and body can be replaced by art (`bakunawa_head.png`, `bakunawa_body.png`); the code falls back to the circle drawing.
+This section described the omen, the small visits and the `RETREAT` stage. All of it was removed together with the `Bakunawa` class, and `GameWorld` no longer calls `updateEclipse()`.
+

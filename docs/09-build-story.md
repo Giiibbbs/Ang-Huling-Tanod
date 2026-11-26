@@ -451,3 +451,9 @@ Two things the grading cares about. First, `GameWorld.java` had grown past 70 KB
 ## Step 30: the opening comic (Nov 24)
 
 Until now the story lived in radio lines and the ending. We added a six-panel comic before the menu: the Philippines is falling, Isla Dulo is the untouched island rich in bamboo, ore and fish, a Kordan scout finds it, the last bangka leaves, the old spirits (manananggal, Bakunawa, Lapu-Lapu stone) still watch, and the title card. The pictures were made with Gemini from the prompts in `07-art-prompts.md` (AI-assisted, listed in `CREDITS.md`) and have no text in them; the code draws the captions in English and Filipino. It is skippable with ESC so a live demo can go straight to the menu.
+
+## Step 31: removing the Bakunawa (Nov 26)
+
+We cut the Bakunawa to keep the game simpler and easier to defend. It touched `GameWorld`, `GamePanel`, `Hud`, `Twist`, the beam and the tests, so removing it meant deleting the class, its update/draw calls, the SPACE gong and E test key, and five tests. Night 7 now ends like every other night. We re-ran the checks (29 pass) and a headless run that clears the sea and plays through night 7 into the win and into endless mode.
+
+**Lesson:** a feature that only one class owns is easy to remove. The Bakunawa was touched in a handful of places, all through one field (`dragon`), so the compiler pointed to every spot.

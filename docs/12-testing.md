@@ -4,7 +4,7 @@ This is our proof of testing. It says what we tested, how to repeat it, what the
 
 ## 1. Unit checks (`test/atingdagat/GameTests.java`)
 
-34 small checks of the game rules, with no libraries (not even JUnit), so anyone can run them.
+29 small checks of the game rules, with no libraries (not even JUnit), so anyone can run them.
 
 | Area | What is checked |
 |---|---|
@@ -16,7 +16,6 @@ This is our proof of testing. It says what we tested, how to repeat it, what the
 | Durability | wear, restore never above the maximum, plating raises the maximum |
 | High scores | keeps only 5, best first, a 0-night run does not qualify, saved and loaded from a file, endless night 12 reads back |
 | Mines | a blast reaches neighbours but not far mines, it hurts a ship, it only explodes once, costs 1 nickel |
-| Bakunawa | starts asleep, a small visit reaches the gongs, a full meter sends it back (no swallow), the visit ends, reset |
 
 **Run it (Windows, from the project folder `AngHulingTanod`)** after Clean and Build in NetBeans:
 
@@ -25,9 +24,9 @@ javac -cp build\classes -d build\test test\atingdagat\GameTests.java
 java -cp build\classes;build\test atingdagat.GameTests
 ```
 
-Expected last line: `34 passed, 0 failed`. The program exits with code 1 if anything fails.
+Expected last line: `29 passed, 0 failed`. The program exits with code 1 if anything fails.
 
-Result on Nov 23, 2026: 34 passed, 0 failed.
+Result on Nov 26, 2026: 29 passed, 0 failed (the 5 Bakunawa checks were removed with the feature).
 
 ## 2. Bot playthroughs (headless, no window)
 
@@ -35,8 +34,7 @@ We wrote a bot that plays the game by calling the same methods the mouse and key
 
 | Run | Result |
 |---|---|
-| Active bot, seeds 1 to 3, taps the gongs | Wins all 7 nights on every seed. Then plays endless mode: survived to night 10 on two seeds and lost on night 9 or 10 on the third |
-| Active bot that never taps the gongs | Loses night 6 on two of three seeds (the small Bakunawa visit leaves the lamp out for about 11 s) |
+| Active bot, seeds 1 to 3 (earlier build, with the Bakunawa) | Wins all 7 nights on every seed. Then plays endless mode: survived to night 10 on two seeds and lost on night 9 or 10 on the third |
 | Passive bot (no active play) | Loses on nights 3 to 5. This is by design: the beam does not shoot for you |
 | Fuzz run: random keys and clicks, 18,000 frames | 0 crashes, average update 0.016 ms, average draw 4 ms |
 
@@ -64,6 +62,7 @@ A script pressed real keys in the real game window (under a virtual display): F1
 |---|---|---|
 | `NoSuchFieldError` after changing an enum | Run from NetBeans | Clean and Build; added to the how-to-run notes |
 | Night 7 crashed on the pulse table | Bot on night 7 | The pulse array got a 7th entry |
-| Bakunawa never rose on night 7 | Bot, then a real window | `reset()` and `finish()` were mixed up |
 | F12 "did not work" | User report | Stale build; we also added the backtick key |
 | Statue floated on the sand | Screenshot | Moved onto the grass patch, added a shadow |
+
+**Nov 26 (after removing the Bakunawa):** a headless run cleared the sea every frame from the start of night 7. The game reached the win after night 7 and endless mode kept running for 20,000 frames with no errors.

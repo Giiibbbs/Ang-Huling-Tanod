@@ -46,8 +46,7 @@ Run from the JAR, not from the IDE. Narrate what you do and *why*.
    "Only lit things are visible. The beam sweeps by itself, my lantern lights a small circle, and torches light fixed spots. I can also stand at the lighthouse and hold Space to steer the beam by hand."
 4. **A ship appears in the beam.** Click it to shoot. Show a net stopping a ship, and a mine going off. From night 2 a **Raider** stops and shoots your tower or torch: show the red tracer and the "-1". Press **F** to fire a flare and light a second side. By day, stand next to a damaged defense and **hold X** to mend it (it costs bamboo). "Everything wears down, so bamboo is for building and for upkeep."
    "I can only shoot what the beam has found."
-5. **Folklore moment and ending.** Press **L**, then **N** until it is night 7, then **E** to start the eclipse (or play it for real).
-   "The Bakunawa eats the moon, our lamp goes out, and like in the old stories we sound the gongs." Tap **Space** until the dragon swallows the flagship. Then let the ending play (about 30 seconds), or press ENTER to skip to the title card.
+5. **The ending.** Press **L**, then **N** until it is night 7, and let it end (or skip ahead with N). Then let the ending play (about 30 seconds), or press ENTER to skip to the title card.
    "Lights across the sea, other islands answering. You were never the last tanod."
 6. **Pause** with P to show the pause state, then resume.
 7. **HUD.** Point at the two bars: **Post** health and **Radio** signal. Say how you lose (either hits zero) and how you win (survive night 7).
@@ -120,6 +119,5 @@ One sentence each, for example:
 - After the ending card, press **E** to show endless mode (night 8 and more, scaling fleets). Press P then **Q** to retire and save the score.
 - Place two mines close together (2 key, click water) and let a ship hit one: the chain reaction.
 - Tonyo's "mended" popup over a worn net or parol.
-- The Bakunawa has three beats: omen (nights 3, 5), small visit (nights 4, 6) and the finale (night 7). With the developer keys on, press **E** at night to start a visit right away and tap **SPACE** to sound the gongs.
 
 - **Opening comic:** the game opens with a 6-panel comic (about 40 s). For the demo press **ESC** to skip it, or let it play for the first 20 seconds of the pitch as the story hook.

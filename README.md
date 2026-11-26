@@ -28,7 +28,7 @@ Work in progress. Current build: **playable core**. Harvest by day, build nets, 
 | Supply crates: ore floats in from the sea (smart: favors the ore that has run out) | Done |
 | Survivors by bangka (Ka Inday, Migo, Tonyo) at dawn after nights 2, 4, 6, plus the Pana tower | Done |
 | Bigger island on a finer 10 px tile grid, with 11 choppable trees; brighter torches | Done |
-| Night 7: Bakunawa eclipse event (lamp goes out, sound the gongs, the flagship is swallowed) | Done |
+| Night 7: the last and biggest night; surviving it to dawn wins the game | Done |
 | Ending scene: lights across the sea, bangkas, sunrise, helicopter, title card | Done |
 | First enemy ship (Skiff) with wake, art loader | Done |
 | Day/night cycle, harvesting, nets, post and radio, HUD bars, win and lose | Done (first version, needs playtesting) |
@@ -67,7 +67,6 @@ Current build:
 | W A S D (or arrow keys) | Walk the island. You cannot walk into the sea |
 | Mouse | Point at things to harvest, build or shoot |
 | Space (hold, next to the lighthouse, night) | Steer the beam by hand toward the mouse. Otherwise it sweeps by itself |
-| Space (tap, during the Bakunawa eclipse, night 7) | Sound the gongs. Tap fast to fill the noise meter |
 | F (night) | Flare gun: lights a patch of sea at the mouse for 6 s (20 s cooldown) |
 | Hold X (day or night, near a damaged defense) | Mend it: 1 point per press-and-hold, costs bamboo |
 | P or Esc | Pause and resume |
@@ -92,7 +91,6 @@ Current build:
 | Left click (night) | Fire at a LIT ship (the beam, your lantern or a torch must be lighting it, and it must be within gun range) |
 | N (F12 on) | Skip to the next phase (test key) |
 | L (F12 on) | Jump to the day before the last night (test key) |
-| E (F12 on) | Start the Bakunawa eclipse right now, at night (test key) |
 | K (F12 on) | Drop a supply crate now, in the day (test key) |
 | J (F12 on) | Bring all three survivors to the post now (test key) |
 
@@ -113,7 +111,7 @@ Planned: more defenses on the number keys. Details are in
 | [docs/08-file-reference.md](docs/08-file-reference.md) | Every file and folder, plus where to change each number |
 | [docs/09-build-story.md](docs/09-build-story.md) | Why we built it this way, step by step, for beginners |
 | [docs/10-complete-guide.md](docs/10-complete-guide.md) | **Start here if you are new.** Tools, every folder, how it runs, recipes, glossary |
-| [docs/11-future-improvements.md](docs/11-future-improvements.md) | Ideas we cut or have not built yet (day squall, more Bakunawa moments, Filipino touches) |
+| [docs/11-future-improvements.md](docs/11-future-improvements.md) | Ideas we cut or have not built yet (day squall, the Bakunawa and how to bring it back, Filipino touches) |
 | [docs/12-testing.md](docs/12-testing.md) | Proof of testing: 34 unit checks, bot results, and what is NOT tested |
 | [CREDITS.md](CREDITS.md) | Asset sources, licenses, and AI-assistance disclosure |
 
@@ -167,6 +165,8 @@ See [CREDITS.md](CREDITS.md) for all third-party assets, licenses, and the note 
 - Smaller shop panel; Manananggal weaker; Duwende gives a different gift each day.
 
 - New (Nov 24): an opening comic before the menu (6 panels, ENTER next, ESC skip).
-- New (Nov 23): Bakunawa visits (a red-moon omen on nights 3 and 5, a small visit on nights 4 and 6 where the moon dims and the lamp goes out until you ring the gongs, and the same every 3rd night of endless mode), mines fixed (1 nickel, bigger blast, chain reactions), ENDLESS MODE (press E on the victory card to keep fighting nights 8+, harder each night, Q in the pause menu to retire and save the score), Tonyo now mends the most worn defense for free every ~12 s, and torches are now PAROL star lanterns.
+- New (Nov 23): mines fixed (1 nickel, bigger blast, chain reactions), ENDLESS MODE (press E on the victory card to keep fighting nights 8+, harder each night, Q in the pause menu to retire and save the score), Tonyo now mends the most worn defense for free every ~12 s, and torches are now PAROL star lanterns.
 - New: wear and tear (nets, torches, Pana towers lose 1 durability each dawn, mend with X for bamboo), Raiders (shoot your towers and torches), Ghost ships (slow to show, quick to vanish in the light), and the flare gun (F) so nights have more to do.
 - New: How to Play page (H on the menu, F1 anytime), radio voices from other islands (one each dusk, they answer in the ending), and combat feel (hit flash, damage numbers, screen shake, a ring around ships lit by the beam).
+
+- Nov 26: the Bakunawa event was removed (game stays simpler and fully tested). It is listed in docs/11 as a future improvement.

@@ -10,9 +10,9 @@ Ideas we thought of but did not put in the final version, so the code stays smal
 
 **How to bring it back.** `GameWorld` needs a timer, a side number, `squallBlocks(x, y)` checked in `updateHolding()`, and a `drawSquall()` that tints one half of the screen and draws rain lines. About 90 lines in total. A kinder version: the storm blocks only fishing, or only gives the bamboo a 25% bonus on the dry side.
 
-## 2. More Bakunawa moments (partly done on Nov 23)
+## 2. Bring the Bakunawa back (removed Nov 26)
 
-Done: the red-moon omen (nights 3 and 5), the small visit (nights 4 and 6, and every third endless night). Still ideas: a different gong rhythm each time (tap on the beat), the dragon biting the Post's radio mast, and a short cutscene at the first omen.
+It was in the game from Nov 21 to Nov 26: a red-moon omen on nights 3 and 5, small visits on nights 4 and 6 (the moon dims, the lamp goes out, tap SPACE to ring the gongs), a night 7 finale where the dragon swallows the Kordan flagship, and returns in endless mode. It was removed to keep the project simple. The code is in the git history (look for `Bakunawa.java` before the commit that removes it). Ideas if it returns: a drum rhythm for the gongs, the dragon biting the Post's radio mast, a short cutscene at the first omen.
 
 ## 3. Day events and island life
 

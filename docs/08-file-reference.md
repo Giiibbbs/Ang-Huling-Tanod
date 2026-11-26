@@ -77,7 +77,6 @@ Ang-Huling-Tanod/                  the repository (what GitHub shows)
 | `Skiff.java` | The first enemy ship. Extends `Warship` | `Warship`, `Assets` |
 | `Cutter.java` | Fast, fragile ship. Extends `Warship` | `Warship`, `Assets` |
 | `Barge.java` | Slow, tough ship that hurts the post most. Extends `Warship` | `Warship`, `Assets` |
-| `Bakunawa.java` | The moon-eating dragon: the omen (nights 3 and 5), the small visit (nights 4 and 6, every third endless night) and the night 7 finale with the Kordan flagship. The eclipse puts the lamp out. Optional art: `bakunawa_head.png`, `bakunawa_body.png` | `Beam`, `Assets` |
 | `Post.java` | The grounded ship that is the island's command post. Has health and armor levels | `Constants` |
 | `Radio.java` | The signal bar. Weakens when ships land | (none) |
 | `Survivor.java` | **Abstract parent** of the allies who walk or fly: walking home, day work (chop, carry), drawing | `TileMap`, `ResourceNode`, `Assets` |
